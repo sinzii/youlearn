@@ -15,6 +15,7 @@ export interface TranscriptSegment {
 
 export interface TranscriptResult {
   videoId: string;
+  title: string;
   segments: TranscriptSegment[];
   totalDuration: number;
   language?: string;
@@ -36,6 +37,7 @@ export class YoutubeService {
 
     try {
       const info = await this.innertube.getInfo(videoId);
+      const title = info.primary_info?.title?.text || '';
       const transcriptInfo = await info.getTranscript();
 
       if (!transcriptInfo) {
@@ -70,6 +72,7 @@ export class YoutubeService {
 
       return {
         videoId,
+        title,
         segments,
         totalDuration,
         language: lang,
