@@ -2,9 +2,10 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
-import { YoutubeTranscript } from 'youtube-transcript';
 import { extractVideoId } from './utils/youtube-url.util';
+import { INNERTUBE_TOKEN } from './youtube.constants';
 
 export interface TranscriptSegment {
   text: string;
@@ -21,6 +22,8 @@ export interface TranscriptResult {
 
 @Injectable()
 export class YoutubeService {
+  constructor(@Inject(INNERTUBE_TOKEN) private readonly innertube: any) {}
+
   async getTranscript(
     videoIdOrUrl: string,
     lang?: string,
@@ -32,25 +35,36 @@ export class YoutubeService {
     }
 
     try {
-      const config = lang ? { lang } : undefined;
-      const transcriptData = await YoutubeTranscript.fetchTranscript(
-        videoId,
-        config,
-      );
+      const info = await this.innertube.getInfo(videoId);
+      const transcriptInfo = await info.getTranscript();
 
-      if (!transcriptData || transcriptData.length === 0) {
+      if (!transcriptInfo) {
         throw new NotFoundException(
-          `No transcript found for video: ${videoId}`,
+          `No transcript available for video: ${videoId}`,
         );
       }
 
-      const segments: TranscriptSegment[] = transcriptData.map((item) => ({
-        text: item.text,
-        duration: item.duration,
-        offset: item.offset,
-      }));
+      const transcriptContent =
+        transcriptInfo.transcript?.content?.body?.initial_segments;
 
-      // Calculate total duration from segments
+      if (!transcriptContent || transcriptContent.length === 0) {
+        throw new NotFoundException(
+          `No transcript segments found for video: ${videoId}`,
+        );
+      }
+
+      const segments: TranscriptSegment[] = transcriptContent.map(
+        (segment: any) => {
+          const startMs = parseInt(segment.start_ms || '0', 10);
+          const endMs = parseInt(segment.end_ms || '0', 10);
+          return {
+            text: segment.snippet?.text || '',
+            offset: startMs / 1000,
+            duration: (endMs - startMs) / 1000,
+          };
+        },
+      );
+
       const lastSegment = segments[segments.length - 1];
       const totalDuration = lastSegment.offset + lastSegment.duration;
 
@@ -61,7 +75,6 @@ export class YoutubeService {
         language: lang,
       };
     } catch (error) {
-      // Re-throw NestJS exceptions
       if (
         error instanceof BadRequestException ||
         error instanceof NotFoundException
@@ -83,7 +96,8 @@ export class YoutubeService {
 
       if (
         errorMessage.toLowerCase().includes('unavailable') ||
-        errorMessage.toLowerCase().includes('video unavailable')
+        errorMessage.toLowerCase().includes('video unavailable') ||
+        errorMessage.toLowerCase().includes('not found')
       ) {
         throw new NotFoundException(
           `Video is unavailable or does not exist: ${videoId}`,
@@ -96,12 +110,6 @@ export class YoutubeService {
       ) {
         throw new NotFoundException(
           `No transcript available for video: ${videoId}`,
-        );
-      }
-
-      if (errorMessage.toLowerCase().includes('language')) {
-        throw new BadRequestException(
-          `Transcript not available in requested language for video: ${videoId}`,
         );
       }
 
