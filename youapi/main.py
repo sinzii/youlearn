@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from pytubefix import YouTube
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import (
     NoTranscriptFound,
@@ -46,6 +47,7 @@ class TranscriptSegment(BaseModel):
 
 class TranscriptResponse(BaseModel):
     video_id: str
+    title: str
     language: str
     language_code: str
     is_generated: bool
@@ -107,6 +109,15 @@ def extract_video_id(video_id_or_url: str) -> str:
     raise ValueError(f"Could not extract video ID from: {video_id_or_url}")
 
 
+def get_video_title(video_id: str) -> str:
+    """Fetch video title from YouTube."""
+    try:
+        yt = YouTube(f"https://www.youtube.com/watch?v={video_id}")
+        return yt.title
+    except Exception:
+        return "Unknown Title"
+
+
 def fetch_transcript_text(video_id: str) -> tuple[str, TranscriptResponse]:
     """Fetch transcript and return both raw text and structured response."""
     try:
@@ -117,6 +128,9 @@ def fetch_transcript_text(video_id: str) -> tuple[str, TranscriptResponse]:
     try:
         ytt_api = YouTubeTranscriptApi()
         transcript = ytt_api.fetch(actual_video_id)
+
+        # Get video title
+        title = get_video_title(actual_video_id)
 
         segments = [
             TranscriptSegment(
@@ -129,6 +143,7 @@ def fetch_transcript_text(video_id: str) -> tuple[str, TranscriptResponse]:
 
         response = TranscriptResponse(
             video_id=actual_video_id,
+            title=title,
             language=transcript.language,
             language_code=transcript.language_code,
             is_generated=transcript.is_generated,
@@ -190,6 +205,9 @@ def get_transcript(
         else:
             transcript = ytt_api.fetch(actual_video_id)
 
+        # Get video title
+        title = get_video_title(actual_video_id)
+
         segments = [
             TranscriptSegment(
                 text=snippet.text,
@@ -201,6 +219,7 @@ def get_transcript(
 
         return TranscriptResponse(
             video_id=actual_video_id,
+            title=title,
             language=transcript.language,
             language_code=transcript.language_code,
             is_generated=transcript.is_generated,
