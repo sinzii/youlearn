@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { extractVideoId } from './utils/youtube-url.util';
 import { INNERTUBE_TOKEN } from './youtube.constants';
+import type { Innertube } from 'youtubei.js';
 
 export interface TranscriptSegment {
   text: string;
@@ -23,7 +24,7 @@ export interface TranscriptResult {
 
 @Injectable()
 export class YoutubeService {
-  constructor(@Inject(INNERTUBE_TOKEN) private readonly innertube: any) {}
+  constructor(@Inject(INNERTUBE_TOKEN) private readonly innertube: Innertube) {}
 
   async getTranscript(
     videoIdOrUrl: string,

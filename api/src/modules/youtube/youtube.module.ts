@@ -9,7 +9,8 @@ import { INNERTUBE_TOKEN } from './youtube.constants';
     {
       provide: INNERTUBE_TOKEN,
       useFactory: async () => {
-        const { Innertube } = await import('youtubei.js');
+        const { Innertube, Log } = await import('youtubei.js');
+        Log.setLevel(Log.Level.NONE);
         return await Innertube.create();
       },
     },
