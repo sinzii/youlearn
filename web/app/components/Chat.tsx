@@ -57,17 +57,14 @@ export default function Chat({ videoId, model }: ChatProps) {
   };
 
   return (
-    <div className="flex h-96 flex-col rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-      <div className="border-b border-zinc-200 p-4 dark:border-zinc-700">
-        <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
+    <div className="flex h-80 flex-col rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="border-b border-zinc-200 px-3 py-2.5 dark:border-zinc-700">
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
           Chat with Video
         </h3>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Ask questions about the video content
-        </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {messages.length === 0 && (
           <div className="flex h-full items-center justify-center">
             <p className="text-sm text-zinc-400 dark:text-zinc-500">
@@ -110,7 +107,7 @@ export default function Chat({ videoId, model }: ChatProps) {
 
       <form
         onSubmit={handleSubmit}
-        className="border-t border-zinc-200 p-4 dark:border-zinc-700"
+        className="border-t border-zinc-200 p-3 dark:border-zinc-700"
       >
         <div className="flex gap-2">
           <input
@@ -119,12 +116,12 @@ export default function Chat({ videoId, model }: ChatProps) {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about the video..."
             disabled={isLoading}
-            className="flex-1 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+            className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Send
           </button>
