@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi[standard]>=0.124.4",
+    "youtube-transcript-api>=1.2.3",
 ]
 
 [dependency-groups]
