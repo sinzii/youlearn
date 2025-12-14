@@ -9,7 +9,7 @@ from youtube_transcript_api._errors import (
     VideoUnavailable,
 )
 
-app = FastAPI()
+app = FastAPI(docs_url="/swagger")
 
 
 # Response Models
@@ -62,12 +62,7 @@ def extract_video_id(video_id_or_url: str) -> str:
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
+    return {"message": "Hello World"}
 
 
 @app.get("/youtube/transcript", response_model=TranscriptResponse)
