@@ -28,12 +28,9 @@ export default function Summary({ videoId, model }: SummaryProps) {
   };
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          Summary
-        </h3>
-        {!summary && (
+    <div>
+      {!summary && (
+        <div className="mb-3 flex justify-center">
           <button
             onClick={handleSummarize}
             disabled={isLoading}
@@ -66,8 +63,8 @@ export default function Summary({ videoId, model }: SummaryProps) {
               "Summarize"
             )}
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg bg-red-50 p-2 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400">

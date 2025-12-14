@@ -8,6 +8,7 @@ export interface TranscriptSegment {
 
 export interface TranscriptResponse {
   video_id: string;
+  title: string;
   language: string;
   language_code: string;
   is_generated: boolean;

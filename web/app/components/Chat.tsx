@@ -57,14 +57,8 @@ export default function Chat({ videoId, model }: ChatProps) {
   };
 
   return (
-    <div className="flex h-80 flex-col rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-      <div className="border-b border-zinc-200 px-3 py-2.5 dark:border-zinc-700">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          Chat with Video
-        </h3>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+    <div className="flex h-72 flex-col">
+      <div className="flex-1 overflow-y-auto space-y-3 mb-3">
         {messages.length === 0 && (
           <div className="flex h-full items-center justify-center">
             <p className="text-sm text-zinc-400 dark:text-zinc-500">
@@ -105,10 +99,7 @@ export default function Chat({ videoId, model }: ChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="border-t border-zinc-200 p-3 dark:border-zinc-700"
-      >
+      <form onSubmit={handleSubmit}>
         <div className="flex gap-2">
           <input
             type="text"

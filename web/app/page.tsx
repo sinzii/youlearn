@@ -6,9 +6,10 @@ import {
   TranscriptResponse,
   ModelName,
 } from "./lib/api";
+import VideoPlayer from "./components/VideoPlayer";
+import TabContainer from "./components/TabContainer";
 import TranscriptView from "./components/TranscriptView";
-import Summary from "./components/Summary";
-import Chat from "./components/Chat";
+import SummaryChat from "./components/SummaryChat";
 
 export default function Home() {
   const [videoUrl, setVideoUrl] = useState("");
@@ -90,28 +91,23 @@ export default function Home() {
         {/* Content Area */}
         {transcript && (
           <div className="space-y-4">
-            {/* Video Info */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                  Video ID:
-                </span>
-                <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100">
-                  {transcript.video_id}
-                </span>
-              </div>
-            </div>
+            {/* Video Player */}
+            <VideoPlayer
+              videoId={transcript.video_id}
+              title={transcript.title}
+            />
 
-            {/* Summary Section */}
-            <Summary videoId={transcript.video_id} model={model} />
-
-            {/* Chat Section */}
-            <Chat videoId={transcript.video_id} model={model} />
-
-            {/* Transcript Section */}
-            <TranscriptView
-              segments={transcript.segments}
-              language={transcript.language}
+            {/* Tabs: Summary & Chat / Transcript */}
+            <TabContainer
+              summaryChatContent={
+                <SummaryChat videoId={transcript.video_id} model={model} />
+              }
+              transcriptContent={
+                <TranscriptView
+                  segments={transcript.segments}
+                  language={transcript.language}
+                />
+              }
             />
           </div>
         )}

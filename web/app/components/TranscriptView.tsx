@@ -22,17 +22,14 @@ export default function TranscriptView({
   const displaySegments = isExpanded ? segments : segments.slice(0, 5);
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          Transcript
-        </h3>
+    <div>
+      <div className="mb-2 text-center">
         <span className="text-xs text-zinc-500 dark:text-zinc-400">
           {language} - {segments.length} segments
         </span>
       </div>
 
-      <div className="space-y-1 max-h-64 overflow-y-auto">
+      <div className="space-y-1 max-h-60 overflow-y-auto">
         {displaySegments.map((segment, index) => (
           <div
             key={index}
@@ -49,14 +46,16 @@ export default function TranscriptView({
       </div>
 
       {segments.length > 5 && (
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-2 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-        >
-          {isExpanded
-            ? "Show less"
-            : `Show all ${segments.length} segments`}
-        </button>
+        <div className="mt-2 text-center">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+          >
+            {isExpanded
+              ? "Show less"
+              : `Show all ${segments.length} segments`}
+          </button>
+        </div>
       )}
     </div>
   );
