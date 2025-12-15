@@ -248,10 +248,10 @@ def get_transcript(
         )
 
 
-@app.post("/summarize", response_model=SummarizeResponse)
-def summarize_video(request: SummarizeRequest):
+@app.post("/summarize")
+async def summarize_video(request: SummarizeRequest):
     """
-    Generate a summary of a YouTube video transcript.
+    Generate a streaming summary of a YouTube video transcript.
 
     - **video_id**: YouTube video ID or URL
     - **model**: LLM model to use (gpt-4o-mini or gpt-4o)
@@ -259,24 +259,34 @@ def summarize_video(request: SummarizeRequest):
     # Fetch transcript
     transcript_text, _ = fetch_transcript_text(request.video_id)
 
-    # Generate summary using AI SDK
+    # Generate streaming summary using AI SDK
     try:
         model = openai(request.model.value)
-        result = generate_text(
-            model=model,
-            prompt=f"""Please provide a comprehensive summary of the following YouTube video transcript.
+
+        async def generate():
+            result = stream_text(
+                model=model,
+                prompt=f"""Please provide a comprehensive summary of the following YouTube video transcript.
+Use markdown formatting with headers, bullet points, and emphasis where appropriate.
 Include the main topics, key points, and any important takeaways.
 
 Transcript:
 {transcript_text}
 
 Summary:""",
-        )
+            )
+            async for chunk in result.text_stream:
+                if chunk:
+                    yield f"data: {chunk}\n\n"
+            yield "data: [DONE]\n\n"
 
-        return SummarizeResponse(
-            video_id=extract_video_id(request.video_id),
-            summary=result.text,
-            model=request.model.value,
+        return StreamingResponse(
+            generate(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            },
         )
 
     except Exception as e:

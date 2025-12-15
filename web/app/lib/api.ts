@@ -42,10 +42,10 @@ export async function fetchTranscript(
   return response.json();
 }
 
-export async function summarizeVideo(
+export async function* streamSummary(
   videoId: string,
   model: ModelName = "gpt-4o-mini"
-): Promise<SummarizeResponse> {
+): AsyncGenerator<string> {
   const response = await fetch(`${API_BASE_URL}/summarize`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -57,7 +57,26 @@ export async function summarizeVideo(
     throw new Error(error.detail || "Failed to generate summary");
   }
 
-  return response.json();
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("No response body");
+
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value);
+    const lines = chunk.split("\n");
+
+    for (const line of lines) {
+      if (line.startsWith("data: ")) {
+        const data = line.slice(6);
+        if (data === "[DONE]") return;
+        yield data;
+      }
+    }
+  }
 }
 
 export interface ChatMessage {
