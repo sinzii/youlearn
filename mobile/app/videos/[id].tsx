@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -14,6 +14,7 @@ import { fetchTranscript, TranscriptResponse } from '@/lib/api';
 import { useVideoCache } from '@/lib/store';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { mergeSegmentsIntoSentences } from '@/utils/transcript';
 
 export default function VideoDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -69,6 +70,17 @@ export default function VideoDetailsScreen() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }, []);
 
+  // Merge segments into complete sentences for better readability
+  // Skip merging for auto-generated transcripts as they already have proper sentence structure
+  const mergedSegments = useMemo(() => {
+    if (!transcript?.segments) return [];
+    if (transcript.is_generated) {
+      return transcript.segments;
+    }
+
+    return mergeSegmentsIntoSentences(transcript.segments);
+  }, [transcript?.segments, transcript?.is_generated]);
+
   // Calculate player height maintaining 16:9 aspect ratio
   const playerHeight = (width - 32) * (9 / 16);
 
@@ -109,7 +121,6 @@ export default function VideoDetailsScreen() {
           {transcript?.language && (
             <ThemedText style={styles.language}>
               Language: {transcript.language}
-              {transcript.is_generated && ' (auto-generated)'}
             </ThemedText>
           )}
         </ThemedView>
@@ -119,7 +130,7 @@ export default function VideoDetailsScreen() {
           <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
             Transcript
           </ThemedText>
-          {transcript?.segments.map((segment, index) => (
+          {mergedSegments.map((segment, index) => (
             <ThemedView key={index} style={styles.segment}>
               <ThemedText style={styles.timestamp}>
                 {formatTime(segment.start)}
