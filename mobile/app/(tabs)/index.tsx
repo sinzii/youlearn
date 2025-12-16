@@ -1,98 +1,156 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import {
+  StyleSheet,
+  TextInput,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useRouter } from 'expo-router';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [videoUrl, setVideoUrl] = useState('');
+  const router = useRouter();
+  const colorScheme = useColorScheme() ?? 'light';
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const handleStartLearning = () => {
+    const trimmedUrl = videoUrl.trim();
+    if (!trimmedUrl) return;
+
+    // Extract video ID from URL or use as-is if it's already an ID
+    const videoId = extractVideoId(trimmedUrl);
+    if (videoId) {
+      router.push({ pathname: '/videos/[id]', params: { id: videoId } });
+    }
+  };
+
+  return (
+    <ThemedView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.content}
+      >
+        <ThemedView style={styles.header}>
+          <ThemedText type="title" style={styles.title}>
+            YouLearn
+          </ThemedText>
+          <ThemedText style={styles.subtitle}>
+            Learn from YouTube videos with AI
+          </ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.form}>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5',
+                color: Colors[colorScheme].text,
+                borderColor: colorScheme === 'dark' ? '#333' : '#ddd',
+              },
+            ]}
+            placeholder="Paste YouTube URL or video ID..."
+            placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
+            value={videoUrl}
+            onChangeText={setVideoUrl}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="go"
+            onSubmitEditing={handleStartLearning}
+          />
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              {
+                backgroundColor: Colors[colorScheme].tint,
+                opacity: pressed ? 0.8 : videoUrl.trim() ? 1 : 0.5,
+              },
+            ]}
+            onPress={handleStartLearning}
+            disabled={!videoUrl.trim()}
+          >
+            <ThemedText style={styles.buttonText} lightColor="#fff" darkColor="#000">
+              Start Learning
+            </ThemedText>
+          </Pressable>
+        </ThemedView>
+      </KeyboardAvoidingView>
+    </ThemedView>
   );
 }
 
+function extractVideoId(input: string): string | null {
+  // Direct video ID (11 characters)
+  const videoIdPattern = /^[a-zA-Z0-9_-]{11}$/;
+  if (videoIdPattern.test(input)) {
+    return input;
+  }
+
+  // URL patterns
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+    /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+    /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = input.match(pattern);
+    if (match) {
+      return match[1];
+    }
+  }
+
+  // If no pattern matches, return the input as-is (let backend validate)
+  return input;
+}
+
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 48,
+  },
+  title: {
+    fontSize: 36,
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  subtitle: {
+    fontSize: 16,
+    opacity: 0.7,
+    textAlign: 'center',
+  },
+  form: {
+    gap: 16,
+  },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+  },
+  button: {
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
