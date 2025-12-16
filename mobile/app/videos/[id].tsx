@@ -1,55 +1,58 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   StyleSheet,
-  ScrollView,
   ActivityIndicator,
   useWindowDimensions,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { SummaryTab } from '@/components/video/summary-tab';
+import { ChatTab } from '@/components/video/chat-tab';
+import { TranscriptTab } from '@/components/video/transcript-tab';
 import { fetchTranscript, TranscriptResponse } from '@/lib/api';
 import { useVideoCache } from '@/lib/store';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { mergeSegmentsIntoSentences } from '@/utils/transcript';
 
+type TabType = 'summary' | 'chat' | 'transcript';
+
 export default function VideoDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
   const colorScheme = useColorScheme() ?? 'light';
 
-  // Get cached video data
   const { video: cachedVideo, updateVideo } = useVideoCache(id || '');
 
   const [transcript, setTranscript] = useState<TranscriptResponse | null>(
     cachedVideo?.transcript || null
   );
+  const [summary, setSummary] = useState<string | null>(cachedVideo?.summary || null);
   const [isLoading, setIsLoading] = useState(!cachedVideo?.transcript);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('summary');
 
   useEffect(() => {
     if (!id) return;
 
-    // If we have cached transcript, use it immediately
     if (cachedVideo?.transcript) {
       setTranscript(cachedVideo.transcript);
+      setSummary(cachedVideo.summary || null);
       setIsLoading(false);
-      // Update lastAccessed timestamp
       updateVideo({});
       return;
     }
 
-    // Otherwise fetch from API
     setIsLoading(true);
     setError(null);
 
     fetchTranscript(id)
       .then((data) => {
         setTranscript(data);
-        // Cache the transcript
         updateVideo({
           video_id: id,
           title: data.title,
@@ -62,26 +65,24 @@ export default function VideoDetailsScreen() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [id, cachedVideo?.transcript, updateVideo]);
+  }, [id, cachedVideo?.transcript, cachedVideo?.summary, updateVideo]);
 
-  const formatTime = useCallback((seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }, []);
+  const handleSummaryUpdate = useCallback(
+    (newSummary: string) => {
+      setSummary(newSummary);
+      updateVideo({ summary: newSummary });
+    },
+    [updateVideo]
+  );
 
-  // Merge segments into complete sentences for better readability
-  // Skip merging for auto-generated transcripts as they already have proper sentence structure
   const mergedSegments = useMemo(() => {
     if (!transcript?.segments) return [];
     if (transcript.is_generated) {
       return transcript.segments;
     }
-
     return mergeSegmentsIntoSentences(transcript.segments);
   }, [transcript?.segments, transcript?.is_generated]);
 
-  // Calculate player height maintaining 16:9 aspect ratio
   const playerHeight = (width - 32) * (9 / 16);
 
   if (isLoading) {
@@ -101,45 +102,81 @@ export default function VideoDetailsScreen() {
     );
   }
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'summary':
+        return (
+          <SummaryTab
+            videoId={id || ''}
+            summary={summary}
+            onSummaryUpdate={handleSummaryUpdate}
+          />
+        );
+      case 'chat':
+        return <ChatTab videoId={id || ''} />;
+      case 'transcript':
+        return <TranscriptTab segments={mergedSegments} />;
+    }
+  };
+
   return (
     <ThemedView style={styles.container}>
-      <ScrollView>
-        {/* YouTube Player */}
-        <ThemedView style={styles.playerContainer}>
-          <YoutubePlayer
-            height={playerHeight}
-            videoId={id}
-            webViewStyle={styles.player}
-          />
-        </ThemedView>
+      {/* YouTube Player */}
+      <ThemedView style={styles.playerContainer}>
+        <YoutubePlayer
+          height={playerHeight}
+          videoId={id}
+          webViewStyle={styles.player}
+        />
+      </ThemedView>
 
-        {/* Video Title */}
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle" style={styles.title}>
-            {transcript?.title || cachedVideo?.title || 'Untitled Video'}
+      {/* Video Title */}
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText type="subtitle" style={styles.title} numberOfLines={2}>
+          {transcript?.title || cachedVideo?.title || 'Untitled Video'}
+        </ThemedText>
+        {transcript?.language && (
+          <ThemedText style={styles.language}>
+            Language: {transcript.language}
           </ThemedText>
-          {transcript?.language && (
-            <ThemedText style={styles.language}>
-              Language: {transcript.language}
+        )}
+      </ThemedView>
+
+      {/* Tab Content */}
+      <ThemedView style={styles.tabContent}>{renderTabContent()}</ThemedView>
+
+      {/* Bottom Tab Bar */}
+      <ThemedView
+        style={[styles.tabBar, { borderTopColor: Colors[colorScheme].icon + '30' }]}
+      >
+        {(['summary', 'chat', 'transcript'] as TabType[]).map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={styles.tabButton}
+            onPress={() => setActiveTab(tab)}
+          >
+            <ThemedText
+              style={[
+                styles.tabText,
+                activeTab === tab && {
+                  color: Colors[colorScheme].tint,
+                  fontWeight: '600',
+                },
+              ]}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </ThemedText>
-          )}
-        </ThemedView>
-
-        {/* Transcript */}
-        <ThemedView style={styles.transcriptContainer}>
-          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-            Transcript
-          </ThemedText>
-          {mergedSegments.map((segment, index) => (
-            <ThemedView key={index} style={styles.segment}>
-              <ThemedText style={styles.timestamp}>
-                {formatTime(segment.start)}
-              </ThemedText>
-              <ThemedText style={styles.segmentText}>{segment.text}</ThemedText>
-            </ThemedView>
-          ))}
-        </ThemedView>
-      </ScrollView>
+            {activeTab === tab && (
+              <ThemedView
+                style={[
+                  styles.tabIndicator,
+                  { backgroundColor: Colors[colorScheme].tint },
+                ]}
+              />
+            )}
+          </TouchableOpacity>
+        ))}
+      </ThemedView>
     </ThemedView>
   );
 }
@@ -171,42 +208,40 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   titleContainer: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   title: {
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 22,
   },
   language: {
     marginTop: 4,
     fontSize: 12,
     opacity: 0.6,
   },
-  transcriptContainer: {
-    padding: 16,
-    paddingTop: 0,
+  tabContent: {
+    flex: 1,
   },
-  sectionTitle: {
-    marginBottom: 12,
+  tabBar: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    paddingBottom: 20,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  tabText: {
     fontSize: 14,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
     opacity: 0.7,
   },
-  segment: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    gap: 12,
-  },
-  timestamp: {
-    fontSize: 12,
-    fontFamily: 'monospace',
-    opacity: 0.5,
-    minWidth: 45,
-  },
-  segmentText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    height: 2,
+    width: '60%',
+    borderRadius: 1,
   },
 });

@@ -30,3 +30,122 @@ export async function fetchTranscript(
 
   return response.json();
 }
+
+export type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
+export type StreamCallbacks = {
+  onChunk: (chunk: string) => void;
+  onDone: () => void;
+  onError: (error: Error) => void;
+};
+
+export function streamSummary(
+  videoId: string,
+  callbacks: StreamCallbacks
+): () => void {
+  const { onChunk, onDone, onError } = callbacks;
+
+  // Use XMLHttpRequest for React Native streaming support
+  const xhr = new XMLHttpRequest();
+  let lastIndex = 0;
+
+  xhr.open('POST', `${API_ENDPOINT}/summarize`, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+
+  xhr.onprogress = () => {
+    const newData = xhr.responseText.slice(lastIndex);
+    lastIndex = xhr.responseText.length;
+
+    const lines = newData.split('\n');
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const data = line.slice(6);
+        if (data === '[DONE]') {
+          onDone();
+          return;
+        }
+        if (data) {
+          onChunk(data);
+        }
+      }
+    }
+  };
+
+  xhr.onload = () => {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      onDone();
+    } else {
+      try {
+        const error = JSON.parse(xhr.responseText);
+        onError(new Error(error.detail || 'Failed to generate summary'));
+      } catch {
+        onError(new Error('Failed to generate summary'));
+      }
+    }
+  };
+
+  xhr.onerror = () => {
+    onError(new Error('Network error'));
+  };
+
+  xhr.send(JSON.stringify({ video_id: videoId, model: 'gpt-4o-mini' }));
+
+  return () => xhr.abort();
+}
+
+export function streamChat(
+  videoId: string,
+  messages: ChatMessage[],
+  callbacks: StreamCallbacks
+): () => void {
+  const { onChunk, onDone, onError } = callbacks;
+
+  const xhr = new XMLHttpRequest();
+  let lastIndex = 0;
+
+  xhr.open('POST', `${API_ENDPOINT}/chat`, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+
+  xhr.onprogress = () => {
+    const newData = xhr.responseText.slice(lastIndex);
+    lastIndex = xhr.responseText.length;
+
+    const lines = newData.split('\n');
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const data = line.slice(6);
+        if (data === '[DONE]') {
+          onDone();
+          return;
+        }
+        if (data) {
+          onChunk(data);
+        }
+      }
+    }
+  };
+
+  xhr.onload = () => {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      onDone();
+    } else {
+      try {
+        const error = JSON.parse(xhr.responseText);
+        onError(new Error(error.detail || 'Failed to send message'));
+      } catch {
+        onError(new Error('Failed to send message'));
+      }
+    }
+  };
+
+  xhr.onerror = () => {
+    onError(new Error('Network error'));
+  };
+
+  xhr.send(JSON.stringify({ video_id: videoId, messages, model: 'gpt-4o-mini' }));
+
+  return () => xhr.abort();
+}
