@@ -277,7 +277,9 @@ Summary:""",
             )
             async for chunk in result.text_stream:
                 if chunk:
-                    yield f"data: {chunk}\n\n"
+                    # Encode newlines to preserve them in SSE format
+                    encoded = chunk.replace("\n", "\\n")
+                    yield f"data: {encoded}\n\n"
             yield "data: [DONE]\n\n"
 
         return StreamingResponse(
@@ -333,7 +335,9 @@ Video Transcript:
             result = stream_text(model=model, messages=messages)
             async for chunk in result.text_stream:
                 if chunk:
-                    yield f"data: {chunk}\n\n"
+                    # Encode newlines to preserve them in SSE format
+                    encoded = chunk.replace("\n", "\\n")
+                    yield f"data: {encoded}\n\n"
             yield "data: [DONE]\n\n"
 
         return StreamingResponse(

@@ -1,10 +1,11 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import Markdown from 'react-native-markdown-display';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -25,9 +26,14 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
   const [error, setError] = useState<string | null>(null);
   const fullTextRef = useRef('');
 
+  const textColor = Colors[colorScheme].text;
+  const tintColor = Colors[colorScheme].tint;
+  const codeBgColor = colorScheme === 'dark' ? '#333' : '#f0f0f0';
+
   const handleSummarize = useCallback(() => {
     setIsLoading(true);
     setError(null);
+    onSummaryUpdate('')
     setStreamingText('');
     fullTextRef.current = '';
 
@@ -48,6 +54,76 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
   }, [videoId, onSummaryUpdate]);
 
   const displayText = summary || streamingText;
+
+  const markdownStyles = useMemo(
+    () => ({
+      body: {
+        color: textColor,
+        fontSize: 14,
+        lineHeight: 22,
+      },
+      heading1: {
+        fontSize: 24,
+        fontWeight: '700' as const,
+        marginTop: 16,
+        marginBottom: 8,
+        color: textColor,
+      },
+      heading2: {
+        fontSize: 20,
+        fontWeight: '600' as const,
+        marginTop: 14,
+        marginBottom: 6,
+        color: textColor,
+      },
+      heading3: {
+        fontSize: 16,
+        fontWeight: '600' as const,
+        marginTop: 12,
+        marginBottom: 4,
+        color: textColor,
+      },
+      paragraph: {
+        marginBottom: 8,
+      },
+      list_item: {
+        marginBottom: 4,
+      },
+      strong: {
+        fontWeight: '700' as const,
+      },
+      em: {
+        fontStyle: 'italic' as const,
+      },
+      link: {
+        color: tintColor,
+        textDecorationLine: 'underline' as const,
+      },
+      code_inline: {
+        fontFamily: 'monospace',
+        fontSize: 13,
+        backgroundColor: codeBgColor,
+        color: textColor,
+      },
+      code_block: {
+        fontFamily: 'monospace',
+        fontSize: 13,
+        backgroundColor: codeBgColor,
+        color: textColor,
+        padding: 8,
+        borderRadius: 4,
+      },
+      fence: {
+        fontFamily: 'monospace',
+        fontSize: 13,
+        backgroundColor: codeBgColor,
+        color: textColor,
+        padding: 8,
+        borderRadius: 4,
+      },
+    }),
+    [textColor, tintColor, codeBgColor]
+  );
 
   if (!displayText && !isLoading) {
     return (
@@ -75,12 +151,22 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
         </ThemedView>
       )}
       {displayText && (
-        <ThemedText style={styles.summaryText}>{displayText}</ThemedText>
+        <Markdown style={markdownStyles}>
+          {displayText}
+        </Markdown>
       )}
       {isLoading && streamingText && (
         <ThemedView style={styles.streamingIndicator}>
           <ActivityIndicator size="small" color={Colors[colorScheme].tint} />
         </ThemedView>
+      )}
+      {displayText && !isLoading && (
+        <TouchableOpacity
+          style={styles.resummarizeButton}
+          onPress={handleSummarize}
+        >
+          <ThemedText style={styles.resummarizeText}>Resummarize</ThemedText>
+        </TouchableOpacity>
       )}
       {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
     </ScrollView>
@@ -123,15 +209,21 @@ const styles = StyleSheet.create({
   loadingText: {
     opacity: 0.6,
   },
-  summaryText: {
-    fontSize: 14,
-    lineHeight: 22,
-  },
   streamingIndicator: {
     marginTop: 8,
   },
   errorText: {
     color: '#ef4444',
     marginTop: 12,
+  },
+  resummarizeButton: {
+    marginTop: 16,
+    alignSelf: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  resummarizeText: {
+    opacity: 0.6,
+    fontSize: 14,
   },
 });

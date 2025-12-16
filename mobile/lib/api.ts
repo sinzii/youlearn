@@ -68,7 +68,8 @@ export function streamSummary(
           return;
         }
         if (data) {
-          onChunk(data);
+          // Decode escaped newlines back to actual newlines
+          onChunk(data.replace(/\\n/g, '\n'));
         }
       }
     }
@@ -122,7 +123,8 @@ export function streamChat(
           return;
         }
         if (data) {
-          onChunk(data);
+          // Decode escaped newlines back to actual newlines
+          onChunk(data.replace(/\\n/g, '\n'));
         }
       }
     }
