@@ -11,6 +11,7 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { fetchTranscript, TranscriptResponse } from '@/lib/api';
+import { useVideoCache } from '@/lib/store';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -19,19 +20,40 @@ export default function VideoDetailsScreen() {
   const { width } = useWindowDimensions();
   const colorScheme = useColorScheme() ?? 'light';
 
-  const [transcript, setTranscript] = useState<TranscriptResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Get cached video data
+  const { video: cachedVideo, updateVideo } = useVideoCache(id || '');
+
+  const [transcript, setTranscript] = useState<TranscriptResponse | null>(
+    cachedVideo?.transcript || null
+  );
+  const [isLoading, setIsLoading] = useState(!cachedVideo?.transcript);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
 
+    // If we have cached transcript, use it immediately
+    if (cachedVideo?.transcript) {
+      setTranscript(cachedVideo.transcript);
+      setIsLoading(false);
+      // Update lastAccessed timestamp
+      updateVideo({});
+      return;
+    }
+
+    // Otherwise fetch from API
     setIsLoading(true);
     setError(null);
 
     fetchTranscript(id)
       .then((data) => {
         setTranscript(data);
+        // Cache the transcript
+        updateVideo({
+          video_id: id,
+          title: data.title,
+          transcript: data,
+        });
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Failed to load transcript');
@@ -39,7 +61,7 @@ export default function VideoDetailsScreen() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [id]);
+  }, [id, cachedVideo?.transcript, updateVideo]);
 
   const formatTime = useCallback((seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -82,7 +104,7 @@ export default function VideoDetailsScreen() {
         {/* Video Title */}
         <ThemedView style={styles.titleContainer}>
           <ThemedText type="subtitle" style={styles.title}>
-            {transcript?.title || 'Untitled Video'}
+            {transcript?.title || cachedVideo?.title || 'Untitled Video'}
           </ThemedText>
           {transcript?.language && (
             <ThemedText style={styles.language}>
