@@ -42,9 +42,12 @@ export default function VideoDetailsScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [showVideo, setShowVideo] = useState(true);
 
-  // Configure header with toggle button
+  // Configure header with title and toggle button
+  const headerTitle = transcript?.title || cachedVideo?.title || 'Video Details';
+
   useLayoutEffect(() => {
     navigation.setOptions({
+      title: headerTitle,
       headerRight: () => (
         <TouchableOpacity
           onPress={() => setShowVideo((prev) => !prev)}
@@ -58,7 +61,7 @@ export default function VideoDetailsScreen() {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, showVideo, colorScheme]);
+  }, [navigation, showVideo, colorScheme, headerTitle]);
 
   useEffect(() => {
     if (!id) return;
