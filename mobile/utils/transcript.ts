@@ -1,6 +1,13 @@
 import { TranscriptSegment } from '@/lib/api';
 
 /**
+ * Convert transcript segments to plain text.
+ */
+export function segmentsToText(segments: TranscriptSegment[]): string {
+  return segments.map((s) => s.text).join(' ');
+}
+
+/**
  * Merge small transcript segments into complete sentences.
  * Segments are merged until a sentence-ending punctuation (. ! ?) is found.
  */

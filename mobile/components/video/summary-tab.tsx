@@ -11,6 +11,8 @@ import Markdown from 'react-native-markdown-display';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { streamSummary } from '@/lib/api';
+import { segmentsToText } from '@/utils/transcript';
+import { useVideoCache } from '@/lib/store';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -21,6 +23,8 @@ interface SummaryTabProps {
 }
 
 export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProps) {
+  const { video } = useVideoCache(videoId);
+  const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const colorScheme = useColorScheme() ?? 'light';
   const { getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +50,7 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
       return;
     }
 
-    streamSummary(videoId, token, {
+    streamSummary(videoId, transcript, token, {
       onChunk: (chunk) => {
         fullTextRef.current += chunk;
         setStreamingText(fullTextRef.current);
@@ -60,7 +64,7 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
         setError(err.message);
       },
     });
-  }, [videoId, onSummaryUpdate, getToken]);
+  }, [videoId, onSummaryUpdate, getToken, transcript]);
 
   const displayText = summary || streamingText;
 

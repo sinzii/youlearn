@@ -13,6 +13,8 @@ import {
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { streamChat, ChatMessage } from '@/lib/api';
+import { segmentsToText } from '@/utils/transcript';
+import { useVideoCache } from '@/lib/store';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -21,6 +23,8 @@ interface ChatTabProps {
 }
 
 export function ChatTab({ videoId }: ChatTabProps) {
+  const { video } = useVideoCache(videoId);
+  const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const colorScheme = useColorScheme() ?? 'light';
   const { getToken } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -60,7 +64,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
 
     let fullResponse = '';
 
-    streamChat(videoId, newMessages, token, {
+    streamChat(videoId, newMessages, transcript, token, {
       onChunk: (chunk) => {
         fullResponse += chunk;
         setStreamingResponse(fullResponse);
@@ -81,7 +85,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
         setIsLoading(false);
       },
     });
-  }, [input, messages, videoId, isLoading, scrollToBottom, getToken]);
+  }, [input, messages, videoId, isLoading, scrollToBottom, getToken, transcript]);
 
   return (
     <KeyboardAvoidingView

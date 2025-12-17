@@ -101,6 +101,7 @@ class TranscriptResponse(BaseModel):
 
 class SummarizeRequest(BaseModel):
     video_id: str
+    transcript: str | None = None  # Optional: pass transcript to avoid re-fetching
     model: ModelName = ModelName.GPT_4O_MINI
 
 
@@ -118,6 +119,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     video_id: str
     messages: list[ChatMessage]
+    transcript: str | None = None  # Optional: pass transcript to avoid re-fetching
     model: ModelName = ModelName.GPT_4O_MINI
 
 
@@ -297,10 +299,14 @@ async def summarize_video(request: SummarizeRequest):
     Generate a streaming summary of a YouTube video transcript.
 
     - **video_id**: YouTube video ID or URL
+    - **transcript**: Optional transcript text (to avoid re-fetching)
     - **model**: LLM model to use (gpt-4o-mini or gpt-4o)
     """
-    # Fetch transcript
-    transcript_text, _ = fetch_transcript_text(request.video_id)
+    # Use provided transcript or fetch from YouTube
+    if request.transcript:
+        transcript_text = request.transcript
+    else:
+        transcript_text, _ = fetch_transcript_text(request.video_id)
 
     # Generate streaming summary using AI SDK
     try:
@@ -350,10 +356,14 @@ async def chat_with_video(request: ChatRequest):
 
     - **video_id**: YouTube video ID or URL
     - **messages**: Chat history
+    - **transcript**: Optional transcript text (to avoid re-fetching)
     - **model**: LLM model to use (gpt-4o-mini or gpt-4o)
     """
-    # Fetch transcript
-    transcript_text, _ = fetch_transcript_text(request.video_id)
+    # Use provided transcript or fetch from YouTube
+    if request.transcript:
+        transcript_text = request.transcript
+    else:
+        transcript_text, _ = fetch_transcript_text(request.video_id)
 
     # Build messages with system context
     system_prompt = f"""You are a helpful assistant that answers questions about a YouTube video.

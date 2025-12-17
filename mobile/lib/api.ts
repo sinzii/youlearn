@@ -50,6 +50,7 @@ export type StreamCallbacks = {
 
 export function streamSummary(
   videoId: string,
+  transcript: string,
   token: string,
   callbacks: StreamCallbacks
 ): () => void {
@@ -100,7 +101,7 @@ export function streamSummary(
     onError(new Error('Network error'));
   };
 
-  xhr.send(JSON.stringify({ video_id: videoId, model: 'gpt-4o-mini' }));
+  xhr.send(JSON.stringify({ video_id: videoId, transcript, model: 'gpt-4o-mini' }));
 
   return () => xhr.abort();
 }
@@ -108,6 +109,7 @@ export function streamSummary(
 export function streamChat(
   videoId: string,
   messages: ChatMessage[],
+  transcript: string,
   token: string,
   callbacks: StreamCallbacks
 ): () => void {
@@ -157,7 +159,7 @@ export function streamChat(
     onError(new Error('Network error'));
   };
 
-  xhr.send(JSON.stringify({ video_id: videoId, messages, model: 'gpt-4o-mini' }));
+  xhr.send(JSON.stringify({ video_id: videoId, messages, transcript, model: 'gpt-4o-mini' }));
 
   return () => xhr.abort();
 }
