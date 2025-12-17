@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useClerk, useUser } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
+import { useState, useCallback } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -6,8 +8,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -20,6 +22,12 @@ export default function HomeScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
   const recentVideos = useRecentVideos();
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
+  const handleSignOut = useCallback(async () => {
+    await signOut();
+  }, [signOut]);
 
   const handleStartLearning = () => {
     const trimmedUrl = videoUrl.trim();
@@ -47,6 +55,16 @@ export default function HomeScreen() {
           style={styles.content}
         >
           <ThemedView style={styles.header}>
+            <ThemedView style={styles.userRow}>
+              <ThemedText style={styles.userEmail} numberOfLines={1}>
+                {user?.emailAddresses[0]?.emailAddress}
+              </ThemedText>
+              <TouchableOpacity onPress={handleSignOut}>
+                <ThemedText style={[styles.signOutText, { color: Colors[colorScheme].tint }]}>
+                  Sign out
+                </ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
             <ThemedText type="title" style={styles.title}>
               YouLearn
             </ThemedText>
@@ -179,6 +197,21 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 48,
+  },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 24,
+  },
+  userEmail: {
+    fontSize: 13,
+    opacity: 0.6,
+    maxWidth: 200,
+  },
+  signOutText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   title: {
     fontSize: 36,

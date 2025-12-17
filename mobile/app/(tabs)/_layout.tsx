@@ -1,13 +1,29 @@
-import { Tabs } from 'expo-router';
+import { useAuth } from '@clerk/clerk-expo';
+import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
+import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { isSignedIn, isLoaded } = useAuth();
+
+  if (!isLoaded) {
+    return (
+      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={Colors[colorScheme ?? 'light'].tint} />
+      </ThemedView>
+    );
+  }
+
+  if (!isSignedIn) {
+    return <Redirect href="/(auth)/sign-in" />;
+  }
 
   return (
     <Tabs
