@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, FlatList, ListRenderItem } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -9,12 +9,27 @@ interface TranscriptTabProps {
   segments: TranscriptSegment[];
 }
 
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
 export function TranscriptTab({ segments }: TranscriptTabProps) {
-  const formatTime = useCallback((seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }, []);
+  const renderItem: ListRenderItem<TranscriptSegment> = useCallback(
+    ({ item }) => (
+      <ThemedView style={styles.segment}>
+        <ThemedText style={styles.timestamp}>{formatTime(item.start)}</ThemedText>
+        <ThemedText style={styles.segmentText}>{item.text}</ThemedText>
+      </ThemedView>
+    ),
+    []
+  );
+
+  const keyExtractor = useCallback(
+    (item: TranscriptSegment, index: number) => `${item.start}-${index}`,
+    []
+  );
 
   if (segments.length === 0) {
     return (
@@ -25,14 +40,16 @@ export function TranscriptTab({ segments }: TranscriptTabProps) {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {segments.map((segment, index) => (
-        <ThemedView key={index} style={styles.segment}>
-          <ThemedText style={styles.timestamp}>{formatTime(segment.start)}</ThemedText>
-          <ThemedText style={styles.segmentText}>{segment.text}</ThemedText>
-        </ThemedView>
-      ))}
-    </ScrollView>
+    <FlatList
+      data={segments}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      initialNumToRender={20}
+      maxToRenderPerBatch={20}
+      windowSize={10}
+    />
   );
 }
 
