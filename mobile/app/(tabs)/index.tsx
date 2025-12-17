@@ -9,7 +9,10 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -19,6 +22,7 @@ import { useRecentVideos, VideoCache } from '@/lib/store';
 
 export default function HomeScreen() {
   const [videoUrl, setVideoUrl] = useState('');
+  const [showProfile, setShowProfile] = useState(false);
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
   const recentVideos = useRecentVideos();
@@ -44,27 +48,31 @@ export default function HomeScreen() {
     router.push({ pathname: '/videos/[id]', params: { id: video.video_id } });
   };
 
+  const backgroundColor = colorScheme === 'dark' ? '#151718' : '#fff';
+
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.content}
+    <SafeAreaView style={[styles.safeArea, { backgroundColor }]} edges={['top']}>
+      <ThemedView style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.content}
+          >
+          {/* Top Bar with Avatar */}
+          <ThemedView style={styles.topBar}>
+            <TouchableOpacity onPress={() => setShowProfile(true)}>
+              <Image
+                source={{ uri: user?.imageUrl }}
+                style={styles.avatar}
+              />
+            </TouchableOpacity>
+          </ThemedView>
+
+          {/* Title Section */}
           <ThemedView style={styles.header}>
-            <ThemedView style={styles.userRow}>
-              <ThemedText style={styles.userEmail} numberOfLines={1}>
-                {user?.emailAddresses[0]?.emailAddress}
-              </ThemedText>
-              <TouchableOpacity onPress={handleSignOut}>
-                <ThemedText style={[styles.signOutText, { color: Colors[colorScheme].tint }]}>
-                  Sign out
-                </ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
             <ThemedText type="title" style={styles.title}>
               YouLearn
             </ThemedText>
@@ -140,7 +148,55 @@ export default function HomeScreen() {
           )}
         </KeyboardAvoidingView>
       </ScrollView>
-    </ThemedView>
+
+      {/* Profile Modal */}
+      <Modal
+        visible={showProfile}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowProfile(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setShowProfile(false)}
+        >
+          <Pressable
+            style={[
+              styles.profileCard,
+              { backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#fff' },
+            ]}
+            onPress={() => {}}
+          >
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowProfile(false)}
+            >
+              <ThemedText style={styles.closeButtonText}>×</ThemedText>
+            </TouchableOpacity>
+            <Image
+              source={{ uri: user?.imageUrl }}
+              style={styles.profileAvatar}
+            />
+            <ThemedText style={styles.profileName}>
+              {user?.firstName} {user?.lastName}
+            </ThemedText>
+            <ThemedText style={styles.profileEmail}>
+              {user?.emailAddresses[0]?.emailAddress}
+            </ThemedText>
+            <TouchableOpacity
+              style={[styles.signOutButton, { backgroundColor: Colors[colorScheme].tint }]}
+              onPress={() => {
+                setShowProfile(false);
+                handleSignOut();
+              }}
+            >
+              <ThemedText style={styles.signOutButtonText}>Sign Out</ThemedText>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+        </Modal>
+      </ThemedView>
+    </SafeAreaView>
   );
 }
 
@@ -183,6 +239,9 @@ function formatRelativeTime(timestamp: number): string {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
@@ -192,26 +251,22 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 16,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingVertical: 8,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   header: {
     alignItems: 'center',
+    marginTop: 24,
     marginBottom: 48,
-  },
-  userRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 24,
-  },
-  userEmail: {
-    fontSize: 13,
-    opacity: 0.6,
-    maxWidth: 200,
-  },
-  signOutText: {
-    fontSize: 13,
-    fontWeight: '500',
   },
   title: {
     fontSize: 36,
@@ -265,5 +320,62 @@ const styles = StyleSheet.create({
   videoMeta: {
     fontSize: 12,
     opacity: 0.5,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileCard: {
+    width: 280,
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 24,
+    lineHeight: 28,
+    opacity: 0.6,
+  },
+  profileAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 16,
+  },
+  profileName: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  profileEmail: {
+    fontSize: 14,
+    opacity: 0.6,
+    marginBottom: 24,
+  },
+  signOutButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  signOutButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });
