@@ -1,13 +1,14 @@
 import { useAuth } from '@clerk/clerk-expo';
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import {
   StyleSheet,
   ActivityIndicator,
   useWindowDimensions,
   TouchableOpacity,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -27,6 +28,7 @@ export default function VideoDetailsScreen() {
   const { width } = useWindowDimensions();
   const colorScheme = useColorScheme() ?? 'light';
   const { getToken } = useAuth();
+  const navigation = useNavigation();
 
   const { video: cachedVideo, updateVideo } = useVideoCache(id || '');
   const hasFetchedRef = useRef(false);
@@ -38,6 +40,25 @@ export default function VideoDetailsScreen() {
   const [isLoading, setIsLoading] = useState(!cachedVideo?.transcript);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('summary');
+  const [showVideo, setShowVideo] = useState(true);
+
+  // Configure header with toggle button
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => setShowVideo((prev) => !prev)}
+          style={styles.headerButton}
+        >
+          <MaterialIcons
+            name={showVideo ? 'visibility' : 'visibility-off'}
+            size={24}
+            color={Colors[colorScheme].text}
+          />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, showVideo, colorScheme]);
 
   useEffect(() => {
     if (!id) return;
@@ -138,14 +159,16 @@ export default function VideoDetailsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* YouTube Player */}
-      <ThemedView style={styles.playerContainer}>
-        <YoutubePlayer
-          height={playerHeight}
-          videoId={id}
-          webViewStyle={styles.player}
-        />
-      </ThemedView>
+      {/* YouTube Player - only show when showVideo is true */}
+      {showVideo && (
+        <ThemedView style={styles.playerContainer}>
+          <YoutubePlayer
+            height={playerHeight}
+            videoId={id}
+            webViewStyle={styles.player}
+          />
+        </ThemedView>
+      )}
 
       {/* Video Title */}
       <ThemedView style={styles.titleContainer}>
@@ -199,6 +222,10 @@ export default function VideoDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
   container: {
     flex: 1,
   },
