@@ -266,14 +266,16 @@ async def summarize_video(request: SummarizeRequest):
         async def generate():
             result = stream_text(
                 model=model,
-                prompt=f"""Please provide a comprehensive summary of the following YouTube video transcript.
-Use markdown formatting with headers, bullet points, and emphasis where appropriate.
-Include the main topics, key points, and any important takeaways.
+                prompt=f"""Summarize this YouTube video transcript. Start immediately with the content - no introductions, no "This video discusses...", no "Here's a summary...".
+
+Rules:
+- Use markdown: headers (###), bullet points, **bold** for emphasis
+- Start directly with the first main topic header
+- Include key points, insights, and takeaways
+- Be comprehensive but concise
 
 Transcript:
-{transcript_text}
-
-Summary:""",
+{transcript_text}""",
             )
             async for chunk in result.text_stream:
                 if chunk:
