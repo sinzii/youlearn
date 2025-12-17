@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-expo';
 import { useState, useCallback, useRef } from 'react';
 import {
   StyleSheet,
@@ -21,6 +22,7 @@ interface ChatTabProps {
 
 export function ChatTab({ videoId }: ChatTabProps) {
   const colorScheme = useColorScheme() ?? 'light';
+  const { getToken } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +35,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
     }, 100);
   }, []);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
 
@@ -45,9 +47,20 @@ export function ChatTab({ videoId }: ChatTabProps) {
     setStreamingResponse('');
     scrollToBottom();
 
+    const token = await getToken();
+    if (!token) {
+      const errorMessage: ChatMessage = {
+        role: 'assistant',
+        content: 'Error: Not authenticated',
+      };
+      setMessages([...newMessages, errorMessage]);
+      setIsLoading(false);
+      return;
+    }
+
     let fullResponse = '';
 
-    streamChat(videoId, newMessages, {
+    streamChat(videoId, newMessages, token, {
       onChunk: (chunk) => {
         fullResponse += chunk;
         setStreamingResponse(fullResponse);
@@ -68,7 +81,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
         setIsLoading(false);
       },
     });
-  }, [input, messages, videoId, isLoading, scrollToBottom]);
+  }, [input, messages, videoId, isLoading, scrollToBottom, getToken]);
 
   return (
     <KeyboardAvoidingView

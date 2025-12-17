@@ -1,11 +1,14 @@
+import os
 import re
 from enum import Enum
 from typing import Literal
 
+from clerk_backend_api import Clerk
+from clerk_backend_api.security import AuthenticateRequestOptions
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from pytubefix import YouTube
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -14,11 +17,29 @@ from youtube_transcript_api._errors import (
     TranscriptsDisabled,
     VideoUnavailable,
 )
+from youtube_transcript_api.proxies import WebshareProxyConfig
 
-from ai_sdk import generate_text, stream_text, openai
+from ai_sdk import stream_text, openai
 from ai_sdk.types import CoreSystemMessage, CoreUserMessage, CoreAssistantMessage
 
 load_dotenv()
+
+# Initialize Clerk client
+clerk = Clerk(bearer_auth=os.environ.get("CLERK_SECRET_KEY"))
+
+# Initialize YouTube Transcript API with Webshare proxy (if configured)
+webshare_username = os.environ.get("WEBSHARE_PROXY_USERNAME")
+webshare_password = os.environ.get("WEBSHARE_PROXY_PASSWORD")
+
+if webshare_username and webshare_password:
+    ytt_api = YouTubeTranscriptApi(
+        proxy_config=WebshareProxyConfig(
+            proxy_username=webshare_username,
+            proxy_password=webshare_password,
+        )
+    )
+else:
+    ytt_api = YouTubeTranscriptApi()
 
 app = FastAPI(docs_url="/swagger", title="YouAPI", description="YouTube Learning API")
 
@@ -30,6 +51,30 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Routes that don't require authentication
+PUBLIC_ROUTES = ["/", "/swagger"]
+
+
+@app.middleware("http")
+async def clerk_auth_middleware(request: Request, call_next):
+    """Middleware to verify Clerk JWT tokens for all protected routes."""
+    # Skip auth for public routes
+    if request.url.path in PUBLIC_ROUTES:
+        return await call_next(request)
+
+    # Verify the token
+    request_state = clerk.authenticate_request(request, AuthenticateRequestOptions())
+
+    if not request_state.is_signed_in:
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "Unauthorized: Invalid or missing authentication token"},
+        )
+
+    # Store user info in request state for use in endpoints
+    request.state.auth = request_state
+    return await call_next(request)
 
 
 # Enums
@@ -126,7 +171,6 @@ def fetch_transcript_text(video_id: str) -> tuple[str, TranscriptResponse]:
         raise HTTPException(status_code=400, detail=str(e))
 
     try:
-        ytt_api = YouTubeTranscriptApi()
         transcript = ytt_api.fetch(actual_video_id)
 
         # Get video title
@@ -199,7 +243,6 @@ def get_transcript(
         raise HTTPException(status_code=400, detail=str(e))
 
     try:
-        ytt_api = YouTubeTranscriptApi()
         if lang:
             transcript = ytt_api.fetch(actual_video_id, languages=[lang])
         else:

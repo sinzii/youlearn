@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-expo';
 import { useState, useCallback, useRef, useMemo } from 'react';
 import {
   StyleSheet,
@@ -21,6 +22,7 @@ interface SummaryTabProps {
 
 export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProps) {
   const colorScheme = useColorScheme() ?? 'light';
+  const { getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [streamingText, setStreamingText] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -30,14 +32,21 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
   const tintColor = Colors[colorScheme].tint;
   const codeBgColor = colorScheme === 'dark' ? '#333' : '#f0f0f0';
 
-  const handleSummarize = useCallback(() => {
+  const handleSummarize = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    onSummaryUpdate('')
+    onSummaryUpdate('');
     setStreamingText('');
     fullTextRef.current = '';
 
-    streamSummary(videoId, {
+    const token = await getToken();
+    if (!token) {
+      setIsLoading(false);
+      setError('Not authenticated');
+      return;
+    }
+
+    streamSummary(videoId, token, {
       onChunk: (chunk) => {
         fullTextRef.current += chunk;
         setStreamingText(fullTextRef.current);
@@ -51,7 +60,7 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
         setError(err.message);
       },
     });
-  }, [videoId, onSummaryUpdate]);
+  }, [videoId, onSummaryUpdate, getToken]);
 
   const displayText = summary || streamingText;
 

@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useAuth } from '@clerk/clerk-expo';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   StyleSheet,
   ActivityIndicator,
@@ -25,8 +26,10 @@ export default function VideoDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
   const colorScheme = useColorScheme() ?? 'light';
+  const { getToken } = useAuth();
 
   const { video: cachedVideo, updateVideo } = useVideoCache(id || '');
+  const hasFetchedRef = useRef(false);
 
   const [transcript, setTranscript] = useState<TranscriptResponse | null>(
     cachedVideo?.transcript || null
@@ -39,33 +42,47 @@ export default function VideoDetailsScreen() {
   useEffect(() => {
     if (!id) return;
 
+    // If we already have transcript in state, don't fetch again
+    if (transcript) return;
+
+    // If cached, use it
     if (cachedVideo?.transcript) {
       setTranscript(cachedVideo.transcript);
       setSummary(cachedVideo.summary || null);
       setIsLoading(false);
-      updateVideo({});
       return;
     }
+
+    // Prevent duplicate fetches
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
 
     setIsLoading(true);
     setError(null);
 
-    fetchTranscript(id)
-      .then((data) => {
+    const loadTranscript = async () => {
+      try {
+        const token = await getToken();
+        if (!token) {
+          setError('Not authenticated');
+          return;
+        }
+        const data = await fetchTranscript(id, token);
         setTranscript(data);
         updateVideo({
           video_id: id,
           title: data.title,
           transcript: data,
         });
-      })
-      .catch((err) => {
+      } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load transcript');
-      })
-      .finally(() => {
+      } finally {
         setIsLoading(false);
-      });
-  }, [id, cachedVideo?.transcript, cachedVideo?.summary, updateVideo]);
+      }
+    };
+
+    loadTranscript();
+  }, [id]);
 
   const handleSummaryUpdate = useCallback(
     (newSummary: string) => {

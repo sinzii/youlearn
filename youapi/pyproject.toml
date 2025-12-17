@@ -10,6 +10,7 @@ dependencies = [
     "ai-sdk-python>=0.1.0",
     "python-dotenv>=1.0.0",
     "pytubefix>=10.3.6",
+    "clerk-backend-api>=4.2.0",
 ]
 
 [dependency-groups]

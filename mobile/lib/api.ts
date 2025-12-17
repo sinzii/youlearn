@@ -17,10 +17,16 @@ export interface TranscriptResponse {
 }
 
 export async function fetchTranscript(
-  videoId: string
+  videoId: string,
+  token: string
 ): Promise<TranscriptResponse> {
   const response = await fetch(
-    `${API_ENDPOINT}/youtube/transcript?video_id=${encodeURIComponent(videoId)}`
+    `${API_ENDPOINT}/youtube/transcript?video_id=${encodeURIComponent(videoId)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
   );
 
   if (!response.ok) {
@@ -44,6 +50,7 @@ export type StreamCallbacks = {
 
 export function streamSummary(
   videoId: string,
+  token: string,
   callbacks: StreamCallbacks
 ): () => void {
   const { onChunk, onDone, onError } = callbacks;
@@ -54,6 +61,7 @@ export function streamSummary(
 
   xhr.open('POST', `${API_ENDPOINT}/summarize`, true);
   xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('Authorization', `Bearer ${token}`);
 
   xhr.onprogress = () => {
     const newData = xhr.responseText.slice(lastIndex);
@@ -100,6 +108,7 @@ export function streamSummary(
 export function streamChat(
   videoId: string,
   messages: ChatMessage[],
+  token: string,
   callbacks: StreamCallbacks
 ): () => void {
   const { onChunk, onDone, onError } = callbacks;
@@ -109,6 +118,7 @@ export function streamChat(
 
   xhr.open('POST', `${API_ENDPOINT}/chat`, true);
   xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('Authorization', `Bearer ${token}`);
 
   xhr.onprogress = () => {
     const newData = xhr.responseText.slice(lastIndex);
