@@ -130,18 +130,21 @@ export default function HomeScreen() {
                     key={video.video_id}
                     onPress={() => handleVideoPress(video)}
                   >
-                    <Card
-                      variant="filled"
-                      size="sm"
-                      className="mb-2 active:opacity-70"
-                    >
-                      <Text className="font-medium text-sm mb-1" numberOfLines={2}>
-                        {video.title || video.video_id}
-                      </Text>
-                      <Text className="text-xs text-typography-400">
-                        {formatRelativeTime(video.lastAccessed)}
-                      </Text>
-                    </Card>
+                    {({ pressed }) => (
+                      <Card
+                        variant="filled"
+                        size="sm"
+                        className="mb-2"
+                        style={{ opacity: pressed ? 0.7 : 1 }}
+                      >
+                        <Text className="font-medium text-sm mb-1" numberOfLines={2}>
+                          {video.title || video.video_id}
+                        </Text>
+                        <Text className="text-xs text-typography-400">
+                          {formatRelativeTime(video.lastAccessed)}
+                        </Text>
+                      </Card>
+                    )}
                   </Pressable>
                 ))}
               </VStack>
@@ -156,30 +159,32 @@ export default function HomeScreen() {
             <ModalCloseButton className="absolute top-3 right-3">
               <Icon as={CloseIcon} size="lg" className="text-typography-500" />
             </ModalCloseButton>
-            <ModalBody className="items-center pt-2">
-              <Avatar size="xl" className="mb-4">
-                <AvatarFallbackText>
-                  {user?.firstName?.[0]}
-                  {user?.lastName?.[0]}
-                </AvatarFallbackText>
-                <AvatarImage source={{ uri: user?.imageUrl }} />
-              </Avatar>
-              <Heading size="lg" className="mb-1">
-                {user?.firstName} {user?.lastName}
-              </Heading>
-              <Text className="text-sm text-typography-500 mb-6">
-                {user?.emailAddresses[0]?.emailAddress}
-              </Text>
-              <Button
-                action="primary"
-                className="w-full rounded-lg"
-                onPress={() => {
-                  setShowProfile(false);
-                  handleSignOut();
-                }}
-              >
-                <ButtonText className="font-semibold">Sign Out</ButtonText>
-              </Button>
+            <ModalBody className="pt-2">
+              <VStack className="items-center">
+                <Avatar size="xl" className="mb-4">
+                  <AvatarFallbackText>
+                    {user?.firstName?.[0]}
+                    {user?.lastName?.[0]}
+                  </AvatarFallbackText>
+                  <AvatarImage source={{ uri: user?.imageUrl }} />
+                </Avatar>
+                <Heading size="lg" className="mb-1">
+                  {user?.firstName} {user?.lastName}
+                </Heading>
+                <Text className="text-sm text-typography-500 mb-6">
+                  {user?.emailAddresses[0]?.emailAddress}
+                </Text>
+                <Button
+                  action="primary"
+                  className="w-full rounded-lg"
+                  onPress={() => {
+                    setShowProfile(false);
+                    handleSignOut();
+                  }}
+                >
+                  <ButtonText className="font-semibold">Sign Out</ButtonText>
+                </Button>
+              </VStack>
             </ModalBody>
           </ModalContent>
         </Modal>
