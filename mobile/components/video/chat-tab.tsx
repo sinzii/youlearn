@@ -1,4 +1,5 @@
 import { useAuth } from '@clerk/clerk-expo';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { useState, useCallback, useRef } from 'react';
 import {
   StyleSheet,
@@ -9,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -23,6 +25,7 @@ interface ChatTabProps {
 }
 
 export function ChatTab({ videoId }: ChatTabProps) {
+  const headerHeight = useHeaderHeight();
   const { video } = useVideoCache(videoId);
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const colorScheme = useColorScheme() ?? 'light';
@@ -91,7 +94,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={200}
+      keyboardVerticalOffset={headerHeight + 100}
     >
       <ScrollView
         ref={scrollViewRef}
@@ -136,37 +139,39 @@ export function ChatTab({ videoId }: ChatTabProps) {
         )}
       </ScrollView>
 
-      <ThemedView style={styles.inputContainer}>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              color: Colors[colorScheme].text,
-              borderColor: Colors[colorScheme].icon,
-            },
-          ]}
-          placeholder="Type a message..."
-          placeholderTextColor={Colors[colorScheme].icon}
-          value={input}
-          onChangeText={setInput}
-          onSubmitEditing={handleSend}
-          editable={!isLoading}
-          multiline
-        />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            { backgroundColor: Colors[colorScheme].tint },
-            (isLoading || !input.trim()) && styles.sendButtonDisabled,
-          ]}
-          onPress={handleSend}
-          disabled={isLoading || !input.trim()}
-        >
-          <ThemedText style={styles.sendButtonText}>
-            {isLoading ? '...' : 'Send'}
-          </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
+      <SafeAreaView edges={['bottom']}>
+        <ThemedView style={styles.inputContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                color: Colors[colorScheme].text,
+                borderColor: Colors[colorScheme].icon,
+              },
+            ]}
+            placeholder="Type a message..."
+            placeholderTextColor={Colors[colorScheme].icon}
+            value={input}
+            onChangeText={setInput}
+            onSubmitEditing={handleSend}
+            editable={!isLoading}
+            multiline
+          />
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              { backgroundColor: Colors[colorScheme].tint },
+              (isLoading || !input.trim()) && styles.sendButtonDisabled,
+            ]}
+            onPress={handleSend}
+            disabled={isLoading || !input.trim()}
+          >
+            <ThemedText style={styles.sendButtonText}>
+              {isLoading ? '...' : 'Send'}
+            </ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }

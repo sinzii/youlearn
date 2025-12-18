@@ -9,6 +9,13 @@ import {
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Animated, {
+  useAnimatedKeyboard,
+  useAnimatedStyle,
+  withTiming,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -41,6 +48,20 @@ export default function VideoDetailsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [showVideo, setShowVideo] = useState(true);
+
+  const playerHeight = (width - 32) * (9 / 16);
+  const keyboard = useAnimatedKeyboard();
+  const playerAnimatedStyle = useAnimatedStyle(() => {
+    const targetHeight = interpolate(
+      keyboard.height.value,
+      [0, 300],
+      [playerHeight + 16, 0], // +16 accounts for paddingTop
+      Extrapolation.CLAMP
+    );
+    return {
+      height: withTiming(targetHeight, { duration: 250 }),
+    };
+  });
 
   // Configure header with title and toggle button
   const headerTitle = transcript?.title || cachedVideo?.title || 'Video Details';
@@ -124,8 +145,6 @@ export default function VideoDetailsScreen() {
     return mergeSegmentsIntoSentences(transcript.segments);
   }, [transcript?.segments, transcript?.is_generated]);
 
-  const playerHeight = (width - 32) * (9 / 16);
-
   if (isLoading) {
     return (
       <ThemedView style={styles.centered}>
@@ -162,15 +181,15 @@ export default function VideoDetailsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* YouTube Player - only show when showVideo is true */}
+      {/* YouTube Player - animates to half height when keyboard shows */}
       {showVideo && (
-        <ThemedView style={styles.playerContainer}>
+        <Animated.View style={[styles.playerContainer, playerAnimatedStyle]}>
           <YoutubePlayer
             height={playerHeight}
             videoId={id}
             webViewStyle={styles.player}
           />
-        </ThemedView>
+        </Animated.View>
       )}
 
       {/* Video Title */}
@@ -185,12 +204,9 @@ export default function VideoDetailsScreen() {
         )}
       </ThemedView>
 
-      {/* Tab Content */}
-      <ThemedView style={styles.tabContent}>{renderTabContent()}</ThemedView>
-
-      {/* Bottom Tab Bar */}
+      {/* Tab Bar */}
       <ThemedView
-        style={[styles.tabBar, { borderTopColor: Colors[colorScheme].icon + '30' }]}
+        style={[styles.tabBar, { borderBottomColor: Colors[colorScheme].icon + '30' }]}
       >
         {(['summary', 'chat', 'transcript'] as TabType[]).map((tab) => (
           <TouchableOpacity
@@ -220,6 +236,9 @@ export default function VideoDetailsScreen() {
           </TouchableOpacity>
         ))}
       </ThemedView>
+
+      {/* Tab Content */}
+      <ThemedView style={styles.tabContent}>{renderTabContent()}</ThemedView>
     </ThemedView>
   );
 }
@@ -249,6 +268,7 @@ const styles = StyleSheet.create({
   playerContainer: {
     paddingHorizontal: 16,
     paddingTop: 16,
+    overflow: 'hidden',
   },
   player: {
     borderRadius: 12,
@@ -256,7 +276,7 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 12,
   },
   title: {
     fontSize: 16,
@@ -272,8 +292,7 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    borderTopWidth: 1,
-    paddingBottom: 20,
+    borderBottomWidth: 1,
   },
   tabButton: {
     flex: 1,
