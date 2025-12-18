@@ -1,22 +1,27 @@
 import { useClerk, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useState, useCallback } from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  Image,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
+import { Avatar, AvatarFallbackText, AvatarImage } from '@/components/ui/avatar';
+import { Box } from '@/components/ui/box';
+import { Button, ButtonText } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { CloseIcon, Icon } from '@/components/ui/icon';
+import { Heading } from '@/components/ui/heading';
+import { HStack } from '@/components/ui/hstack';
+import { Input, InputField } from '@/components/ui/input';
+import {
+  Modal,
+  ModalBackdrop,
+  ModalContent,
+  ModalCloseButton,
+  ModalBody,
+} from '@/components/ui/modal';
+import { Pressable } from '@/components/ui/pressable';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useRecentVideos, VideoCache } from '@/lib/store';
 
@@ -48,154 +53,137 @@ export default function HomeScreen() {
     router.push({ pathname: '/videos/[id]', params: { id: video.video_id } });
   };
 
-  const backgroundColor = colorScheme === 'dark' ? '#151718' : '#fff';
-
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor }]} edges={['top']}>
-      <ThemedView style={styles.container}>
+    <SafeAreaView
+      className={`flex-1 ${colorScheme === 'dark' ? 'bg-background-950' : 'bg-background-0'}`}
+      edges={['top']}
+    >
+      <Box className="flex-1">
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
         >
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.content}
+            className="flex-1 px-6 pt-4"
           >
-          {/* Top Bar with Avatar */}
-          <ThemedView style={styles.topBar}>
-            <TouchableOpacity onPress={() => setShowProfile(true)}>
-              <Image
-                source={{ uri: user?.imageUrl }}
-                style={styles.avatar}
-              />
-            </TouchableOpacity>
-          </ThemedView>
+            {/* Top Bar with Avatar */}
+            <HStack className="justify-end py-2">
+              <Pressable onPress={() => setShowProfile(true)}>
+                <Avatar size="md">
+                  <AvatarFallbackText>
+                    {user?.firstName?.[0]}
+                    {user?.lastName?.[0]}
+                  </AvatarFallbackText>
+                  <AvatarImage source={{ uri: user?.imageUrl }} />
+                </Avatar>
+              </Pressable>
+            </HStack>
 
-          {/* Title Section */}
-          <ThemedView style={styles.header}>
-            <ThemedText type="title" style={styles.title}>
-              YouLearn
-            </ThemedText>
-            <ThemedText style={styles.subtitle}>
-              Learn from YouTube videos with AI
-            </ThemedText>
-          </ThemedView>
+            {/* Title Section */}
+            <VStack className="items-center mt-6 mb-12">
+              <Heading size="4xl" className="mb-2">
+                YouLearn
+              </Heading>
+              <Text className="text-typography-500 text-center text-base">
+                Learn from YouTube videos with AI
+              </Text>
+            </VStack>
 
-          <ThemedView style={styles.form}>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5',
-                  color: Colors[colorScheme].text,
-                  borderColor: colorScheme === 'dark' ? '#333' : '#ddd',
-                },
-              ]}
-              placeholder="Paste YouTube URL or video ID..."
-              placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
-              value={videoUrl}
-              onChangeText={setVideoUrl}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="go"
-              onSubmitEditing={handleStartLearning}
-            />
+            {/* Form */}
+            <VStack className="gap-4">
+              <Input
+                variant="outline"
+                size="lg"
+                className="rounded-xl border-outline-200"
+              >
+                <InputField
+                  placeholder="Paste YouTube URL or video ID..."
+                  value={videoUrl}
+                  onChangeText={setVideoUrl}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="go"
+                  onSubmitEditing={handleStartLearning}
+                />
+              </Input>
 
-            <Pressable
-              style={({ pressed }) => [
-                styles.button,
-                {
-                  backgroundColor: Colors[colorScheme].tint,
-                  opacity: pressed ? 0.8 : videoUrl.trim() ? 1 : 0.5,
-                },
-              ]}
-              onPress={handleStartLearning}
-              disabled={!videoUrl.trim()}
-            >
-              <ThemedText style={styles.buttonText} lightColor="#fff" darkColor="#000">
-                Start Learning
-              </ThemedText>
-            </Pressable>
-          </ThemedView>
+              <Button
+                size="lg"
+                action="primary"
+                className="rounded-xl h-[50px]"
+                onPress={handleStartLearning}
+                isDisabled={!videoUrl.trim()}
+              >
+                <ButtonText className="font-semibold">Start Learning</ButtonText>
+              </Button>
+            </VStack>
 
-          {/* Recent Videos */}
-          {recentVideos.length > 0 && (
-            <ThemedView style={styles.recentSection}>
-              <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                Recent Videos
-              </ThemedText>
-              {recentVideos.slice(0, 5).map((video) => (
-                <Pressable
-                  key={video.video_id}
-                  style={({ pressed }) => [
-                    styles.videoItem,
-                    {
-                      backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5',
-                      opacity: pressed ? 0.7 : 1,
-                    },
-                  ]}
-                  onPress={() => handleVideoPress(video)}
-                >
-                  <ThemedText style={styles.videoTitle} numberOfLines={2}>
-                    {video.title || video.video_id}
-                  </ThemedText>
-                  <ThemedText style={styles.videoMeta}>
-                    {formatRelativeTime(video.lastAccessed)}
-                  </ThemedText>
-                </Pressable>
-              ))}
-            </ThemedView>
-          )}
-        </KeyboardAvoidingView>
-      </ScrollView>
+            {/* Recent Videos */}
+            {recentVideos.length > 0 && (
+              <VStack className="mt-10">
+                <Text className="text-xs uppercase tracking-wide text-typography-500 mb-3">
+                  Recent Videos
+                </Text>
+                {recentVideos.slice(0, 5).map((video) => (
+                  <Pressable
+                    key={video.video_id}
+                    onPress={() => handleVideoPress(video)}
+                  >
+                    <Card
+                      variant="filled"
+                      size="sm"
+                      className="mb-2 active:opacity-70"
+                    >
+                      <Text className="font-medium text-sm mb-1" numberOfLines={2}>
+                        {video.title || video.video_id}
+                      </Text>
+                      <Text className="text-xs text-typography-400">
+                        {formatRelativeTime(video.lastAccessed)}
+                      </Text>
+                    </Card>
+                  </Pressable>
+                ))}
+              </VStack>
+            )}
+          </KeyboardAvoidingView>
+        </ScrollView>
 
-      {/* Profile Modal */}
-      <Modal
-        visible={showProfile}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowProfile(false)}
-      >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setShowProfile(false)}
-        >
-          <Pressable
-            style={[
-              styles.profileCard,
-              { backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#fff' },
-            ]}
-            onPress={() => {}}
-          >
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowProfile(false)}
-            >
-              <ThemedText style={styles.closeButtonText}>×</ThemedText>
-            </TouchableOpacity>
-            <Image
-              source={{ uri: user?.imageUrl }}
-              style={styles.profileAvatar}
-            />
-            <ThemedText style={styles.profileName}>
-              {user?.firstName} {user?.lastName}
-            </ThemedText>
-            <ThemedText style={styles.profileEmail}>
-              {user?.emailAddresses[0]?.emailAddress}
-            </ThemedText>
-            <TouchableOpacity
-              style={[styles.signOutButton, { backgroundColor: Colors[colorScheme].tint }]}
-              onPress={() => {
-                setShowProfile(false);
-                handleSignOut();
-              }}
-            >
-              <ThemedText style={styles.signOutButtonText}>Sign Out</ThemedText>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
+        {/* Profile Modal */}
+        <Modal isOpen={showProfile} onClose={() => setShowProfile(false)}>
+          <ModalBackdrop />
+          <ModalContent className="max-w-[280px] rounded-2xl p-6">
+            <ModalCloseButton className="absolute top-3 right-3">
+              <Icon as={CloseIcon} size="lg" className="text-typography-500" />
+            </ModalCloseButton>
+            <ModalBody className="items-center pt-2">
+              <Avatar size="xl" className="mb-4">
+                <AvatarFallbackText>
+                  {user?.firstName?.[0]}
+                  {user?.lastName?.[0]}
+                </AvatarFallbackText>
+                <AvatarImage source={{ uri: user?.imageUrl }} />
+              </Avatar>
+              <Heading size="lg" className="mb-1">
+                {user?.firstName} {user?.lastName}
+              </Heading>
+              <Text className="text-sm text-typography-500 mb-6">
+                {user?.emailAddresses[0]?.emailAddress}
+              </Text>
+              <Button
+                action="primary"
+                className="w-full rounded-lg"
+                onPress={() => {
+                  setShowProfile(false);
+                  handleSignOut();
+                }}
+              >
+                <ButtonText className="font-semibold">Sign Out</ButtonText>
+              </Button>
+            </ModalBody>
+          </ModalContent>
         </Modal>
-      </ThemedView>
+      </Box>
     </SafeAreaView>
   );
 }
@@ -237,145 +225,3 @@ function formatRelativeTime(timestamp: number): string {
   if (days < 7) return `${days}d ago`;
   return new Date(timestamp).toLocaleDateString();
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingVertical: 8,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  header: {
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 48,
-  },
-  title: {
-    fontSize: 36,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    opacity: 0.7,
-    textAlign: 'center',
-  },
-  form: {
-    gap: 16,
-  },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  button: {
-    height: 50,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  recentSection: {
-    marginTop: 40,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    opacity: 0.7,
-    marginBottom: 12,
-  },
-  videoItem: {
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 8,
-  },
-  videoTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  videoMeta: {
-    fontSize: 12,
-    opacity: 0.5,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileCard: {
-    width: 280,
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
-    position: 'relative',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 28,
-    height: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    fontSize: 24,
-    lineHeight: 28,
-    opacity: 0.6,
-  },
-  profileAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 16,
-  },
-  profileName: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  profileEmail: {
-    fontSize: 14,
-    opacity: 0.6,
-    marginBottom: 24,
-  },
-  signOutButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  signOutButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-});

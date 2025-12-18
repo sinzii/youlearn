@@ -1,15 +1,15 @@
 import { useAuth } from '@clerk/clerk-expo';
 import { useState, useCallback, useRef, useMemo } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { ScrollView } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Box } from '@/components/ui/box';
+import { Button, ButtonText } from '@/components/ui/button';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { Spinner } from '@/components/ui/spinner';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
 import { streamSummary } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
 import { useVideoCache } from '@/lib/store';
@@ -140,28 +140,29 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
 
   if (!displayText && !isLoading) {
     return (
-      <ThemedView style={styles.emptyContainer}>
-        <ThemedText style={styles.emptyText}>
+      <VStack className="flex-1 justify-center items-center p-6 gap-4">
+        <Text className="text-typography-500 text-center">
           Generate a summary of this video&#39;s content
-        </ThemedText>
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: Colors[colorScheme].tint }]}
+        </Text>
+        <Button
+          action="primary"
+          className="rounded-lg px-6"
           onPress={handleSummarize}
         >
-          <ThemedText style={styles.buttonText}>Summarize</ThemedText>
-        </TouchableOpacity>
-        {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
-      </ThemedView>
+          <ButtonText className="font-semibold">Summarize</ButtonText>
+        </Button>
+        {error && <Text className="text-error-500 mt-3">{error}</Text>}
+      </VStack>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }}>
       {isLoading && !streamingText && (
-        <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={Colors[colorScheme].tint} />
-          <ThemedText style={styles.loadingText}>Generating summary...</ThemedText>
-        </ThemedView>
+        <HStack className="items-center gap-2 mb-4">
+          <Spinner size="small" className="text-primary-500" />
+          <Text className="text-typography-500">Generating summary...</Text>
+        </HStack>
       )}
       {displayText && (
         <Markdown style={markdownStyles}>
@@ -169,74 +170,19 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
         </Markdown>
       )}
       {isLoading && streamingText && (
-        <ThemedView style={styles.streamingIndicator}>
-          <ActivityIndicator size="small" color={Colors[colorScheme].tint} />
-        </ThemedView>
+        <Box className="mt-2">
+          <Spinner size="small" className="text-primary-500" />
+        </Box>
       )}
       {displayText && !isLoading && (
-        <TouchableOpacity
-          style={styles.resummarizeButton}
+        <Pressable
+          className="mt-4 self-center px-4 py-2"
           onPress={handleSummarize}
         >
-          <ThemedText style={styles.resummarizeText}>Resummarize</ThemedText>
-        </TouchableOpacity>
+          <Text className="text-typography-500 text-sm">Resummarize</Text>
+        </Pressable>
       )}
-      {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
+      {error && <Text className="text-error-500 mt-3">{error}</Text>}
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    gap: 16,
-  },
-  emptyText: {
-    opacity: 0.6,
-    textAlign: 'center',
-  },
-  button: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  loadingText: {
-    opacity: 0.6,
-  },
-  streamingIndicator: {
-    marginTop: 8,
-  },
-  errorText: {
-    color: '#ef4444',
-    marginTop: 12,
-  },
-  resummarizeButton: {
-    marginTop: 16,
-    alignSelf: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  resummarizeText: {
-    opacity: 0.6,
-    fontSize: 14,
-  },
-});

@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
-import { StyleSheet, FlatList, ListRenderItem } from 'react-native';
+import { FlatList, ListRenderItem } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { HStack } from '@/components/ui/hstack';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
 import { TranscriptSegment } from '@/lib/api';
 
 interface TranscriptTabProps {
@@ -18,10 +19,12 @@ const formatTime = (seconds: number): string => {
 export function TranscriptTab({ segments }: TranscriptTabProps) {
   const renderItem: ListRenderItem<TranscriptSegment> = useCallback(
     ({ item }) => (
-      <ThemedView style={styles.segment}>
-        <ThemedText style={styles.timestamp}>{formatTime(item.start)}</ThemedText>
-        <ThemedText style={styles.segmentText}>{item.text}</ThemedText>
-      </ThemedView>
+      <HStack className="mb-3 gap-3">
+        <Text className="text-xs font-mono text-typography-400 min-w-[45px]">
+          {formatTime(item.start)}
+        </Text>
+        <Text className="flex-1 text-sm leading-5">{item.text}</Text>
+      </HStack>
     ),
     []
   );
@@ -33,9 +36,9 @@ export function TranscriptTab({ segments }: TranscriptTabProps) {
 
   if (segments.length === 0) {
     return (
-      <ThemedView style={styles.emptyContainer}>
-        <ThemedText style={styles.emptyText}>No transcript available</ThemedText>
-      </ThemedView>
+      <VStack className="flex-1 justify-center items-center p-6">
+        <Text className="text-typography-500">No transcript available</Text>
+      </VStack>
     );
   }
 
@@ -44,45 +47,11 @@ export function TranscriptTab({ segments }: TranscriptTabProps) {
       data={segments}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
-      style={styles.container}
-      contentContainerStyle={styles.content}
+      className="flex-1"
+      contentContainerStyle={{ padding: 16 }}
       initialNumToRender={20}
       maxToRenderPerBatch={20}
       windowSize={10}
     />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  emptyText: {
-    opacity: 0.6,
-  },
-  segment: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    gap: 12,
-  },
-  timestamp: {
-    fontSize: 12,
-    fontFamily: 'monospace',
-    opacity: 0.5,
-    minWidth: 45,
-  },
-  segmentText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-});

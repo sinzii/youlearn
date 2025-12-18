@@ -1,9 +1,9 @@
 import { useAuth } from '@clerk/clerk-expo';
 import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 
-import { ThemedView } from '@/components/themed-view';
+import { Box } from '@/components/ui/box';
+import { Spinner } from '@/components/ui/spinner';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -13,9 +13,9 @@ export default function TabLayout() {
 
   if (!isLoaded) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={Colors[colorScheme ?? 'light'].tint} />
-      </ThemedView>
+      <Box className="flex-1 justify-center items-center bg-background-0">
+        <Spinner size="large" className="text-primary-500" />
+      </Box>
     );
   }
 

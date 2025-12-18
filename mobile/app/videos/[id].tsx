@@ -1,17 +1,16 @@
 import { useAuth } from '@clerk/clerk-expo';
 import { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
-import {
-  StyleSheet,
-  ActivityIndicator,
-  useWindowDimensions,
-  TouchableOpacity,
-} from 'react-native';
+import { useWindowDimensions, Pressable as RNPressable } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Box } from '@/components/ui/box';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { Spinner } from '@/components/ui/spinner';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
 import { SummaryTab } from '@/components/video/summary-tab';
 import { ChatTab } from '@/components/video/chat-tab';
 import { TranscriptTab } from '@/components/video/transcript-tab';
@@ -49,16 +48,16 @@ export default function VideoDetailsScreen() {
     navigation.setOptions({
       title: headerTitle,
       headerRight: () => (
-        <TouchableOpacity
+        <RNPressable
           onPress={() => setShowVideo((prev) => !prev)}
-          style={styles.headerButton}
+          className="px-3 py-1.5"
         >
           <MaterialIcons
             name={showVideo ? 'visibility' : 'visibility-off'}
             size={24}
             color={Colors[colorScheme].text}
           />
-        </TouchableOpacity>
+        </RNPressable>
       ),
     });
   }, [navigation, showVideo, colorScheme, headerTitle]);
@@ -128,18 +127,18 @@ export default function VideoDetailsScreen() {
 
   if (isLoading) {
     return (
-      <ThemedView style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors[colorScheme].tint} />
-        <ThemedText style={styles.loadingText}>Loading video...</ThemedText>
-      </ThemedView>
+      <Box className="flex-1 justify-center items-center p-6 bg-background-0">
+        <Spinner size="large" className="text-primary-500" />
+        <Text className="mt-3 text-typography-500">Loading video...</Text>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <ThemedView style={styles.centered}>
-        <ThemedText style={styles.errorText}>{error}</ThemedText>
-      </ThemedView>
+      <Box className="flex-1 justify-center items-center p-6 bg-background-0">
+        <Text className="text-error-500 text-center">{error}</Text>
+      </Box>
     );
   }
 
@@ -161,134 +160,56 @@ export default function VideoDetailsScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <Box className="flex-1 bg-background-0">
       {/* YouTube Player - only show when showVideo is true */}
       {showVideo && (
-        <ThemedView style={styles.playerContainer}>
+        <Box className="px-4 pt-4">
           <YoutubePlayer
             height={playerHeight}
             videoId={id}
-            webViewStyle={styles.player}
+            webViewStyle={{ borderRadius: 12, overflow: 'hidden' }}
           />
-        </ThemedView>
+        </Box>
       )}
 
       {/* Video Title */}
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="subtitle" style={styles.title} numberOfLines={2}>
+      <VStack className="px-4 py-3">
+        <Text className="text-base font-semibold leading-snug" numberOfLines={2}>
           {transcript?.title || cachedVideo?.title || 'Untitled Video'}
-        </ThemedText>
+        </Text>
         {transcript?.language && (
-          <ThemedText style={styles.language}>
+          <Text className="mt-1 text-xs text-typography-500">
             Language: {transcript.language}
-          </ThemedText>
+          </Text>
         )}
-      </ThemedView>
+      </VStack>
 
       {/* Tab Content */}
-      <ThemedView style={styles.tabContent}>{renderTabContent()}</ThemedView>
+      <Box className="flex-1">{renderTabContent()}</Box>
 
       {/* Bottom Tab Bar */}
-      <ThemedView
-        style={[styles.tabBar, { borderTopColor: Colors[colorScheme].icon + '30' }]}
-      >
+      <HStack className="border-t border-outline-200 pb-5">
         {(['summary', 'chat', 'transcript'] as TabType[]).map((tab) => (
-          <TouchableOpacity
+          <Pressable
             key={tab}
-            style={styles.tabButton}
+            className="flex-1 items-center py-3"
             onPress={() => setActiveTab(tab)}
           >
-            <ThemedText
-              style={[
-                styles.tabText,
-                activeTab === tab && {
-                  color: Colors[colorScheme].tint,
-                  fontWeight: '600',
-                },
-              ]}
+            <Text
+              className={`text-sm ${
+                activeTab === tab
+                  ? 'text-primary-500 font-semibold'
+                  : 'text-typography-500'
+              }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </ThemedText>
+            </Text>
             {activeTab === tab && (
-              <ThemedView
-                style={[
-                  styles.tabIndicator,
-                  { backgroundColor: Colors[colorScheme].tint },
-                ]}
-              />
+              <Box className="absolute bottom-0 h-0.5 w-[60%] bg-primary-500 rounded-sm" />
             )}
-          </TouchableOpacity>
+          </Pressable>
         ))}
-      </ThemedView>
-    </ThemedView>
+      </HStack>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  headerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  container: {
-    flex: 1,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  loadingText: {
-    marginTop: 12,
-    opacity: 0.7,
-  },
-  errorText: {
-    color: '#ef4444',
-    textAlign: 'center',
-  },
-  playerContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  player: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  titleContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  title: {
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  language: {
-    marginTop: 4,
-    fontSize: 12,
-    opacity: 0.6,
-  },
-  tabContent: {
-    flex: 1,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    paddingBottom: 20,
-  },
-  tabButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  tabText: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  tabIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    height: 2,
-    width: '60%',
-    borderRadius: 1,
-  },
-});

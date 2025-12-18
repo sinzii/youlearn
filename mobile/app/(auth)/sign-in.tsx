@@ -2,15 +2,14 @@ import { useSSO } from '@clerk/clerk-expo';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useState } from 'react';
-import {
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Image,
-} from 'react-native';
+import { Image } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Box } from '@/components/ui/box';
+import { Button, ButtonText } from '@/components/ui/button';
+import { Heading } from '@/components/ui/heading';
+import { Spinner } from '@/components/ui/spinner';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
 
 // Warm up the browser for faster OAuth
 WebBrowser.maybeCompleteAuthSession();
@@ -42,120 +41,50 @@ export default function SignInScreen() {
   }, [startSSOFlow]);
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedView style={styles.content}>
-        <ThemedView style={styles.header}>
-          <ThemedText type="title" style={styles.title}>
+    <Box className="flex-1 bg-background-0">
+      <VStack className="flex-1 justify-center items-center p-6">
+        {/* Header */}
+        <VStack className="items-center mb-12">
+          <Heading size="3xl" className="mb-3">
             YouLearn
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
+          </Heading>
+          <Text className="text-typography-500 text-center max-w-[280px]">
             Learn from YouTube videos with AI-powered summaries and chat
-          </ThemedText>
-        </ThemedView>
+          </Text>
+        </VStack>
 
-        <ThemedView style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.googleButton}
+        {/* Button Container */}
+        <VStack className="w-full items-center gap-4">
+          <Button
+            className="w-full max-w-[320px] bg-white rounded-xl py-3.5 px-6 shadow-hard-5"
             onPress={handleGoogleSignIn}
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="#1a73e8" />
+              <Spinner className="text-info-600" />
             ) : (
               <>
                 <Image
-                  source={{
-                    uri: 'https://www.google.com/favicon.ico',
-                  }}
-                  style={styles.googleIcon}
+                  source={{ uri: 'https://www.google.com/favicon.ico' }}
+                  className="w-5 h-5 mr-3"
                 />
-                <ThemedText style={styles.googleButtonText}>
+                <ButtonText className="text-info-600 font-semibold text-base">
                   Continue with Google
-                </ThemedText>
+                </ButtonText>
               </>
             )}
-          </TouchableOpacity>
+          </Button>
 
           {error && (
-            <ThemedText style={styles.errorText}>{error}</ThemedText>
+            <Text className="text-error-500 text-sm text-center">{error}</Text>
           )}
-        </ThemedView>
+        </VStack>
 
-        <ThemedText style={styles.terms}>
+        {/* Terms */}
+        <Text className="absolute bottom-12 text-xs text-typography-400 text-center px-6">
           By continuing, you agree to our Terms of Service and Privacy Policy
-        </ThemedText>
-      </ThemedView>
-    </ThemedView>
+        </Text>
+      </VStack>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 48,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 16,
-    opacity: 0.7,
-    textAlign: 'center',
-    maxWidth: 280,
-  },
-  buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 16,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    width: '100%',
-    maxWidth: 320,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 12,
-  },
-  googleButtonText: {
-    color: '#1a73e8',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  terms: {
-    position: 'absolute',
-    bottom: 48,
-    fontSize: 12,
-    opacity: 0.5,
-    textAlign: 'center',
-    paddingHorizontal: 24,
-  },
-});

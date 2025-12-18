@@ -1,22 +1,17 @@
 import { useAuth } from '@clerk/clerk-expo';
 import { useState, useCallback, useRef } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-} from 'react-native';
+import { ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Box } from '@/components/ui/box';
+import { Button, ButtonText } from '@/components/ui/button';
+import { HStack } from '@/components/ui/hstack';
+import { Spinner } from '@/components/ui/spinner';
+import { Text } from '@/components/ui/text';
+import { Textarea, TextareaInput } from '@/components/ui/textarea';
+import { VStack } from '@/components/ui/vstack';
 import { streamChat, ChatMessage } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
 import { useVideoCache } from '@/lib/store';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 interface ChatTabProps {
   videoId: string;
@@ -25,7 +20,6 @@ interface ChatTabProps {
 export function ChatTab({ videoId }: ChatTabProps) {
   const { video } = useVideoCache(videoId);
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
-  const colorScheme = useColorScheme() ?? 'light';
   const { getToken } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -89,161 +83,72 @@ export function ChatTab({ videoId }: ChatTabProps) {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      className="flex-1"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={200}
     >
       <ScrollView
         ref={scrollViewRef}
-        style={styles.messagesContainer}
-        contentContainerStyle={styles.messagesContent}
+        className="flex-1"
+        contentContainerStyle={{ padding: 16, flexGrow: 1 }}
       >
         {messages.length === 0 && (
-          <ThemedView style={styles.emptyContainer}>
-            <ThemedText style={styles.emptyText}>
+          <VStack className="flex-1 justify-center items-center">
+            <Text className="text-typography-500 text-center">
               Ask questions about the video content
-            </ThemedText>
-          </ThemedView>
+            </Text>
+          </VStack>
         )}
         {messages.map((message, index) => (
-          <ThemedView
+          <Box
             key={index}
-            style={[
-              styles.messageBubble,
-              message.role === 'user' ? styles.userBubble : styles.assistantBubble,
-              message.role === 'user' && { backgroundColor: Colors[colorScheme].tint },
-            ]}
+            className={`max-w-[80%] p-3 rounded-2xl mb-2 ${
+              message.role === 'user'
+                ? 'self-end bg-primary-500 rounded-br-sm'
+                : 'self-start bg-background-100 rounded-bl-sm'
+            }`}
           >
-            <ThemedText
-              style={[
-                styles.messageText,
-                message.role === 'user' && styles.userText,
-              ]}
+            <Text
+              className={`text-sm leading-5 ${
+                message.role === 'user' ? 'text-white' : 'text-typography-900'
+              }`}
             >
               {message.content}
-            </ThemedText>
-          </ThemedView>
+            </Text>
+          </Box>
         ))}
         {streamingResponse && (
-          <ThemedView style={[styles.messageBubble, styles.assistantBubble]}>
-            <ThemedText style={styles.messageText}>{streamingResponse}</ThemedText>
-            <ActivityIndicator
-              size="small"
-              color={Colors[colorScheme].tint}
-              style={styles.streamingIndicator}
-            />
-          </ThemedView>
+          <Box className="max-w-[80%] p-3 rounded-2xl mb-2 self-start bg-background-100 rounded-bl-sm">
+            <Text className="text-sm leading-5 text-typography-900">{streamingResponse}</Text>
+            <Spinner size="small" className="mt-1 text-primary-500" />
+          </Box>
         )}
       </ScrollView>
 
-      <ThemedView style={styles.inputContainer}>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              color: Colors[colorScheme].text,
-              borderColor: Colors[colorScheme].icon,
-            },
-          ]}
-          placeholder="Type a message..."
-          placeholderTextColor={Colors[colorScheme].icon}
-          value={input}
-          onChangeText={setInput}
-          onSubmitEditing={handleSend}
-          editable={!isLoading}
-          multiline
-        />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            { backgroundColor: Colors[colorScheme].tint },
-            (isLoading || !input.trim()) && styles.sendButtonDisabled,
-          ]}
-          onPress={handleSend}
-          disabled={isLoading || !input.trim()}
+      <HStack className="p-3 gap-2 border-t border-outline-200">
+        <Textarea
+          className="flex-1 rounded-2xl"
+          isDisabled={isLoading}
         >
-          <ThemedText style={styles.sendButtonText}>
+          <TextareaInput
+            placeholder="Type a message..."
+            value={input}
+            onChangeText={setInput}
+            onSubmitEditing={handleSend}
+            className="text-sm max-h-[100px]"
+          />
+        </Textarea>
+        <Button
+          action="primary"
+          className="rounded-2xl px-4"
+          onPress={handleSend}
+          isDisabled={isLoading || !input.trim()}
+        >
+          <ButtonText className="font-semibold">
             {isLoading ? '...' : 'Send'}
-          </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
+          </ButtonText>
+        </Button>
+      </HStack>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  messagesContainer: {
-    flex: 1,
-  },
-  messagesContent: {
-    padding: 16,
-    flexGrow: 1,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    opacity: 0.6,
-    textAlign: 'center',
-  },
-  messageBubble: {
-    maxWidth: '80%',
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 8,
-  },
-  userBubble: {
-    alignSelf: 'flex-end',
-    borderBottomRightRadius: 4,
-  },
-  assistantBubble: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#e5e5e5',
-    borderBottomLeftRadius: 4,
-  },
-  messageText: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  userText: {
-    color: '#fff',
-  },
-  streamingIndicator: {
-    marginTop: 4,
-    alignSelf: 'flex-start',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    padding: 12,
-    gap: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e5e5',
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    maxHeight: 100,
-    fontSize: 14,
-  },
-  sendButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    justifyContent: 'center',
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
-  sendButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-});
