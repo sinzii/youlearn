@@ -20,6 +20,12 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useRecentVideos, VideoCache } from '@/lib/store';
 
+const EXAMPLE_VIDEOS = [
+  { id: 'XA9Q5p9ODac', title: 'Quantum Consciousness and the Origin of Life' },
+  { id: 'BHEhxPuMmQI', title: 'Physicist Brian Cox explains quantum physics in 22 minutes' },
+  { id: 'kO41iURud9c', title: 'Brian Cox: The quantum roots of reality' },
+];
+
 export default function HomeScreen() {
   const [videoUrl, setVideoUrl] = useState('');
   const [showProfile, setShowProfile] = useState(false);
@@ -117,6 +123,32 @@ export default function HomeScreen() {
               </ThemedText>
             </Pressable>
           </ThemedView>
+
+          {/* Example Videos - shown when no recent videos */}
+          {recentVideos.length === 0 && (
+            <ThemedView style={styles.recentSection}>
+              <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+                Try an example
+              </ThemedText>
+              {EXAMPLE_VIDEOS.map((video) => (
+                <Pressable
+                  key={video.id}
+                  style={({ pressed }) => [
+                    styles.videoItem,
+                    {
+                      backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5',
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
+                  onPress={() => router.push({ pathname: '/videos/[id]', params: { id: video.id } })}
+                >
+                  <ThemedText style={styles.videoTitle} numberOfLines={2}>
+                    {video.title}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </ThemedView>
+          )}
 
           {/* Recent Videos */}
           {recentVideos.length > 0 && (
