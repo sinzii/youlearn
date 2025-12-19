@@ -114,7 +114,9 @@ export function ChatTab({ videoId }: ChatTabProps) {
             style={[
               styles.messageBubble,
               message.role === 'user' ? styles.userBubble : styles.assistantBubble,
-              message.role === 'user' && { backgroundColor: Colors[colorScheme].tint },
+              message.role === 'user'
+                ? { backgroundColor: Colors[colorScheme].tint }
+                : { backgroundColor: colorScheme === 'dark' ? '#333' : '#e5e5e5' },
             ]}
           >
             <ThemedText
@@ -128,7 +130,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
           </ThemedView>
         ))}
         {streamingResponse && (
-          <ThemedView style={[styles.messageBubble, styles.assistantBubble]}>
+          <ThemedView style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: colorScheme === 'dark' ? '#333' : '#e5e5e5' }]}>
             <ThemedText style={styles.messageText}>{streamingResponse}</ThemedText>
             <ActivityIndicator
               size="small"
@@ -140,7 +142,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
       </ScrollView>
 
       <SafeAreaView edges={['bottom']}>
-        <ThemedView style={styles.inputContainer}>
+        <ThemedView style={[styles.inputContainer, { borderTopColor: colorScheme === 'dark' ? '#333' : '#e5e5e5' }]}>
           <TextInput
             style={[
               styles.input,
@@ -208,7 +210,6 @@ const styles = StyleSheet.create({
   },
   assistantBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: '#e5e5e5',
     borderBottomLeftRadius: 4,
   },
   messageText: {
@@ -227,7 +228,6 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 8,
     borderTopWidth: 1,
-    borderTopColor: '#e5e5e5',
   },
   input: {
     flex: 1,

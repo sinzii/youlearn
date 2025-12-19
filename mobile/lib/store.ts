@@ -4,7 +4,27 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useMemo } from 'react';
 import { TranscriptResponse } from './api';
 
-// Types
+// Theme Types
+export type ThemePreference = 'light' | 'dark' | 'system';
+
+const themeStorage = createJSONStorage<ThemePreference>(() => AsyncStorage);
+
+export const themePreferenceAtom = atomWithStorage<ThemePreference>(
+  'videoinsight-theme',
+  'system',
+  themeStorage,
+  { getOnInit: true }
+);
+
+export function useThemePreference(): ThemePreference {
+  return useAtomValue(themePreferenceAtom);
+}
+
+export function useSetThemePreference() {
+  return useSetAtom(themePreferenceAtom);
+}
+
+// Video Types
 export interface VideoCache {
   video_id: string;
   title: string;
