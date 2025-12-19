@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   useWindowDimensions,
   TouchableOpacity,
+  View
 } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -184,11 +185,13 @@ export default function VideoDetailsScreen() {
       {/* YouTube Player - animates to half height when keyboard shows */}
       {showVideo && (
         <Animated.View style={[styles.playerContainer, playerAnimatedStyle]}>
-          <YoutubePlayer
-            height={playerHeight}
-            videoId={id}
-            webViewStyle={styles.player}
-          />
+          <View style={{ paddingTop: 16}}>
+            <YoutubePlayer
+              height={playerHeight}
+              videoId={id}
+              webViewStyle={styles.player}
+            />
+          </View>
         </Animated.View>
       )}
 
@@ -267,7 +270,6 @@ const styles = StyleSheet.create({
   },
   playerContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16,
     overflow: 'hidden',
   },
   player: {
