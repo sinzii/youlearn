@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "YouLearn - Learn from YouTube",
+  title: "VideoInsight - Learn from YouTube",
   description: "Learn from YouTube videos with AI-powered summaries and chat",
 };
 

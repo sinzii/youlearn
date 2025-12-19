@@ -18,8 +18,8 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('YouLearn API')
-    .setDescription('YouLearn API documentation')
+    .setTitle('VideoInsight API')
+    .setDescription('VideoInsight API documentation')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);

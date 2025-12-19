@@ -80,10 +80,10 @@ export default function HomeScreen() {
           {/* Title Section */}
           <ThemedView style={styles.header}>
             <ThemedText type="title" style={styles.title}>
-              YouLearn
+              VideoInsight
             </ThemedText>
             <ThemedText style={styles.subtitle}>
-              Learn from YouTube videos with AI
+              Summarize, ask and learn from Youtube videos with AI
             </ThemedText>
           </ThemedView>
 

@@ -20,7 +20,7 @@ const storage = createJSONStorage<VideosState>(() => AsyncStorage);
 
 // Main persisted atom for all videos
 export const videosAtom = atomWithStorage<VideosState>(
-  'youlearn-videos',
+  'videoinsight-videos',
   {},
   storage,
   { getOnInit: true }

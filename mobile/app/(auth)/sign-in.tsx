@@ -28,7 +28,7 @@ export default function SignInScreen() {
 
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: 'oauth_google',
-        redirectUrl: Linking.createURL('/', { scheme: 'youlearn' }),
+        redirectUrl: Linking.createURL('/', { scheme: 'videoinsight' }),
       });
 
       if (createdSessionId && setActive) {
@@ -46,7 +46,7 @@ export default function SignInScreen() {
       <ThemedView style={styles.content}>
         <ThemedView style={styles.header}>
           <ThemedText type="title" style={styles.title}>
-            YouLearn
+            VideoInsight
           </ThemedText>
           <ThemedText style={styles.subtitle}>
             Learn from YouTube videos with AI-powered summaries and chat

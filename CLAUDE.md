@@ -1,11 +1,11 @@
-# YouLearn
+# VideoInsight
 
 A fullstack application for learning from YouTube videos with AI-powered summaries and chat.
 
 ## Project Structure
 
 ```
-youlearn/
+videoinsight/
 ├── api/                    # NestJS backend API (port 3000)
 │   └── src/modules/youtube/  # YouTube transcript extraction feature
 ├── youapi/                 # FastAPI backend API (port 8000)
