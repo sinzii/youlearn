@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   signOutButton: {
-    paddingVertical: 14,
+    paddingVertical: 10,
     borderRadius: 12,
     alignItems: 'center',
   },

@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
     maxHeight: 100,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   sendButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 8,
     justifyContent: 'center',
   },
   sendButtonDisabled: {

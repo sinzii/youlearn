@@ -123,7 +123,7 @@ export default function NewScreen() {
               onPress={handleStartLearning}
               disabled={!videoUrl.trim()}
             >
-              <ThemedText style={styles.buttonText} lightColor="#fff" darkColor="#000">
+              <ThemedText style={styles.buttonText}>
                 Start Learning
               </ThemedText>
             </Pressable>
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    height: 50,
+    paddingVertical: 10,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -242,6 +242,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#fff'
   },
   exampleSection: {
     marginTop: 40,
