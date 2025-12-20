@@ -1,3 +1,4 @@
+import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -7,7 +8,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  View,
 } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -43,6 +46,13 @@ export default function HomeScreen() {
     router.push({ pathname: '/videos/[id]', params: { id: video.video_id } });
   };
 
+  const handlePaste = async () => {
+    const text = await Clipboard.getStringAsync();
+    if (text) {
+      setVideoUrl(text);
+    }
+  };
+
   const backgroundColor = colorScheme === 'dark' ? '#151718' : '#fff';
 
   return (
@@ -67,24 +77,40 @@ export default function HomeScreen() {
           </ThemedView>
 
           <ThemedView style={styles.form}>
-            <TextInput
+            <View
               style={[
-                styles.input,
+                styles.inputContainer,
                 {
                   backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5',
-                  color: Colors[colorScheme].text,
                   borderColor: colorScheme === 'dark' ? '#333' : '#ddd',
                 },
               ]}
-              placeholder="Paste YouTube URL or video ID..."
-              placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
-              value={videoUrl}
-              onChangeText={setVideoUrl}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="go"
-              onSubmitEditing={handleStartLearning}
-            />
+            >
+              <TextInput
+                style={[styles.input, { color: Colors[colorScheme].text }]}
+                placeholder="Paste YouTube URL or video ID..."
+                placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
+                value={videoUrl}
+                onChangeText={setVideoUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="go"
+                onSubmitEditing={handleStartLearning}
+              />
+              <Pressable
+                style={({ pressed }) => [
+                  styles.pasteButton,
+                  { opacity: pressed ? 0.5 : 0.6 },
+                ]}
+                onPress={handlePaste}
+              >
+                <MaterialIcons
+                  name="content-paste"
+                  size={20}
+                  color={Colors[colorScheme].text}
+                />
+              </Pressable>
+            </View>
 
             <Pressable
               style={({ pressed }) => [
@@ -234,12 +260,24 @@ const styles = StyleSheet.create({
   form: {
     gap: 16,
   },
-  input: {
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     height: 50,
     borderWidth: 1,
     borderRadius: 12,
-    paddingHorizontal: 16,
+    paddingLeft: 16,
+    paddingRight: 8,
+  },
+  input: {
+    flex: 1,
     fontSize: 16,
+    height: '100%',
+  },
+  pasteButton: {
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   button: {
     height: 50,
