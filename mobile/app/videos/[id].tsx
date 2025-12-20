@@ -30,6 +30,7 @@ import { useVideoCache } from '@/lib/store';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { mergeSegmentsIntoSentences } from '@/utils/transcript';
+import { formatDuration } from '@/lib/datetime';
 
 type TabType = 'summary' | 'chat' | 'transcript';
 
@@ -245,11 +246,21 @@ export default function VideoDetailsScreen() {
           <ThemedText type="subtitle" style={styles.title} numberOfLines={2}>
             {cachedVideo?.title || 'Untitled Video'}
           </ThemedText>
-          {cachedVideo?.author && (
-            <ThemedText style={styles.author} numberOfLines={1}>
-              {cachedVideo.author}
-            </ThemedText>
-          )}
+          <View style={styles.metaRow}>
+            {cachedVideo?.author && (
+              <ThemedText style={styles.author} numberOfLines={1}>
+                {cachedVideo.author}
+              </ThemedText>
+            )}
+            {cachedVideo?.author && cachedVideo?.length > 0 && (
+              <ThemedText style={styles.metaSeparator}>•</ThemedText>
+            )}
+            {cachedVideo?.length > 0 && (
+              <ThemedText style={styles.duration}>
+                {formatDuration(cachedVideo.length)}
+              </ThemedText>
+            )}
+          </View>
         </View>
       </ThemedView>
 
@@ -360,10 +371,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 6,
+  },
   author: {
     fontSize: 13,
-    opacity: 0.6,
-    marginTop: 4,
+    opacity: 0.7,
+    flexShrink: 1,
+  },
+  metaSeparator: {
+    fontSize: 13,
+    opacity: 0.5,
+  },
+  duration: {
+    fontSize: 13,
+    opacity: 0.5,
   },
   tabContent: {
     flex: 1,

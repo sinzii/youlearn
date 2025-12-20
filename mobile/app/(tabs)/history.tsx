@@ -6,6 +6,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useRecentVideos, VideoCache } from '@/lib/store';
+import { formatDuration } from '@/lib/datetime';
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -93,17 +94,6 @@ export default function HistoryScreen() {
       </ThemedView>
     </SafeAreaView>
   );
-}
-
-function formatDuration(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
 const styles = StyleSheet.create({
