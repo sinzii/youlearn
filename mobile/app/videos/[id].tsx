@@ -5,7 +5,9 @@ import {
   ActivityIndicator,
   useWindowDimensions,
   TouchableOpacity,
-  View
+  Pressable,
+  View,
+  Image,
 } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -40,6 +42,7 @@ export default function VideoDetailsScreen() {
 
   const { video: cachedVideo, updateVideo } = useVideoCache(id || '');
   const hasFetchedRef = useRef(false);
+  const shouldAutoplay = useRef(false);
 
   const [transcript, setTranscript] = useState<TranscriptResponse | null>(
     cachedVideo?.transcript || null
@@ -48,7 +51,8 @@ export default function VideoDetailsScreen() {
   const [isLoading, setIsLoading] = useState(!cachedVideo?.transcript);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('summary');
-  const [showVideo, setShowVideo] = useState(true);
+  const [showVideo, setShowVideo] = useState(false);
+  const [playing, setPlaying] = useState(false);
 
   const playerHeight = (width - 32) * (9 / 16);
   const keyboard = useAnimatedKeyboard();
@@ -72,7 +76,10 @@ export default function VideoDetailsScreen() {
       title: headerTitle,
       headerRight: () => (
         <TouchableOpacity
-          onPress={() => setShowVideo((prev) => !prev)}
+          onPress={() => {
+            setPlaying(false);
+            setShowVideo((prev) => !prev);
+          }}
           style={styles.headerButton}
         >
           <MaterialIcons
@@ -139,6 +146,18 @@ export default function VideoDetailsScreen() {
     loadVideoData();
   }, [id]);
 
+  const handlePlayPress = () => {
+    shouldAutoplay.current = true;
+    setShowVideo(true);
+  };
+
+  const handlePlayerReady = () => {
+    if (shouldAutoplay.current) {
+      setPlaying(true);
+      shouldAutoplay.current = false;
+    }
+  };
+
   const handleSummaryUpdate = useCallback(
     (newSummary: string) => {
       setSummary(newSummary);
@@ -198,6 +217,8 @@ export default function VideoDetailsScreen() {
             <YoutubePlayer
               height={playerHeight}
               videoId={id}
+              play={playing}
+              onReady={handlePlayerReady}
               webViewStyle={styles.player}
             />
           </View>
@@ -206,14 +227,30 @@ export default function VideoDetailsScreen() {
 
       {/* Video Title */}
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="subtitle" style={styles.title} numberOfLines={2}>
-          {cachedVideo?.title || 'Untitled Video'}
-        </ThemedText>
-        {transcript?.language && (
-          <ThemedText style={styles.language}>
-            Language: {transcript.language}
-          </ThemedText>
+        {!showVideo && cachedVideo?.thumbnail_url && (
+          <Pressable onPress={handlePlayPress} style={styles.thumbnailContainer}>
+            <Image
+              source={{ uri: cachedVideo.thumbnail_url }}
+              style={styles.thumbnail}
+              resizeMode="cover"
+            />
+            <View style={styles.playOverlay}>
+              <View style={styles.playButton}>
+                <MaterialIcons name="play-arrow" size={20} color="#fff" />
+              </View>
+            </View>
+          </Pressable>
         )}
+        <View style={styles.titleInfo}>
+          <ThemedText type="subtitle" style={styles.title} numberOfLines={2}>
+            {cachedVideo?.title || 'Untitled Video'}
+          </ThemedText>
+          {cachedVideo?.author && (
+            <ThemedText style={styles.author} numberOfLines={1}>
+              {cachedVideo.author}
+            </ThemedText>
+          )}
+        </View>
       </ThemedView>
 
       {/* Tab Bar */}
@@ -286,17 +323,47 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   titleContainer: {
+    flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  thumbnailContainer: {
+    position: 'relative',
+  },
+  thumbnail: {
+    width: 120,
+    height: 68,
+    borderRadius: 8,
+    backgroundColor: '#333',
+  },
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  playButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FF0000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleInfo: {
+    flex: 1,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 16,
     lineHeight: 22,
   },
-  language: {
-    marginTop: 4,
-    fontSize: 12,
+  author: {
+    fontSize: 13,
     opacity: 0.6,
+    marginTop: 4,
   },
   tabContent: {
     flex: 1,
