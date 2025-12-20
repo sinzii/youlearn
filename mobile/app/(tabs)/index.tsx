@@ -1,5 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
   StyleSheet,
@@ -47,10 +48,15 @@ export default function NewScreen() {
     }
   };
 
+  const handleClear = () => {
+    setVideoUrl('');
+  };
+
   const backgroundColor = colorScheme === 'dark' ? '#151718' : '#fff';
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor }]} edges={['top']}>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <ThemedView style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -96,10 +102,10 @@ export default function NewScreen() {
                   styles.pasteButton,
                   { opacity: pressed ? 0.5 : 0.6 },
                 ]}
-                onPress={handlePaste}
+                onPress={videoUrl ? handleClear : handlePaste}
               >
                 <MaterialIcons
-                  name="content-paste"
+                  name={videoUrl ? 'close' : 'content-paste'}
                   size={20}
                   color={Colors[colorScheme].text}
                 />
