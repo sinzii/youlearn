@@ -49,12 +49,12 @@ export default function HistoryScreen() {
                 {item.author}
               </ThemedText>
             )}
-            {item.author && item.length_seconds > 0 && (
+            {item.author && item.length > 0 && (
               <ThemedText style={styles.metaSeparator}>•</ThemedText>
             )}
-            {item.length_seconds > 0 && (
+            {item.length > 0 && (
               <ThemedText style={styles.videoDuration}>
-                {formatDuration(item.length_seconds)}
+                {formatDuration(item.length)}
               </ThemedText>
             )}
           </View>

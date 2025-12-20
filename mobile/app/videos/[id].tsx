@@ -126,7 +126,7 @@ export default function VideoDetailsScreen() {
           title: videoInfo.title,
           author: videoInfo.author,
           thumbnail_url: videoInfo.thumbnail_url,
-          length_seconds: videoInfo.length_seconds,
+          length: videoInfo.length,
           transcript: transcriptData,
         });
       } catch (err) {

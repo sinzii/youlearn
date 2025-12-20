@@ -6,7 +6,7 @@ export interface VideoInfo {
   title: string;
   author: string;
   thumbnail_url: string;
-  length_seconds: number;
+  length: number; // in seconds
 }
 
 export interface TranscriptSegment {

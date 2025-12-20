@@ -102,7 +102,7 @@ class VideoInfoResponse(BaseModel):
     title: str
     author: str
     thumbnail_url: str
-    length_seconds: int
+    length: int  # in seconds
 
 
 class TranscriptResponse(BaseModel):
@@ -259,7 +259,7 @@ def get_video_info(
             title=yt.title or "Unknown Title",
             author=yt.author or "Unknown Author",
             thumbnail_url=yt.thumbnail_url or "",
-            length_seconds=yt.length or 0,
+            length=yt.length or 0,
         )
     except Exception as e:
         raise HTTPException(
