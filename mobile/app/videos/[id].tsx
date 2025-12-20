@@ -348,6 +348,10 @@ const styles = StyleSheet.create({
   },
   thumbnailContainer: {
     position: 'relative',
+    width: 120,
+    height: 68,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   thumbnail: {
     width: 120,
@@ -360,7 +364,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
   },
   playButton: {
     width: 32,

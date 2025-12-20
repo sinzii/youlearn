@@ -95,6 +95,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
+    lineHeight: 36,
   },
   listContent: {
     paddingHorizontal: 16,

@@ -67,7 +67,7 @@ export default function NewScreen() {
               </Text>
             </View>
 
-            <View style={styles.form}>
+            <View>
               <Input
                 placeholder="Paste YouTube URL or video ID..."
                 value={videoUrl}
@@ -184,9 +184,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     opacity: 0.7,
     textAlign: 'center',
-  },
-  form: {
-    gap: 8,
   },
   inputWrapper: {
     paddingHorizontal: 0,
