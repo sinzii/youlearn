@@ -19,16 +19,13 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
+import { Text, useTheme } from '@rneui/themed';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { SummaryTab } from '@/components/video/summary-tab';
 import { ChatTab } from '@/components/video/chat-tab';
 import { TranscriptTab } from '@/components/video/transcript-tab';
 import { fetchVideoInfo, fetchTranscript, TranscriptResponse } from '@/lib/api';
 import { useVideoCache } from '@/lib/store';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { mergeSegmentsIntoSentences } from '@/utils/transcript';
 import { formatDuration } from '@/lib/datetime';
 
@@ -43,7 +40,7 @@ const TAB_CONFIG: { key: TabType; label: string; icon: 'article' | 'question-ans
 export default function VideoDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
-  const colorScheme = useColorScheme() ?? 'light';
+  const { theme } = useTheme();
   const { getToken } = useAuth();
   const navigation = useNavigation();
 
@@ -92,12 +89,12 @@ export default function VideoDetailsScreen() {
           <MaterialIcons
             name={showVideo ? 'visibility' : 'visibility-off'}
             size={24}
-            color={Colors[colorScheme].text}
+            color={theme.colors.black}
           />
         </TouchableOpacity>
       ),
     });
-  }, [navigation, showVideo, colorScheme, headerTitle]);
+  }, [navigation, showVideo, theme, headerTitle]);
 
   useEffect(() => {
     if (!id) return;
@@ -183,18 +180,18 @@ export default function VideoDetailsScreen() {
 
   if (isLoading) {
     return (
-      <ThemedView style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors[colorScheme].tint} />
-        <ThemedText style={styles.loadingText}>Loading video...</ThemedText>
-      </ThemedView>
+      <View style={[styles.centered, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.grey4 }]}>Loading video...</Text>
+      </View>
     );
   }
 
   if (error) {
     return (
-      <ThemedView style={styles.centered}>
-        <ThemedText style={styles.errorText}>{error}</ThemedText>
-      </ThemedView>
+      <View style={[styles.centered, { backgroundColor: theme.colors.background }]}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
     );
   }
 
@@ -216,7 +213,7 @@ export default function VideoDetailsScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* YouTube Player - animates to half height when keyboard shows */}
       {showVideo && (
         <Animated.View style={[styles.playerContainer, playerAnimatedStyle]}>
@@ -233,7 +230,7 @@ export default function VideoDetailsScreen() {
       )}
 
       {/* Video Title */}
-      <ThemedView style={styles.titleContainer}>
+      <View style={styles.titleContainer}>
         {!showVideo && cachedVideo?.thumbnail_url && (
           <Pressable onPress={handlePlayPress} style={styles.thumbnailContainer}>
             <Image
@@ -249,30 +246,30 @@ export default function VideoDetailsScreen() {
           </Pressable>
         )}
         <View style={styles.titleInfo}>
-          <ThemedText type="subtitle" style={styles.title} numberOfLines={2}>
+          <Text style={[styles.title, { color: theme.colors.black }]} numberOfLines={2}>
             {cachedVideo?.title || 'Untitled Video'}
-          </ThemedText>
+          </Text>
           <View style={styles.metaRow}>
             {cachedVideo?.author && (
-              <ThemedText style={styles.author} numberOfLines={1}>
+              <Text style={[styles.author, { color: theme.colors.grey4 }]} numberOfLines={1}>
                 {cachedVideo.author}
-              </ThemedText>
+              </Text>
             )}
             {cachedVideo?.author && cachedVideo?.length > 0 && (
-              <ThemedText style={styles.metaSeparator}>•</ThemedText>
+              <Text style={[styles.metaSeparator, { color: theme.colors.grey4 }]}>•</Text>
             )}
             {cachedVideo?.length > 0 && (
-              <ThemedText style={styles.duration}>
+              <Text style={[styles.duration, { color: theme.colors.grey4 }]}>
                 {formatDuration(cachedVideo.length)}
-              </ThemedText>
+              </Text>
             )}
           </View>
         </View>
-      </ThemedView>
+      </View>
 
       {/* Tab Bar */}
-      <ThemedView
-        style={[styles.tabBar, { borderBottomColor: Colors[colorScheme].icon + '30' }]}
+      <View
+        style={[styles.tabBar, { borderBottomColor: theme.colors.greyOutline }]}
       >
         {TAB_CONFIG.map(({ key, label, icon }) => (
           <TouchableOpacity
@@ -284,35 +281,33 @@ export default function VideoDetailsScreen() {
               <MaterialIcons
                 name={icon}
                 size={18}
-                color={activeTab === key ? Colors[colorScheme].tint : Colors[colorScheme].icon}
+                color={activeTab === key ? theme.colors.primary : theme.colors.grey4}
               />
-              <ThemedText
+              <Text
                 style={[
                   styles.tabText,
-                  activeTab === key && {
-                    color: Colors[colorScheme].tint,
-                    fontWeight: '600',
-                  },
+                  { color: activeTab === key ? theme.colors.primary : theme.colors.grey4 },
+                  activeTab === key && { fontWeight: '600' },
                 ]}
               >
                 {label}
-              </ThemedText>
+              </Text>
             </View>
             {activeTab === key && (
-              <ThemedView
+              <View
                 style={[
                   styles.tabIndicator,
-                  { backgroundColor: Colors[colorScheme].tint },
+                  { backgroundColor: theme.colors.primary },
                 ]}
               />
             )}
           </TouchableOpacity>
         ))}
-      </ThemedView>
+      </View>
 
       {/* Tab Content */}
-      <ThemedView style={styles.tabContent}>{renderTabContent()}</ThemedView>
-    </ThemedView>
+      <View style={styles.tabContent}>{renderTabContent()}</View>
+    </View>
   );
 }
 
@@ -332,7 +327,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    opacity: 0.7,
   },
   errorText: {
     color: '#ef4444',
@@ -382,6 +376,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
+    fontWeight: 'bold',
     lineHeight: 22,
   },
   metaRow: {
@@ -392,16 +387,13 @@ const styles = StyleSheet.create({
   },
   author: {
     fontSize: 13,
-    opacity: 0.7,
     flexShrink: 1,
   },
   metaSeparator: {
     fontSize: 13,
-    opacity: 0.5,
   },
   duration: {
     fontSize: 13,
-    opacity: 0.5,
   },
   tabContent: {
     flex: 1,
@@ -422,7 +414,6 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    opacity: 0.7,
   },
   tabIndicator: {
     position: 'absolute',

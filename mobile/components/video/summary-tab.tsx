@@ -3,18 +3,15 @@ import { useState, useCallback, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
+  View,
 } from 'react-native';
 import Markdown from 'react-native-markdown-display';
+import { Text, Button, useTheme } from '@rneui/themed';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { streamSummary } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
 import { useVideoCache } from '@/lib/store';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 interface SummaryTabProps {
   videoId: string;
@@ -25,16 +22,16 @@ interface SummaryTabProps {
 export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProps) {
   const { video } = useVideoCache(videoId);
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
-  const colorScheme = useColorScheme() ?? 'light';
+  const { theme } = useTheme();
   const { getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [streamingText, setStreamingText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const fullTextRef = useRef('');
 
-  const textColor = Colors[colorScheme].text;
-  const tintColor = Colors[colorScheme].tint;
-  const codeBgColor = colorScheme === 'dark' ? '#333' : '#f0f0f0';
+  const textColor = theme.colors.black;
+  const tintColor = theme.colors.primary;
+  const codeBgColor = theme.mode === 'dark' ? '#333' : '#f0f0f0';
 
   const handleSummarize = useCallback(async () => {
     setIsLoading(true);
@@ -140,28 +137,27 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
 
   if (!displayText && !isLoading) {
     return (
-      <ThemedView style={styles.emptyContainer}>
-        <ThemedText style={styles.emptyText}>
+      <View style={styles.emptyContainer}>
+        <Text style={[styles.emptyText, { color: theme.colors.grey4 }]}>
           Generate a summary of this video&#39;s content
-        </ThemedText>
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: Colors[colorScheme].tint }]}
+        </Text>
+        <Button
+          title="Summarize"
           onPress={handleSummarize}
-        >
-          <ThemedText style={styles.buttonText}>Summarize</ThemedText>
-        </TouchableOpacity>
-        {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
-      </ThemedView>
+          size="sm"
+        />
+        {error && <Text style={styles.errorText}>{error}</Text>}
+      </View>
     );
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {isLoading && !streamingText && (
-        <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={Colors[colorScheme].tint} />
-          <ThemedText style={styles.loadingText}>Generating summary...</ThemedText>
-        </ThemedView>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={theme.colors.primary} />
+          <Text style={[styles.loadingText, { color: theme.colors.grey4 }]}>Generating summary...</Text>
+        </View>
       )}
       {displayText && (
         <Markdown style={markdownStyles}>
@@ -169,19 +165,20 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
         </Markdown>
       )}
       {isLoading && streamingText && (
-        <ThemedView style={styles.streamingIndicator}>
-          <ActivityIndicator size="small" color={Colors[colorScheme].tint} />
-        </ThemedView>
+        <View style={styles.streamingIndicator}>
+          <ActivityIndicator size="small" color={theme.colors.primary} />
+        </View>
       )}
       {displayText && !isLoading && (
-        <TouchableOpacity
-          style={styles.resummarizeButton}
+        <Button
+          title="Resummarize"
+          type="clear"
           onPress={handleSummarize}
-        >
-          <ThemedText style={styles.resummarizeText}>Resummarize</ThemedText>
-        </TouchableOpacity>
+          titleStyle={[styles.resummarizeText, { color: theme.colors.grey4 }]}
+          containerStyle={styles.resummarizeButton}
+        />
       )}
-      {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </ScrollView>
   );
 }
@@ -201,17 +198,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyText: {
-    opacity: 0.6,
     textAlign: 'center',
-  },
-  button: {
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -219,9 +206,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 16,
   },
-  loadingText: {
-    opacity: 0.6,
-  },
+  loadingText: {},
   streamingIndicator: {
     marginTop: 8,
   },
@@ -232,11 +217,8 @@ const styles = StyleSheet.create({
   resummarizeButton: {
     marginTop: 16,
     alignSelf: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
   },
   resummarizeText: {
-    opacity: 0.6,
     fontSize: 14,
   },
 });

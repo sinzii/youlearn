@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
-import { StyleSheet, FlatList, ListRenderItem } from 'react-native';
+import { StyleSheet, FlatList, ListRenderItem, View } from 'react-native';
+import { Text, useTheme } from '@rneui/themed';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { TranscriptSegment } from '@/lib/api';
 
 interface TranscriptTabProps {
@@ -16,14 +15,16 @@ const formatTime = (seconds: number): string => {
 };
 
 export function TranscriptTab({ segments }: TranscriptTabProps) {
+  const { theme } = useTheme();
+
   const renderItem: ListRenderItem<TranscriptSegment> = useCallback(
     ({ item }) => (
-      <ThemedView style={styles.segment}>
-        <ThemedText style={styles.timestamp}>{formatTime(item.start)}</ThemedText>
-        <ThemedText style={styles.segmentText}>{item.text}</ThemedText>
-      </ThemedView>
+      <View style={styles.segment}>
+        <Text style={[styles.timestamp, { color: theme.colors.grey4 }]}>{formatTime(item.start)}</Text>
+        <Text style={[styles.segmentText, { color: theme.colors.black }]}>{item.text}</Text>
+      </View>
     ),
-    []
+    [theme]
   );
 
   const keyExtractor = useCallback(
@@ -33,9 +34,9 @@ export function TranscriptTab({ segments }: TranscriptTabProps) {
 
   if (segments.length === 0) {
     return (
-      <ThemedView style={styles.emptyContainer}>
-        <ThemedText style={styles.emptyText}>No transcript available</ThemedText>
-      </ThemedView>
+      <View style={styles.emptyContainer}>
+        <Text style={[styles.emptyText, { color: theme.colors.grey4 }]}>No transcript available</Text>
+      </View>
     );
   }
 
@@ -66,9 +67,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
-  emptyText: {
-    opacity: 0.6,
-  },
+  emptyText: {},
   segment: {
     flexDirection: 'row',
     marginBottom: 12,
@@ -77,7 +76,6 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 12,
     fontFamily: 'monospace',
-    opacity: 0.5,
     minWidth: 45,
   },
   segmentText: {

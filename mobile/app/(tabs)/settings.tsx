@@ -1,12 +1,9 @@
 import { useClerk, useUser } from '@clerk/clerk-expo';
 import { useCallback } from 'react';
-import { StyleSheet, Image, TouchableOpacity, Pressable } from 'react-native';
+import { StyleSheet, Image, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text, Button, useTheme } from '@rneui/themed';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ThemePreference, useThemePreference, useSetThemePreference } from '@/lib/store';
 
 const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
@@ -16,7 +13,7 @@ const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
 ];
 
 export default function SettingsScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
+  const { theme } = useTheme();
   const { user } = useUser();
   const { signOut } = useClerk();
   const themePreference = useThemePreference();
@@ -26,37 +23,35 @@ export default function SettingsScreen() {
     await signOut();
   }, [signOut]);
 
-  const backgroundColor = colorScheme === 'dark' ? '#151718' : '#fff';
-
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor }]} edges={['top']}>
-      <ThemedView style={styles.container}>
-        <ThemedText type="title" style={styles.title}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.title, { color: theme.colors.black }]}>
           Settings
-        </ThemedText>
+        </Text>
 
-        <ThemedView
+        <View
           style={[
             styles.profileCard,
-            { backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5' },
+            { backgroundColor: theme.colors.grey0 },
           ]}>
           <Image source={{ uri: user?.imageUrl }} style={styles.avatar} />
-          <ThemedView style={styles.profileInfo}>
-            <ThemedText style={styles.name}>
+          <View style={styles.profileInfo}>
+            <Text style={[styles.name, { color: theme.colors.black }]}>
               {user?.firstName} {user?.lastName}
-            </ThemedText>
-            <ThemedText style={styles.email}>
+            </Text>
+            <Text style={[styles.email, { color: theme.colors.grey4 }]}>
               {user?.emailAddresses[0]?.emailAddress}
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
+            </Text>
+          </View>
+        </View>
 
-        <ThemedView style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Theme</ThemedText>
-          <ThemedView
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.grey4 }]}>Theme</Text>
+          <View
             style={[
               styles.segmentedControl,
-              { backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5' },
+              { backgroundColor: theme.colors.grey0 },
             ]}>
             {THEME_OPTIONS.map((option) => {
               const isSelected = themePreference === option.value;
@@ -66,29 +61,29 @@ export default function SettingsScreen() {
                   style={[
                     styles.segmentButton,
                     isSelected && {
-                      backgroundColor: colorScheme === 'dark' ? '#333' : '#fff',
+                      backgroundColor: theme.colors.background,
                     },
                   ]}
                   onPress={() => setThemePreference(option.value)}>
-                  <ThemedText
+                  <Text
                     style={[
                       styles.segmentText,
+                      { color: theme.colors.black },
                       isSelected && { fontWeight: '600' },
                     ]}>
                     {option.label}
-                  </ThemedText>
+                  </Text>
                 </Pressable>
               );
             })}
-          </ThemedView>
-        </ThemedView>
+          </View>
+        </View>
 
-        <TouchableOpacity
-          style={[styles.signOutButton, { backgroundColor: Colors[colorScheme].tint }]}
-          onPress={handleSignOut}>
-          <ThemedText style={styles.signOutButtonText}>Sign Out</ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
+        <Button
+          title="Sign Out"
+          onPress={handleSignOut}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -104,6 +99,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
+    fontWeight: 'bold',
     marginBottom: 24,
   },
   profileCard: {
@@ -121,7 +117,6 @@ const styles = StyleSheet.create({
   profileInfo: {
     marginLeft: 16,
     flex: 1,
-    backgroundColor: 'transparent',
   },
   name: {
     fontSize: 18,
@@ -130,24 +125,20 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 14,
-    opacity: 0.6,
   },
   section: {
     marginBottom: 24,
-    backgroundColor: 'transparent',
   },
   sectionTitle: {
     fontSize: 14,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    opacity: 0.6,
     marginBottom: 8,
   },
   segmentedControl: {
     flexDirection: 'row',
     borderRadius: 12,
     padding: 4,
-    backgroundColor: 'transparent',
   },
   segmentButton: {
     flex: 1,
@@ -157,15 +148,5 @@ const styles = StyleSheet.create({
   },
   segmentText: {
     fontSize: 14,
-  },
-  signOutButton: {
-    paddingVertical: 10,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  signOutButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

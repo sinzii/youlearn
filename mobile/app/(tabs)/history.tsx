@@ -1,84 +1,68 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, FlatList, Pressable, View, Image } from 'react-native';
+import { StyleSheet, FlatList, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text, ListItem, useTheme } from '@rneui/themed';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useRecentVideos, VideoCache } from '@/lib/store';
 import { formatDuration } from '@/lib/datetime';
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme() ?? 'light';
+  const { theme } = useTheme();
   const recentVideos = useRecentVideos();
 
   const handleVideoPress = (video: VideoCache) => {
     router.push({ pathname: '/videos/[id]', params: { id: video.video_id } });
   };
 
-  const backgroundColor = colorScheme === 'dark' ? '#151718' : '#fff';
-
   const renderVideoItem = ({ item }: { item: VideoCache }) => (
-    <Pressable
-      style={({ pressed }) => [
-        styles.videoItem,
-        {
-          backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5',
-          opacity: pressed ? 0.7 : 1,
-        },
-      ]}
+    <ListItem
       onPress={() => handleVideoPress(item)}
+      containerStyle={[
+        styles.videoItem,
+        { backgroundColor: theme.colors.grey0 },
+      ]}
     >
-      <View style={styles.videoItemContent}>
-        {item.thumbnail_url ? (
-          <Image
-            source={{ uri: item.thumbnail_url }}
-            style={styles.thumbnail}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.thumbnail, styles.thumbnailPlaceholder]} />
-        )}
-        <View style={styles.videoInfo}>
-          <ThemedText style={styles.videoTitle} numberOfLines={2}>
-            {item.title || item.video_id}
-          </ThemedText>
-          <View style={styles.videoMetaRow}>
-            {item.author && (
-              <ThemedText style={styles.videoAuthor} numberOfLines={1}>
-                {item.author}
-              </ThemedText>
-            )}
-            {item.author && item.length > 0 && (
-              <ThemedText style={styles.metaSeparator}>•</ThemedText>
-            )}
-            {item.length > 0 && (
-              <ThemedText style={styles.videoDuration}>
-                {formatDuration(item.length)}
-              </ThemedText>
-            )}
-          </View>
-        </View>
-      </View>
-    </Pressable>
+      {item.thumbnail_url ? (
+        <Image
+          source={{ uri: item.thumbnail_url }}
+          style={styles.thumbnail}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={[styles.thumbnail, styles.thumbnailPlaceholder]} />
+      )}
+      <ListItem.Content>
+        <ListItem.Title
+          numberOfLines={2}
+          style={[styles.videoTitle, { color: theme.colors.black }]}
+        >
+          {item.title || item.video_id}
+        </ListItem.Title>
+        <ListItem.Subtitle style={[styles.videoMeta, { color: theme.colors.grey4 }]}>
+          {item.author}
+          {item.author && item.length > 0 && ' • '}
+          {item.length > 0 && formatDuration(item.length)}
+        </ListItem.Subtitle>
+      </ListItem.Content>
+    </ListItem>
   );
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <ThemedText style={styles.emptyText}>No videos yet</ThemedText>
-      <ThemedText style={styles.emptySubtext}>
+      <Text style={[styles.emptyText, { color: theme.colors.black }]}>No videos yet</Text>
+      <Text style={[styles.emptySubtext, { color: theme.colors.grey4 }]}>
         Add a video to start learning
-      </ThemedText>
+      </Text>
     </View>
   );
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor }]} edges={['top']}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.header}>
-          <ThemedText type="title">History</ThemedText>
-        </ThemedView>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: theme.colors.black }]}>History</Text>
+        </View>
 
         <FlatList
           data={recentVideos}
@@ -91,7 +75,7 @@ export default function HistoryScreen() {
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
         />
-      </ThemedView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -108,6 +92,10 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 16,
   },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 24,
@@ -121,9 +109,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
   },
-  videoItemContent: {
-    flexDirection: 'row',
-  },
   thumbnail: {
     width: 120,
     height: 68,
@@ -133,34 +118,14 @@ const styles = StyleSheet.create({
   thumbnailPlaceholder: {
     backgroundColor: '#444',
   },
-  videoInfo: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: 'center',
-  },
   videoTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 18,
+    fontSize: 16,
+    fontWeight: '600',
+    lineHeight: 22,
   },
-  videoMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  videoMeta: {
     marginTop: 4,
-    gap: 6,
-  },
-  videoAuthor: {
-    fontSize: 12,
-    opacity: 0.7,
-    flexShrink: 1,
-  },
-  metaSeparator: {
-    fontSize: 12,
-    opacity: 0.5,
-  },
-  videoDuration: {
-    fontSize: 12,
-    opacity: 0.5,
+    fontSize: 13,
   },
   emptyState: {
     alignItems: 'center',
@@ -174,6 +139,5 @@ const styles = StyleSheet.create({
   },
   emptySubtext: {
     fontSize: 14,
-    opacity: 0.6,
   },
 });

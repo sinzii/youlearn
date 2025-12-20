@@ -4,21 +4,17 @@ import { useState, useCallback, useRef } from 'react';
 import {
   StyleSheet,
   ScrollView,
-  TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text, Input, Button, useTheme } from '@rneui/themed';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { streamChat, ChatMessage } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
 import { useVideoCache } from '@/lib/store';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 interface ChatTabProps {
   videoId: string;
@@ -28,7 +24,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
   const headerHeight = useHeaderHeight();
   const { video } = useVideoCache(videoId);
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
-  const colorScheme = useColorScheme() ?? 'light';
+  const { theme } = useTheme();
   const { getToken } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -102,77 +98,68 @@ export function ChatTab({ videoId }: ChatTabProps) {
         contentContainerStyle={styles.messagesContent}
       >
         {messages.length === 0 && (
-          <ThemedView style={styles.emptyContainer}>
-            <ThemedText style={styles.emptyText}>
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: theme.colors.grey4 }]}>
               Ask questions about the video content
-            </ThemedText>
-          </ThemedView>
+            </Text>
+          </View>
         )}
         {messages.map((message, index) => (
-          <ThemedView
+          <View
             key={index}
             style={[
               styles.messageBubble,
               message.role === 'user' ? styles.userBubble : styles.assistantBubble,
               message.role === 'user'
-                ? { backgroundColor: Colors[colorScheme].tint }
-                : { backgroundColor: colorScheme === 'dark' ? '#333' : '#e5e5e5' },
+                ? { backgroundColor: theme.colors.primary }
+                : { backgroundColor: theme.colors.grey1 },
             ]}
           >
-            <ThemedText
+            <Text
               style={[
                 styles.messageText,
-                message.role === 'user' && styles.userText,
+                message.role === 'user' ? styles.userText : { color: theme.colors.black },
               ]}
             >
               {message.content}
-            </ThemedText>
-          </ThemedView>
+            </Text>
+          </View>
         ))}
         {streamingResponse && (
-          <ThemedView style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: colorScheme === 'dark' ? '#333' : '#e5e5e5' }]}>
-            <ThemedText style={styles.messageText}>{streamingResponse}</ThemedText>
+          <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.grey1 }]}>
+            <Text style={[styles.messageText, { color: theme.colors.black }]}>{streamingResponse}</Text>
             <ActivityIndicator
               size="small"
-              color={Colors[colorScheme].tint}
+              color={theme.colors.primary}
               style={styles.streamingIndicator}
             />
-          </ThemedView>
+          </View>
         )}
       </ScrollView>
 
       <SafeAreaView edges={['bottom']}>
-        <ThemedView style={[styles.inputContainer, { borderTopColor: colorScheme === 'dark' ? '#333' : '#e5e5e5' }]}>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].icon,
-              },
-            ]}
+        <View style={[styles.inputContainer, { borderTopColor: theme.colors.grey1 }]}>
+          <Input
             placeholder="Type a message..."
-            placeholderTextColor={Colors[colorScheme].icon}
             value={input}
             onChangeText={setInput}
             onSubmitEditing={handleSend}
-            editable={!isLoading}
+            disabled={isLoading}
             multiline
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              { backgroundColor: Colors[colorScheme].tint },
-              (isLoading || !input.trim()) && styles.sendButtonDisabled,
+            containerStyle={styles.inputWrapper}
+            inputContainerStyle={[
+              styles.inputField,
+              { borderColor: theme.colors.grey3 },
             ]}
+          />
+          <Button
+            title={isLoading ? '...' : 'Send'}
             onPress={handleSend}
             disabled={isLoading || !input.trim()}
-          >
-            <ThemedText style={styles.sendButtonText}>
-              {isLoading ? '...' : 'Send'}
-            </ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
+            size="sm"
+            buttonStyle={styles.sendButton}
+          />
+        </View>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -195,7 +182,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    opacity: 0.6,
     textAlign: 'center',
   },
   messageBubble: {
@@ -225,30 +211,24 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     padding: 12,
     gap: 8,
     borderTopWidth: 1,
   },
-  input: {
+  inputWrapper: {
     flex: 1,
+    paddingHorizontal: 0,
+    marginBottom: 0,
+  },
+  inputField: {
     borderWidth: 1,
     borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
     maxHeight: 100,
-    fontSize: 14,
   },
   sendButton: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    justifyContent: 'center',
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
-  sendButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    paddingVertical: 10,
   },
 });

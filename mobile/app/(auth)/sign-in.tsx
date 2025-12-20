@@ -4,13 +4,10 @@ import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useState } from 'react';
 import {
   StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
   Image,
+  View,
 } from 'react-native';
-
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Text, Button, useTheme } from '@rneui/themed';
 
 // Warm up the browser for faster OAuth
 WebBrowser.maybeCompleteAuthSession();
@@ -18,6 +15,7 @@ WebBrowser.maybeCompleteAuthSession();
 export default function SignInScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   const { startSSOFlow } = useSSO();
 
@@ -42,26 +40,28 @@ export default function SignInScreen() {
   }, [startSSOFlow]);
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedView style={styles.content}>
-        <ThemedView style={styles.header}>
-          <ThemedText type="title" style={styles.title}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: theme.colors.black }]}>
             VideoInsight
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.colors.grey4 }]}>
             Learn from YouTube videos with AI-powered summaries and chat
-          </ThemedText>
-        </ThemedView>
+          </Text>
+        </View>
 
-        <ThemedView style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.googleButton}
+        <View style={styles.buttonContainer}>
+          <Button
             onPress={handleGoogleSignIn}
             disabled={isLoading}
+            loading={isLoading}
+            loadingProps={{ color: '#1a73e8' }}
+            buttonStyle={styles.googleButton}
+            containerStyle={styles.googleButtonContainer}
+            type="outline"
           >
-            {isLoading ? (
-              <ActivityIndicator color="#1a73e8" />
-            ) : (
+            {!isLoading && (
               <>
                 <Image
                   source={{
@@ -69,23 +69,23 @@ export default function SignInScreen() {
                   }}
                   style={styles.googleIcon}
                 />
-                <ThemedText style={styles.googleButtonText}>
+                <Text style={styles.googleButtonText}>
                   Continue with Google
-                </ThemedText>
+                </Text>
               </>
             )}
-          </TouchableOpacity>
+          </Button>
 
           {error && (
-            <ThemedText style={styles.errorText}>{error}</ThemedText>
+            <Text style={styles.errorText}>{error}</Text>
           )}
-        </ThemedView>
+        </View>
 
-        <ThemedText style={styles.terms}>
+        <Text style={[styles.terms, { color: theme.colors.grey4 }]}>
           By continuing, you agree to our Terms of Service and Privacy Policy
-        </ThemedText>
-      </ThemedView>
-    </ThemedView>
+        </Text>
+      </View>
+    </View>
   );
 }
 
@@ -110,7 +110,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    opacity: 0.7,
     textAlign: 'center',
     maxWidth: 280,
   },
@@ -119,6 +118,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
+  googleButtonContainer: {
+    width: '100%',
+    maxWidth: 320,
+  },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -126,14 +129,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
-    width: '100%',
-    maxWidth: 320,
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderColor: '#ddd',
   },
   googleIcon: {
     width: 20,
@@ -154,7 +151,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 48,
     fontSize: 12,
-    opacity: 0.5,
     textAlign: 'center',
     paddingHorizontal: 24,
   },
