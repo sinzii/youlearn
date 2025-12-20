@@ -94,7 +94,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={headerHeight + 100}
+      keyboardVerticalOffset={headerHeight + 110}
     >
       <ScrollView
         ref={scrollViewRef}
