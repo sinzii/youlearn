@@ -17,7 +17,6 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useRecentVideos, VideoCache } from '@/lib/store';
 
 const EXAMPLE_VIDEOS = [
   { id: 'XA9Q5p9ODac', title: 'Quantum Consciousness and the Origin of Life' },
@@ -25,11 +24,10 @@ const EXAMPLE_VIDEOS = [
   { id: 'kO41iURud9c', title: 'Brian Cox: The quantum roots of reality' },
 ];
 
-export default function HomeScreen() {
+export default function NewScreen() {
   const [videoUrl, setVideoUrl] = useState('');
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
-  const recentVideos = useRecentVideos();
 
   const handleStartLearning = () => {
     const trimmedUrl = videoUrl.trim();
@@ -40,10 +38,6 @@ export default function HomeScreen() {
       setVideoUrl('');
       router.push({ pathname: '/videos/[id]', params: { id: videoId } });
     }
-  };
-
-  const handleVideoPress = (video: VideoCache) => {
-    router.push({ pathname: '/videos/[id]', params: { id: video.video_id } });
   };
 
   const handlePaste = async () => {
@@ -129,60 +123,29 @@ export default function HomeScreen() {
             </Pressable>
           </ThemedView>
 
-          {/* Example Videos - shown when no recent videos */}
-          {recentVideos.length === 0 && (
-            <ThemedView style={styles.recentSection}>
-              <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                Try an example
-              </ThemedText>
-              {EXAMPLE_VIDEOS.map((video) => (
-                <Pressable
-                  key={video.id}
-                  style={({ pressed }) => [
-                    styles.videoItem,
-                    {
-                      backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5',
-                      opacity: pressed ? 0.7 : 1,
-                    },
-                  ]}
-                  onPress={() => router.push({ pathname: '/videos/[id]', params: { id: video.id } })}
-                >
-                  <ThemedText style={styles.videoTitle} numberOfLines={2}>
-                    {video.title}
-                  </ThemedText>
-                </Pressable>
-              ))}
-            </ThemedView>
-          )}
-
-          {/* Recent Videos */}
-          {recentVideos.length > 0 && (
-            <ThemedView style={styles.recentSection}>
-              <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                Recent Videos
-              </ThemedText>
-              {recentVideos.slice(0, 5).map((video) => (
-                <Pressable
-                  key={video.video_id}
-                  style={({ pressed }) => [
-                    styles.videoItem,
-                    {
-                      backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5',
-                      opacity: pressed ? 0.7 : 1,
-                    },
-                  ]}
-                  onPress={() => handleVideoPress(video)}
-                >
-                  <ThemedText style={styles.videoTitle} numberOfLines={2}>
-                    {video.title || video.video_id}
-                  </ThemedText>
-                  <ThemedText style={styles.videoMeta}>
-                    {formatRelativeTime(video.lastAccessed)}
-                  </ThemedText>
-                </Pressable>
-              ))}
-            </ThemedView>
-          )}
+          {/* Example Videos */}
+          <ThemedView style={styles.exampleSection}>
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+              Try an example
+            </ThemedText>
+            {EXAMPLE_VIDEOS.map((video) => (
+              <Pressable
+                key={video.id}
+                style={({ pressed }) => [
+                  styles.videoItem,
+                  {
+                    backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#f5f5f5',
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+                onPress={() => router.push({ pathname: '/videos/[id]', params: { id: video.id } })}
+              >
+                <ThemedText style={styles.videoTitle} numberOfLines={2}>
+                  {video.title}
+                </ThemedText>
+              </Pressable>
+            ))}
+          </ThemedView>
         </KeyboardAvoidingView>
       </ScrollView>
       </ThemedView>
@@ -211,21 +174,6 @@ function extractVideoId(input: string): string | null {
   }
 
   return input;
-}
-
-function formatRelativeTime(timestamp: number): string {
-  const now = Date.now();
-  const diff = now - timestamp;
-
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString();
 }
 
 const styles = StyleSheet.create({
@@ -289,7 +237,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  recentSection: {
+  exampleSection: {
     marginTop: 40,
   },
   sectionTitle: {
@@ -307,10 +255,5 @@ const styles = StyleSheet.create({
   videoTitle: {
     fontSize: 14,
     fontWeight: '500',
-    marginBottom: 4,
-  },
-  videoMeta: {
-    fontSize: 12,
-    opacity: 0.5,
   },
 });

@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/clerk-expo';
 import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -24,24 +24,33 @@ export default function TabLayout() {
     return <Redirect href="/(auth)/sign-in" />;
   }
 
+  const tintColor = Colors[colorScheme ?? 'light'].tint;
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: tintColor,
         headerShown: false,
       }}>
       <Tabs.Screen
+        name="history"
+        options={{
+          title: 'History',
+          tabBarIcon: ({ color }) => <IconSymbol size={20} name="clock.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'New',
+          tabBarIcon: ({ color }) => <IconSymbol size={20} name="plus.app.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={20} name="gearshape.fill" color={color} />,
         }}
       />
     </Tabs>
