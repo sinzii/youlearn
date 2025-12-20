@@ -43,20 +43,20 @@ export default function HistoryScreen() {
           <ThemedText style={styles.videoTitle} numberOfLines={2}>
             {item.title || item.video_id}
           </ThemedText>
-          {item.author && (
-            <ThemedText style={styles.videoAuthor} numberOfLines={1}>
-              {item.author}
-            </ThemedText>
-          )}
           <View style={styles.videoMetaRow}>
+            {item.author && (
+              <ThemedText style={styles.videoAuthor} numberOfLines={1}>
+                {item.author}
+              </ThemedText>
+            )}
+            {item.author && item.length_seconds > 0 && (
+              <ThemedText style={styles.metaSeparator}>•</ThemedText>
+            )}
             {item.length_seconds > 0 && (
               <ThemedText style={styles.videoDuration}>
                 {formatDuration(item.length_seconds)}
               </ThemedText>
             )}
-            <ThemedText style={styles.videoMeta}>
-              {formatRelativeTime(item.lastAccessed)}
-            </ThemedText>
           </View>
         </View>
       </View>
@@ -93,21 +93,6 @@ export default function HistoryScreen() {
       </ThemedView>
     </SafeAreaView>
   );
-}
-
-function formatRelativeTime(timestamp: number): string {
-  const now = Date.now();
-  const diff = now - timestamp;
-
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString();
 }
 
 function formatDuration(seconds: number): string {
@@ -168,22 +153,22 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 18,
   },
-  videoAuthor: {
-    fontSize: 12,
-    opacity: 0.6,
-    marginTop: 2,
-  },
   videoMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
-    gap: 8,
+    gap: 6,
   },
-  videoDuration: {
+  videoAuthor: {
+    fontSize: 12,
+    opacity: 0.7,
+    flexShrink: 1,
+  },
+  metaSeparator: {
     fontSize: 12,
     opacity: 0.5,
   },
-  videoMeta: {
+  videoDuration: {
     fontSize: 12,
     opacity: 0.5,
   },
