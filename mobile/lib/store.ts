@@ -28,6 +28,9 @@ export function useSetThemePreference() {
 export interface VideoCache {
   video_id: string;
   title: string;
+  author: string;
+  thumbnail_url: string;
+  length_seconds: number;
   transcript: TranscriptResponse | null;
   summary: string | null;
   lastAccessed: number;
@@ -81,6 +84,9 @@ export function useVideoCache(videoId: string) {
         const newVideo: VideoCache = {
           video_id: existing?.video_id ?? videoId,
           title: update.title ?? existing?.title ?? '',
+          author: update.author ?? existing?.author ?? '',
+          thumbnail_url: update.thumbnail_url ?? existing?.thumbnail_url ?? '',
+          length_seconds: update.length_seconds ?? existing?.length_seconds ?? 0,
           transcript: update.transcript ?? existing?.transcript ?? null,
           summary: update.summary ?? existing?.summary ?? null,
           lastAccessed: Date.now(),

@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, FlatList, Pressable, View } from 'react-native';
+import { StyleSheet, FlatList, Pressable, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -29,12 +29,37 @@ export default function HistoryScreen() {
       ]}
       onPress={() => handleVideoPress(item)}
     >
-      <ThemedText style={styles.videoTitle} numberOfLines={2}>
-        {item.title || item.video_id}
-      </ThemedText>
-      <ThemedText style={styles.videoMeta}>
-        {formatRelativeTime(item.lastAccessed)}
-      </ThemedText>
+      <View style={styles.videoItemContent}>
+        {item.thumbnail_url ? (
+          <Image
+            source={{ uri: item.thumbnail_url }}
+            style={styles.thumbnail}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.thumbnail, styles.thumbnailPlaceholder]} />
+        )}
+        <View style={styles.videoInfo}>
+          <ThemedText style={styles.videoTitle} numberOfLines={2}>
+            {item.title || item.video_id}
+          </ThemedText>
+          {item.author && (
+            <ThemedText style={styles.videoAuthor} numberOfLines={1}>
+              {item.author}
+            </ThemedText>
+          )}
+          <View style={styles.videoMetaRow}>
+            {item.length_seconds > 0 && (
+              <ThemedText style={styles.videoDuration}>
+                {formatDuration(item.length_seconds)}
+              </ThemedText>
+            )}
+            <ThemedText style={styles.videoMeta}>
+              {formatRelativeTime(item.lastAccessed)}
+            </ThemedText>
+          </View>
+        </View>
+      </View>
     </Pressable>
   );
 
@@ -85,6 +110,17 @@ function formatRelativeTime(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString();
 }
 
+function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -98,7 +134,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   listContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingBottom: 24,
   },
   emptyListContent: {
@@ -106,17 +142,49 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   videoItem: {
-    padding: 16,
+    padding: 12,
     borderRadius: 12,
     marginBottom: 12,
   },
+  videoItemContent: {
+    flexDirection: 'row',
+  },
+  thumbnail: {
+    width: 120,
+    height: 68,
+    borderRadius: 8,
+    backgroundColor: '#333',
+  },
+  thumbnailPlaceholder: {
+    backgroundColor: '#444',
+  },
+  videoInfo: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: 'center',
+  },
   videoTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
-    marginBottom: 4,
+    lineHeight: 18,
+  },
+  videoAuthor: {
+    fontSize: 12,
+    opacity: 0.6,
+    marginTop: 2,
+  },
+  videoMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 8,
+  },
+  videoDuration: {
+    fontSize: 12,
+    opacity: 0.5,
   },
   videoMeta: {
-    fontSize: 13,
+    fontSize: 12,
     opacity: 0.5,
   },
   emptyState: {

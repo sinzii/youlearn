@@ -1,6 +1,14 @@
 const API_ENDPOINT =
   process.env.EXPO_PUBLIC_API_ENDPOINT || 'http://localhost:8000';
 
+export interface VideoInfo {
+  video_id: string;
+  title: string;
+  author: string;
+  thumbnail_url: string;
+  length_seconds: number;
+}
+
 export interface TranscriptSegment {
   text: string;
   start: number;
@@ -9,11 +17,31 @@ export interface TranscriptSegment {
 
 export interface TranscriptResponse {
   video_id: string;
-  title: string;
   language: string;
   language_code: string;
   is_generated: boolean;
   segments: TranscriptSegment[];
+}
+
+export async function fetchVideoInfo(
+  videoId: string,
+  token: string
+): Promise<VideoInfo> {
+  const response = await fetch(
+    `${API_ENDPOINT}/youtube/info?video_id=${encodeURIComponent(videoId)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to fetch video info');
+  }
+
+  return response.json();
 }
 
 export async function fetchTranscript(

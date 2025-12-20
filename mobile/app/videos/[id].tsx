@@ -23,7 +23,7 @@ import { ThemedView } from '@/components/themed-view';
 import { SummaryTab } from '@/components/video/summary-tab';
 import { ChatTab } from '@/components/video/chat-tab';
 import { TranscriptTab } from '@/components/video/transcript-tab';
-import { fetchTranscript, TranscriptResponse } from '@/lib/api';
+import { fetchVideoInfo, fetchTranscript, TranscriptResponse } from '@/lib/api';
 import { useVideoCache } from '@/lib/store';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -65,7 +65,7 @@ export default function VideoDetailsScreen() {
   });
 
   // Configure header with title and toggle button
-  const headerTitle = transcript?.title || cachedVideo?.title || 'Video Details';
+  const headerTitle = cachedVideo?.title || 'Video Details';
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -106,28 +106,37 @@ export default function VideoDetailsScreen() {
     setIsLoading(true);
     setError(null);
 
-    const loadTranscript = async () => {
+    const loadVideoData = async () => {
       try {
         const token = await getToken();
         if (!token) {
           setError('Not authenticated');
           return;
         }
-        const data = await fetchTranscript(id, token);
-        setTranscript(data);
+
+        // Fetch video info and transcript in parallel
+        const [videoInfo, transcriptData] = await Promise.all([
+          fetchVideoInfo(id, token),
+          fetchTranscript(id, token),
+        ]);
+
+        setTranscript(transcriptData);
         updateVideo({
           video_id: id,
-          title: data.title,
-          transcript: data,
+          title: videoInfo.title,
+          author: videoInfo.author,
+          thumbnail_url: videoInfo.thumbnail_url,
+          length_seconds: videoInfo.length_seconds,
+          transcript: transcriptData,
         });
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load transcript');
+        setError(err instanceof Error ? err.message : 'Failed to load video');
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadTranscript();
+    loadVideoData();
   }, [id]);
 
   const handleSummaryUpdate = useCallback(
@@ -198,7 +207,7 @@ export default function VideoDetailsScreen() {
       {/* Video Title */}
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="subtitle" style={styles.title} numberOfLines={2}>
-          {transcript?.title || cachedVideo?.title || 'Untitled Video'}
+          {cachedVideo?.title || 'Untitled Video'}
         </ThemedText>
         {transcript?.language && (
           <ThemedText style={styles.language}>

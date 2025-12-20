@@ -31,6 +31,8 @@ clerk = Clerk(bearer_auth=os.environ.get("CLERK_SECRET_KEY"))
 webshare_username = os.environ.get("WEBSHARE_PROXY_USERNAME")
 webshare_password = os.environ.get("WEBSHARE_PROXY_PASSWORD")
 
+socks5_proxies = None
+
 if webshare_username and webshare_password:
     ytt_api = YouTubeTranscriptApi(
         proxy_config=WebshareProxyConfig(
@@ -38,6 +40,11 @@ if webshare_username and webshare_password:
             proxy_password=webshare_password,
         )
     )
+    socks5 = f"socks5://{webshare_username}-rotate:{webshare_password}@p.webshare.io:80"
+    socks5_proxies = {
+        "http": socks5,
+        "https": socks5
+    }
 else:
     ytt_api = YouTubeTranscriptApi()
 
@@ -90,9 +97,16 @@ class TranscriptSegment(BaseModel):
     duration: float
 
 
-class TranscriptResponse(BaseModel):
+class VideoInfoResponse(BaseModel):
     video_id: str
     title: str
+    author: str
+    thumbnail_url: str
+    length_seconds: int
+
+
+class TranscriptResponse(BaseModel):
+    video_id: str
     language: str
     language_code: str
     is_generated: bool
@@ -175,9 +189,6 @@ def fetch_transcript_text(video_id: str) -> tuple[str, TranscriptResponse]:
     try:
         transcript = ytt_api.fetch(actual_video_id)
 
-        # Get video title
-        title = get_video_title(actual_video_id)
-
         segments = [
             TranscriptSegment(
                 text=snippet.text,
@@ -189,7 +200,6 @@ def fetch_transcript_text(video_id: str) -> tuple[str, TranscriptResponse]:
 
         response = TranscriptResponse(
             video_id=actual_video_id,
-            title=title,
             language=transcript.language,
             language_code=transcript.language_code,
             is_generated=transcript.is_generated,
@@ -228,6 +238,36 @@ def read_root():
     return {"message": "YouAPI - YouTube Learning API"}
 
 
+@app.get("/youtube/info", response_model=VideoInfoResponse)
+def get_video_info(
+    video_id: str = Query(..., description="YouTube video ID or URL"),
+):
+    """
+    Get metadata for a YouTube video.
+
+    - **video_id**: YouTube video ID or full URL (supports youtube.com/watch, youtu.be, embed, shorts)
+    """
+    try:
+        actual_video_id = extract_video_id(video_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    try:
+        yt = YouTube(f"https://www.youtube.com/watch?v={actual_video_id}", proxies=socks5_proxies)
+        return VideoInfoResponse(
+            video_id=actual_video_id,
+            title=yt.title or "Unknown Title",
+            author=yt.author or "Unknown Author",
+            thumbnail_url=yt.thumbnail_url or "",
+            length_seconds=yt.length or 0,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch video info: {str(e)}",
+        )
+
+
 @app.get("/youtube/transcript", response_model=TranscriptResponse)
 def get_transcript(
     video_id: str = Query(..., description="YouTube video ID or URL"),
@@ -250,9 +290,6 @@ def get_transcript(
         else:
             transcript = ytt_api.fetch(actual_video_id)
 
-        # Get video title
-        title = get_video_title(actual_video_id)
-
         segments = [
             TranscriptSegment(
                 text=snippet.text,
@@ -264,7 +301,6 @@ def get_transcript(
 
         return TranscriptResponse(
             video_id=actual_video_id,
-            title=title,
             language=transcript.language,
             language_code=transcript.language_code,
             is_generated=transcript.is_generated,
