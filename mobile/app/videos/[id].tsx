@@ -32,7 +32,13 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { mergeSegmentsIntoSentences } from '@/utils/transcript';
 import { formatDuration } from '@/lib/datetime';
 
-type TabType = 'summary' | 'chat' | 'transcript';
+type TabType = 'summary' | 'ask' | 'transcript';
+
+const TAB_CONFIG: { key: TabType; label: string; icon: 'article' | 'question-answer' | 'subtitles' }[] = [
+  { key: 'summary', label: 'Summary', icon: 'article' },
+  { key: 'ask', label: 'Ask', icon: 'question-answer' },
+  { key: 'transcript', label: 'Transcript', icon: 'subtitles' },
+];
 
 export default function VideoDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -202,7 +208,7 @@ export default function VideoDetailsScreen() {
             onSummaryUpdate={handleSummaryUpdate}
           />
         );
-      case 'chat':
+      case 'ask':
         return <ChatTab videoId={id || ''} />;
       case 'transcript':
         return <TranscriptTab segments={mergedSegments} />;
@@ -268,24 +274,31 @@ export default function VideoDetailsScreen() {
       <ThemedView
         style={[styles.tabBar, { borderBottomColor: Colors[colorScheme].icon + '30' }]}
       >
-        {(['summary', 'chat', 'transcript'] as TabType[]).map((tab) => (
+        {TAB_CONFIG.map(({ key, label, icon }) => (
           <TouchableOpacity
-            key={tab}
+            key={key}
             style={styles.tabButton}
-            onPress={() => setActiveTab(tab)}
+            onPress={() => setActiveTab(key)}
           >
-            <ThemedText
-              style={[
-                styles.tabText,
-                activeTab === tab && {
-                  color: Colors[colorScheme].tint,
-                  fontWeight: '600',
-                },
-              ]}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </ThemedText>
-            {activeTab === tab && (
+            <View style={styles.tabButtonContent}>
+              <MaterialIcons
+                name={icon}
+                size={18}
+                color={activeTab === key ? Colors[colorScheme].tint : Colors[colorScheme].icon}
+              />
+              <ThemedText
+                style={[
+                  styles.tabText,
+                  activeTab === key && {
+                    color: Colors[colorScheme].tint,
+                    fontWeight: '600',
+                  },
+                ]}
+              >
+                {label}
+              </ThemedText>
+            </View>
+            {activeTab === key && (
               <ThemedView
                 style={[
                   styles.tabIndicator,
@@ -401,6 +414,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 12,
+  },
+  tabButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   tabText: {
     fontSize: 14,
