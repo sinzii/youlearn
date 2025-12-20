@@ -25,14 +25,15 @@ export default function HistoryScreen() {
     >
       {item.thumbnail_url ? (
         <Image
+          key="thumbnail"
           source={{ uri: item.thumbnail_url }}
           style={styles.thumbnail}
           resizeMode="cover"
         />
       ) : (
-        <View style={[styles.thumbnail, styles.thumbnailPlaceholder]} />
+        <View key="thumbnail" style={[styles.thumbnail, styles.thumbnailPlaceholder]} />
       )}
-      <ListItem.Content>
+      <ListItem.Content key="content">
         <ListItem.Title
           numberOfLines={2}
           style={[styles.videoTitle, { color: theme.colors.black }]}

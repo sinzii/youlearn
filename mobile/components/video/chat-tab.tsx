@@ -151,6 +151,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
               styles.inputField,
               { borderColor: theme.colors.grey3 },
             ]}
+            renderErrorMessage={false}
           />
           <Button
             title={isLoading ? '...' : 'Send'}

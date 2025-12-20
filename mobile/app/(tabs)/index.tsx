@@ -67,7 +67,7 @@ export default function NewScreen() {
               </Text>
             </View>
 
-            <View>
+            <View style={styles.form}>
               <Input
                 placeholder="Paste YouTube URL or video ID..."
                 value={videoUrl}
@@ -76,6 +76,7 @@ export default function NewScreen() {
                 autoCorrect={false}
                 returnKeyType="go"
                 onSubmitEditing={handleStartLearning}
+                renderErrorMessage={false}
                 rightIcon={
                   <MaterialIcons
                     name={videoUrl ? 'close' : 'content-paste'}
@@ -168,6 +169,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 16,
+  },
+  form: {
+    gap: 12,
   },
   header: {
     alignItems: 'center',
