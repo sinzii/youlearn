@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-expo';
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -28,6 +28,7 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
   const [streamingText, setStreamingText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const fullTextRef = useRef('');
+  const hasAutoTriggeredRef = useRef(false);
 
   const textColor = theme.colors.black;
   const tintColor = theme.colors.primary;
@@ -62,6 +63,14 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
       },
     });
   }, [videoId, onSummaryUpdate, getToken, transcript]);
+
+  // Auto-trigger summarization when transcript is available
+  useEffect(() => {
+    if (transcript && !summary && !isLoading && !hasAutoTriggeredRef.current) {
+      hasAutoTriggeredRef.current = true;
+      handleSummarize();
+    }
+  }, [transcript, summary, isLoading, handleSummarize]);
 
   const displayText = summary || streamingText;
 
