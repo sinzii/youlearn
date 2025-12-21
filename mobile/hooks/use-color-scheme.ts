@@ -6,7 +6,7 @@ export function useColorScheme() {
   const themePreference = useThemePreference();
 
   if (themePreference === 'system') {
-    return systemColorScheme;
+    return systemColorScheme ?? 'light';
   }
 
   return themePreference;
