@@ -49,38 +49,40 @@ export const videosAtom = atomWithStorage<VideosState>(
   { getOnInit: true }
 );
 
-// Helper to safely get videos object (handles async loading state)
-function getVideosSync(videos: VideosState | Promise<VideosState>): VideosState {
-  // If it's a promise (still loading), return empty object
-  if (videos instanceof Promise) {
-    return {};
-  }
-  return videos || {};
+// Type guard to validate VideoCache structure
+function isValidVideoCache(v: unknown): v is VideoCache {
+  return (
+    v != null &&
+    typeof v === 'object' &&
+    'video_id' in v &&
+    typeof (v as VideoCache).video_id === 'string' &&
+    'lastAccessed' in v &&
+    typeof (v as VideoCache).lastAccessed === 'number'
+  );
 }
 
 // Derived atom for sorted videos list (most recent first)
-export const videosListAtom = atom((get) => {
-  const videos = getVideosSync(get(videosAtom));
+export const videosListAtom = atom(async (get) => {
+  const videos = await get(videosAtom);
   return Object.values(videos)
-    .filter((v): v is VideoCache => v != null && typeof v.lastAccessed === 'number')
+    .filter(isValidVideoCache)
     .sort((a, b) => b.lastAccessed - a.lastAccessed);
 });
 
 // Hook to get a specific video's cache
 export function useVideoCache(videoId: string) {
-  const videos = useAtomValue(videosAtom);
+  const videos = useAtomValue(videosAtom) as VideosState;
   const setVideos = useSetAtom(videosAtom);
 
   const video = useMemo(() => {
-    const syncVideos = getVideosSync(videos);
-    return syncVideos[videoId] || null;
+    return videos[videoId] || null;
   }, [videos, videoId]);
 
   const updateVideo = useCallback(
     (update: Partial<VideoCache>) => {
       setVideos((prev) => {
-        const syncPrev = getVideosSync(prev);
-        const existing = syncPrev[videoId];
+        const state = prev as VideosState;
+        const existing = state[videoId];
         const newVideo: VideoCache = {
           video_id: existing?.video_id ?? videoId,
           title: update.title ?? existing?.title ?? '',
@@ -92,7 +94,7 @@ export function useVideoCache(videoId: string) {
           lastAccessed: Date.now(),
         };
         return {
-          ...syncPrev,
+          ...state,
           [videoId]: newVideo,
         };
       });
@@ -122,8 +124,8 @@ export function useRemoveVideo() {
   return useCallback(
     (videoId: string) => {
       setVideos((prev) => {
-        const syncPrev = getVideosSync(prev);
-        const { [videoId]: _, ...rest } = syncPrev;
+        const state = prev as VideosState;
+        const { [videoId]: _, ...rest } = state;
         return rest;
       });
     },

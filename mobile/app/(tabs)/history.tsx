@@ -1,19 +1,37 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, FlatList, View, Image } from 'react-native';
+import { useCallback } from 'react';
+import { StyleSheet, FlatList, View, Image, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, ListItem, useTheme } from '@rneui/themed';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { useRecentVideos, VideoCache } from '@/lib/store';
+import { useRecentVideos, useClearVideos, VideoCache } from '@/lib/store';
 import { formatDuration } from '@/lib/datetime';
 
 export default function HistoryScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const recentVideos = useRecentVideos();
+  const clearVideos = useClearVideos();
 
   const handleVideoPress = (video: VideoCache) => {
     router.push({ pathname: '/videos/[id]', params: { id: video.video_id } });
   };
+
+  const handleClearHistory = useCallback(() => {
+    Alert.alert(
+      'Clear History',
+      'Are you sure you want to clear all video history? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: () => clearVideos(),
+        },
+      ]
+    );
+  }, [clearVideos]);
 
   const renderVideoItem = ({ item }: { item: VideoCache }) => (
     <ListItem
@@ -23,29 +41,30 @@ export default function HistoryScreen() {
         { backgroundColor: theme.colors.grey0 },
       ]}
     >
-      {item.thumbnail_url ? (
-        <Image
-          key="thumbnail"
-          source={{ uri: item.thumbnail_url }}
-          style={styles.thumbnail}
-          resizeMode="cover"
-        />
-      ) : (
-        <View key="thumbnail" style={[styles.thumbnail, styles.thumbnailPlaceholder]} />
-      )}
-      <ListItem.Content key="content">
-        <ListItem.Title
-          numberOfLines={2}
-          style={[styles.videoTitle, { color: theme.colors.black }]}
-        >
-          {item.title || item.video_id}
-        </ListItem.Title>
-        <ListItem.Subtitle style={[styles.videoMeta, { color: theme.colors.grey4 }]}>
-          {item.author}
-          {item.author && item.length > 0 && ' • '}
-          {item.length > 0 && formatDuration(item.length)}
-        </ListItem.Subtitle>
-      </ListItem.Content>
+      <View style={styles.videoItemContent}>
+        {item.thumbnail_url ? (
+          <Image
+            source={{ uri: item.thumbnail_url }}
+            style={styles.thumbnail}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.thumbnail, styles.thumbnailPlaceholder]} />
+        )}
+        <View style={styles.videoInfo}>
+          <Text
+            numberOfLines={2}
+            style={[styles.videoTitle, { color: theme.colors.black }]}
+          >
+            {item.title || item.video_id}
+          </Text>
+          <Text style={[styles.videoMeta, { color: theme.colors.grey4 }]}>
+            {item.author}
+            {item.author && item.length > 0 && ' • '}
+            {item.length > 0 && formatDuration(item.length)}
+          </Text>
+        </View>
+      </View>
     </ListItem>
   );
 
@@ -63,6 +82,11 @@ export default function HistoryScreen() {
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.black }]}>History</Text>
+          {recentVideos.length > 0 && (
+            <TouchableOpacity onPress={handleClearHistory} style={styles.clearButton}>
+              <MaterialIcons name="delete-outline" size={24} color={theme.colors.grey4} />
+            </TouchableOpacity>
+          )}
         </View>
 
         <FlatList
@@ -89,6 +113,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 16,
@@ -97,6 +124,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     lineHeight: 36,
+  },
+  clearButton: {
+    padding: 8,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -110,6 +140,14 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     marginBottom: 12,
+  },
+  videoItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  videoInfo: {
+    flex: 1,
   },
   thumbnail: {
     width: 120,
