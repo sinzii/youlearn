@@ -2,7 +2,6 @@ import { useAuth } from '@clerk/clerk-expo';
 import { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import {
   StyleSheet,
-  ActivityIndicator,
   useWindowDimensions,
   TouchableOpacity,
   Pressable,
@@ -19,7 +18,8 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
-import { Text, useTheme } from '@rneui/themed';
+import { Text, useTheme, Skeleton } from '@rneui/themed';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { SummaryTab } from '@/components/video/summary-tab';
 import { ChatTab } from '@/components/video/chat-tab';
@@ -36,6 +36,68 @@ const TAB_CONFIG: { key: TabType; label: string; icon: 'article' | 'question-ans
   { key: 'ask', label: 'Ask', icon: 'question-answer' },
   { key: 'transcript', label: 'Transcript', icon: 'subtitles' },
 ];
+
+function LoadingSkeleton() {
+  const { theme } = useTheme();
+  const skeletonProps = {
+    animation: 'wave' as const,
+    LinearGradientComponent: LinearGradient,
+    skeletonStyle: { backgroundColor: theme.colors.grey2 }
+  };
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Video info section skeleton */}
+      <View style={styles.titleContainer}>
+        <Skeleton
+          width={120}
+          height={68}
+          style={styles.skeletonThumbnail}
+          {...skeletonProps}
+        />
+        <View style={styles.titleInfo}>
+          <Skeleton width={160} height={18} style={styles.skeletonText} {...skeletonProps} />
+          <Skeleton width={120} height={18} style={styles.skeletonTextMargin} {...skeletonProps} />
+          <Skeleton width={80} height={14} style={styles.skeletonMeta} {...skeletonProps} />
+        </View>
+      </View>
+
+      {/* Tab bar skeleton */}
+      <View style={[styles.tabBar, { borderBottomColor: theme.colors.greyOutline }]}>
+        {[1, 2, 3].map((i) => (
+          <View key={i} style={styles.tabButton}>
+            <Skeleton width={70} height={20} style={styles.skeletonText} {...skeletonProps} />
+          </View>
+        ))}
+      </View>
+
+      {/* Content area skeleton */}
+      <View style={styles.skeletonContent}>
+        <Skeleton width={300} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={280} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={240} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={300} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={180} height={16} style={styles.skeletonText} {...skeletonProps} />
+
+        <View style={styles.skeletonGap} />
+
+        <Skeleton width={260} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={300} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={220} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={280} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={200} height={16} style={styles.skeletonText} {...skeletonProps} />
+
+        <View style={styles.skeletonGap} />
+
+        <Skeleton width={300} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={250} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={270} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={300} height={16} style={styles.skeletonText} {...skeletonProps} />
+        <Skeleton width={180} height={16} style={styles.skeletonText} {...skeletonProps} />
+      </View>
+    </View>
+  );
+}
 
 export default function VideoDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -179,12 +241,7 @@ export default function VideoDetailsScreen() {
   }, [transcript?.segments, transcript?.is_generated]);
 
   if (isLoading) {
-    return (
-      <View style={[styles.centered, { backgroundColor: theme.colors.background }]}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={[styles.loadingText, { color: theme.colors.grey4 }]}>Loading video...</Text>
-      </View>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (error) {
@@ -325,9 +382,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
-  loadingText: {
-    marginTop: 12,
-  },
   errorText: {
     color: '#ef4444',
     textAlign: 'center',
@@ -424,5 +478,26 @@ const styles = StyleSheet.create({
     height: 2,
     width: '60%',
     borderRadius: 1,
+  },
+  skeletonThumbnail: {
+    borderRadius: 8,
+  },
+  skeletonText: {
+    borderRadius: 4,
+  },
+  skeletonTextMargin: {
+    borderRadius: 4,
+    marginTop: 4,
+  },
+  skeletonMeta: {
+    borderRadius: 4,
+    marginTop: 8,
+  },
+  skeletonContent: {
+    padding: 16,
+    gap: 12,
+  },
+  skeletonGap: {
+    height: 8,
   },
 });
