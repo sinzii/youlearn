@@ -6,7 +6,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   View,
 } from 'react-native';
 import Animated, {
@@ -212,11 +211,6 @@ export function ChatTab({ videoId }: ChatTabProps) {
         {streamingResponse && (
           <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.grey1 }]}>
             <Markdown style={markdownStyles}>{streamingResponse}</Markdown>
-            <ActivityIndicator
-              size="small"
-              color={theme.colors.grey3}
-              style={styles.streamingIndicator}
-            />
           </View>
         )}
       </ScrollView>
@@ -290,10 +284,6 @@ const styles = StyleSheet.create({
   },
   userText: {
     color: '#fff',
-  },
-  streamingIndicator: {
-    marginTop: 4,
-    alignSelf: 'center',
   },
   inputContainer: {
     flexDirection: 'row',

@@ -87,11 +87,6 @@ export function SummaryTab({ videoId }: SummaryTabProps) {
           {displayText}
         </Markdown>
       )}
-      {isLoading && streamingText && (
-        <View style={styles.streamingIndicator}>
-          <ActivityIndicator size="small" color={theme.colors.primary} />
-        </View>
-      )}
       {displayText && !isLoading && (
         <Button
           title="Resummarize"
@@ -130,9 +125,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   loadingText: {},
-  streamingIndicator: {
-    marginTop: 8,
-  },
   errorText: {
     color: '#ef4444',
     marginTop: 12,
