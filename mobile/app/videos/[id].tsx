@@ -353,13 +353,12 @@ export default function VideoDetailsScreen() {
 
       {/* Tab Content */}
       <View style={styles.tabContent}>
-        {/* Summary - always mounted, hidden when inactive */}
-        <View style={[
-          styles.tabPane,
-          activeTab !== 'summary' && styles.hiddenTab
-        ]}>
-          <SummaryTab videoId={id || ''} onTextAction={handleTextAction} />
-        </View>
+        {/* Summary - load on demand */}
+        {activeTab === 'summary' && (
+          <View style={styles.tabPane}>
+            <SummaryTab videoId={id || ''} onTextAction={handleTextAction} />
+          </View>
+        )}
 
         {/* Chat - load on demand */}
         {activeTab === 'ask' && (
@@ -473,9 +472,6 @@ const styles = StyleSheet.create({
   },
   tabPane: {
     ...StyleSheet.absoluteFillObject,
-  },
-  hiddenTab: {
-    left: -9999
   },
   tabBar: {
     flexDirection: 'row',

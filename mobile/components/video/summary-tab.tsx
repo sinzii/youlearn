@@ -6,6 +6,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 import { Text, Button, useTheme } from '@rneui/themed';
 import { useSetAtom } from 'jotai';
 
@@ -45,6 +50,12 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const webViewRef = useRef<WebView>(null);
   const pendingMessagesRef = useRef<EmbedMessage[]>([]);
 
+  // Fade-in animation
+  const opacity = useSharedValue(0);
+  const fadeStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
   // Load embed source on mount
   useEffect(() => {
     getEmbedSource().then(setEmbedSource);
@@ -77,6 +88,8 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
 
   const handleWebViewReady = useCallback(() => {
     setWebViewReady(true);
+    // Trigger fade-in animation
+    opacity.value = withTiming(1, { duration: 200 });
 
     // Send initial theme and content
     const initMessage: EmbedMessage = {
@@ -107,7 +120,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
       }
     });
     pendingMessagesRef.current = [];
-  }, [currentTheme, displayText]);
+  }, [currentTheme, displayText, opacity]);
 
   const handleWebViewMessage = useCallback((event: WebViewMessageEvent) => {
     try {
@@ -215,39 +228,41 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
 
   return (
     <View style={styles.container}>
-      {/* Loading indicator shown while WebView initializes OR during initial stream */}
-      {(!embedSource || !webViewReady || (isLoading && !streamingText)) && (
+      {/* Loading indicator shown during initial summary generation */}
+      {isLoading && !streamingText && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
           <Text style={[styles.loadingText, { color: theme.colors.grey4 }]}>
-            {!embedSource || !webViewReady ? 'Loading...' : 'Generating summary...'}
+            Generating summary...
           </Text>
         </View>
       )}
 
       {embedSource && (
-        <WebView
-          ref={webViewRef}
-          source={embedSource}
-          style={[styles.webView, !webViewReady && styles.hidden]}
-          onMessage={handleWebViewMessage}
-          onError={handleWebViewError}
-          onHttpError={handleWebViewError}
-          scrollEnabled={true}
-          showsVerticalScrollIndicator={true}
-          originWhitelist={['*']}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          startInLoadingState={false}
-          scalesPageToFit={false}
-          menuItems={[
-            { label: 'Explain', key: 'explain' },
-            { label: 'Ask', key: 'ask' },
-          ]}
-          onCustomMenuSelection={handleCustomMenuSelection}
-          // @ts-expect-error backgroundColor is valid for WebView
-          backgroundColor={theme.colors.background}
-        />
+        <Animated.View style={[styles.webView, fadeStyle]}>
+          <WebView
+            ref={webViewRef}
+            source={embedSource}
+            style={styles.webView}
+            onMessage={handleWebViewMessage}
+            onError={handleWebViewError}
+            onHttpError={handleWebViewError}
+            scrollEnabled={true}
+            showsVerticalScrollIndicator={true}
+            originWhitelist={['*']}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={false}
+            scalesPageToFit={false}
+            menuItems={[
+              { label: 'Explain', key: 'explain' },
+              { label: 'Ask', key: 'ask' },
+            ]}
+            onCustomMenuSelection={handleCustomMenuSelection}
+            // @ts-expect-error backgroundColor is valid for WebView
+            backgroundColor={theme.colors.background}
+          />
+        </Animated.View>
       )}
 
       {/* Resummarize button */}
@@ -273,10 +288,6 @@ const styles = StyleSheet.create({
   },
   webView: {
     flex: 1,
-  },
-  hidden: {
-    opacity: 0,
-    height: 0,
   },
   loadingOverlay: {
     position: 'absolute',
