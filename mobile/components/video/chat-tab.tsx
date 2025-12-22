@@ -10,11 +10,13 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Markdown from 'react-native-markdown-display';
 import { Text, Input, Button, useTheme } from '@rneui/themed';
 
 import { streamChat, ChatMessage } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
 import { useVideoCache } from '@/lib/store';
+import { useMarkdownStyles } from '@/hooks/useMarkdownStyles';
 
 interface ChatTabProps {
   videoId: string;
@@ -31,6 +33,9 @@ export function ChatTab({ videoId }: ChatTabProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingResponse, setStreamingResponse] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
+  const userHasScrolledRef = useRef(false);
+  const questionPositionRef = useRef(0);
+  const markdownStyles = useMarkdownStyles('compact');
 
   // Persist messages to store whenever they change
   const updateMessages = useCallback((newMessages: ChatMessage[]) => {
@@ -38,9 +43,10 @@ export function ChatTab({ videoId }: ChatTabProps) {
     updateVideo({ chatMessages: newMessages });
   }, [updateVideo]);
 
-  const scrollToBottom = useCallback(() => {
+  const scrollToQuestion = useCallback(() => {
+    if (userHasScrolledRef.current) return;
     setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
+      scrollViewRef.current?.scrollTo({ y: questionPositionRef.current, animated: true });
     }, 100);
   }, []);
 
@@ -48,13 +54,16 @@ export function ChatTab({ videoId }: ChatTabProps) {
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
 
+    // Reset scroll flag on new question
+    userHasScrolledRef.current = false;
+
     const userMessage: ChatMessage = { role: 'user', content: trimmedInput };
     const newMessages = [...messages, userMessage];
     updateMessages(newMessages);
     setInput('');
     setIsLoading(true);
     setStreamingResponse('');
-    scrollToBottom();
+    scrollToQuestion();
 
     const token = await getToken();
     if (!token) {
@@ -73,7 +82,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
       onChunk: (chunk) => {
         fullResponse += chunk;
         setStreamingResponse(fullResponse);
-        scrollToBottom();
+        scrollToQuestion();
       },
       onDone: () => {
         const assistantMessage: ChatMessage = { role: 'assistant', content: fullResponse };
@@ -90,7 +99,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
         setIsLoading(false);
       },
     });
-  }, [input, messages, videoId, isLoading, scrollToBottom, getToken, transcript, updateMessages]);
+  }, [input, messages, videoId, isLoading, scrollToQuestion, getToken, transcript, updateMessages]);
 
   return (
     <KeyboardAvoidingView
@@ -102,6 +111,9 @@ export function ChatTab({ videoId }: ChatTabProps) {
         ref={scrollViewRef}
         style={styles.messagesContainer}
         contentContainerStyle={styles.messagesContent}
+        onScrollBeginDrag={() => {
+          userHasScrolledRef.current = true;
+        }}
       >
         {messages.length === 0 && (
           <View style={styles.emptyContainer}>
@@ -110,30 +122,42 @@ export function ChatTab({ videoId }: ChatTabProps) {
             </Text>
           </View>
         )}
-        {messages.map((message, index) => (
-          <View
-            key={index}
-            style={[
-              styles.messageBubble,
-              message.role === 'user' ? styles.userBubble : styles.assistantBubble,
-              message.role === 'user'
-                ? { backgroundColor: theme.colors.primary }
-                : { backgroundColor: theme.colors.grey1 },
-            ]}
-          >
-            <Text
+        {messages.map((message, index) => {
+          // Find the index of the last user message for scroll tracking
+          const lastUserIndex = messages.findLastIndex((m) => m.role === 'user');
+          const isLastUserMessage = message.role === 'user' && index === lastUserIndex;
+
+          return (
+            <View
+              key={index}
               style={[
-                styles.messageText,
-                message.role === 'user' ? styles.userText : { color: theme.colors.black },
+                styles.messageBubble,
+                message.role === 'user' ? styles.userBubble : styles.assistantBubble,
+                message.role === 'user'
+                  ? { backgroundColor: theme.colors.primary }
+                  : { backgroundColor: theme.colors.grey1 },
               ]}
+              onLayout={
+                isLastUserMessage
+                  ? (e) => {
+                      questionPositionRef.current = e.nativeEvent.layout.y;
+                    }
+                  : undefined
+              }
             >
-              {message.content}
-            </Text>
-          </View>
-        ))}
+              {message.role === 'user' ? (
+                <Text style={[styles.messageText, styles.userText]}>
+                  {message.content}
+                </Text>
+              ) : (
+                <Markdown style={markdownStyles}>{message.content}</Markdown>
+              )}
+            </View>
+          );
+        })}
         {streamingResponse && (
           <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.grey1 }]}>
-            <Text style={[styles.messageText, { color: theme.colors.black }]}>{streamingResponse}</Text>
+            <Markdown style={markdownStyles}>{streamingResponse}</Markdown>
             <ActivityIndicator
               size="small"
               color={theme.colors.primary}

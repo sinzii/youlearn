@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-expo';
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -12,6 +12,7 @@ import { Text, Button, useTheme } from '@rneui/themed';
 import { streamSummary } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
 import { useVideoCache } from '@/lib/store';
+import { useMarkdownStyles } from '@/hooks/useMarkdownStyles';
 
 interface SummaryTabProps {
   videoId: string;
@@ -29,10 +30,7 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
   const [error, setError] = useState<string | null>(null);
   const fullTextRef = useRef('');
   const hasAutoTriggeredRef = useRef(false);
-
-  const textColor = theme.colors.black;
-  const tintColor = theme.colors.primary;
-  const codeBgColor = theme.mode === 'dark' ? '#333' : '#f0f0f0';
+  const markdownStyles = useMarkdownStyles();
 
   const handleSummarize = useCallback(async () => {
     setIsLoading(true);
@@ -73,76 +71,6 @@ export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProp
   }, [transcript, summary, isLoading, handleSummarize]);
 
   const displayText = summary || streamingText;
-
-  const markdownStyles = useMemo(
-    () => ({
-      body: {
-        color: textColor,
-        fontSize: 14,
-        lineHeight: 22,
-      },
-      heading1: {
-        fontSize: 24,
-        fontWeight: '700' as const,
-        marginTop: 16,
-        marginBottom: 8,
-        color: textColor,
-      },
-      heading2: {
-        fontSize: 20,
-        fontWeight: '600' as const,
-        marginTop: 14,
-        marginBottom: 6,
-        color: textColor,
-      },
-      heading3: {
-        fontSize: 16,
-        fontWeight: '600' as const,
-        marginTop: 12,
-        marginBottom: 4,
-        color: textColor,
-      },
-      paragraph: {
-        marginBottom: 8,
-      },
-      list_item: {
-        marginBottom: 4,
-      },
-      strong: {
-        fontWeight: '700' as const,
-      },
-      em: {
-        fontStyle: 'italic' as const,
-      },
-      link: {
-        color: tintColor,
-        textDecorationLine: 'underline' as const,
-      },
-      code_inline: {
-        fontFamily: 'monospace',
-        fontSize: 13,
-        backgroundColor: codeBgColor,
-        color: textColor,
-      },
-      code_block: {
-        fontFamily: 'monospace',
-        fontSize: 13,
-        backgroundColor: codeBgColor,
-        color: textColor,
-        padding: 8,
-        borderRadius: 4,
-      },
-      fence: {
-        fontFamily: 'monospace',
-        fontSize: 13,
-        backgroundColor: codeBgColor,
-        color: textColor,
-        padding: 8,
-        borderRadius: 4,
-      },
-    }),
-    [textColor, tintColor, codeBgColor]
-  );
 
   if (!displayText && !isLoading) {
     return (
