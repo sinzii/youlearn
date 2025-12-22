@@ -13,7 +13,7 @@ import { segmentsToText } from '@/utils/transcript';
 import { useVideoCache, useVideoStreaming, videosAtom, streamingStateAtom } from '@/lib/store';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { startSummaryStream } from '@/lib/streaming';
-import { getEmbedUrl } from '@/lib/config';
+import { getEmbedSource } from '@/lib/config';
 
 interface EmbedMessage {
   type: 'INIT' | 'CONTENT_UPDATE' | 'CONTENT_DONE' | 'THEME_CHANGE' | 'READY';
@@ -207,7 +207,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
     );
   }
 
-  const embedUrl = getEmbedUrl();
+  const embedSource = getEmbedSource();
 
   return (
     <View style={styles.container}>
@@ -223,7 +223,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
 
       <WebView
         ref={webViewRef}
-        source={{ uri: embedUrl }}
+        source={embedSource}
         style={[styles.webView, !webViewReady && styles.hidden]}
         onMessage={handleWebViewMessage}
         onError={handleWebViewError}
