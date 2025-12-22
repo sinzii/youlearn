@@ -7,7 +7,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   View,
+  TouchableOpacity,
+  TextInput,
 } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -89,6 +92,8 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
   const { theme } = useTheme();
   const { getToken } = useAuth();
   const [input, setInput] = useState('');
+  const [contextText, setContextText] = useState<string | null>(null);
+  const inputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const userHasScrolledRef = useRef(false);
   const questionPositionRef = useRef(0);
@@ -179,8 +184,9 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
       const explainPrompt = `Explain this: "${pendingAction.text}"`;
       sendMessage(explainPrompt);
     } else if (pendingAction.action === 'ask') {
-      // Pre-fill input for user to review
-      setInput(pendingAction.text);
+      // Set context and focus input
+      setContextText(pendingAction.text);
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
 
     // Clear the pending action
@@ -190,9 +196,17 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
   const handleSend = useCallback(async () => {
     const trimmedInput = input.trim();
     if (!trimmedInput) return;
+
+    // Format message with context if present
+    let messageText = trimmedInput;
+    if (contextText) {
+      messageText = `${trimmedInput}\n\nContext: "${contextText}"`;
+      setContextText(null);
+    }
+
     setInput('');
-    await sendMessage(trimmedInput);
-  }, [input, sendMessage]);
+    await sendMessage(messageText);
+  }, [input, contextText, sendMessage]);
 
   return (
     <KeyboardAvoidingView
@@ -265,8 +279,20 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
       </ScrollView>
 
       <SafeAreaView edges={['bottom']}>
+        {contextText && (
+          <View style={[styles.contextContainer, { backgroundColor: theme.colors.grey0, borderTopColor: theme.colors.grey1 }]}>
+            <Text style={[styles.contextLabel, { color: theme.colors.grey4 }]}>Context:</Text>
+            <Text style={[styles.contextText, { color: theme.colors.black }]} numberOfLines={1}>
+              &quot;{contextText}&quot;
+            </Text>
+            <TouchableOpacity onPress={() => setContextText(null)}>
+              <MaterialIcons name="close" size={18} color={theme.colors.grey4} />
+            </TouchableOpacity>
+          </View>
+        )}
         <View style={[styles.inputContainer, { borderTopColor: theme.colors.grey1 }]}>
           <Input
+            ref={inputRef}
             placeholder="Type a message..."
             value={input}
             onChangeText={setInput}
@@ -355,5 +381,22 @@ const styles = StyleSheet.create({
   sendButton: {
     paddingHorizontal: 16,
     paddingVertical: 10,
+  },
+  contextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+    borderTopWidth: 1,
+  },
+  contextLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  contextText: {
+    flex: 1,
+    fontSize: 12,
+    fontStyle: 'italic',
   },
 });
