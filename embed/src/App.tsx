@@ -134,7 +134,6 @@ function App() {
       {content && (
         <div className={`markdown-content theme-${theme}`}>
           <ReactMarkdown>{content}</ReactMarkdown>
-          {isStreaming && <span className="streaming-cursor" />}
         </div>
       )}
     </div>

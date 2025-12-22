@@ -13,7 +13,7 @@ import { segmentsToText } from '@/utils/transcript';
 import { useVideoCache, useVideoStreaming, videosAtom, streamingStateAtom } from '@/lib/store';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { startSummaryStream } from '@/lib/streaming';
-import { getEmbedSource } from '@/lib/config';
+import { getEmbedSource, type EmbedSource } from '@/lib/config';
 
 interface EmbedMessage {
   type: 'INIT' | 'CONTENT_UPDATE' | 'CONTENT_DONE' | 'THEME_CHANGE' | 'READY';
@@ -39,10 +39,16 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const [error, setError] = useState<string | null>(null);
   const [webViewReady, setWebViewReady] = useState(false);
   const [webViewError, setWebViewError] = useState<string | null>(null);
+  const [embedSource, setEmbedSource] = useState<EmbedSource | null>(null);
 
   const hasAutoTriggeredRef = useRef(false);
   const webViewRef = useRef<WebView>(null);
   const pendingMessagesRef = useRef<EmbedMessage[]>([]);
+
+  // Load embed source on mount
+  useEffect(() => {
+    getEmbedSource().then(setEmbedSource);
+  }, []);
 
   const isLoading = streaming.isLoadingSummary;
   const streamingText = streaming.streamingSummary;
@@ -207,42 +213,42 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
     );
   }
 
-  const embedSource = getEmbedSource();
-
   return (
     <View style={styles.container}>
       {/* Loading indicator shown while WebView initializes OR during initial stream */}
-      {(!webViewReady || (isLoading && !streamingText)) && (
+      {(!embedSource || !webViewReady || (isLoading && !streamingText)) && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
           <Text style={[styles.loadingText, { color: theme.colors.grey4 }]}>
-            {!webViewReady ? 'Loading...' : 'Generating summary...'}
+            {!embedSource || !webViewReady ? 'Loading...' : 'Generating summary...'}
           </Text>
         </View>
       )}
 
-      <WebView
-        ref={webViewRef}
-        source={embedSource}
-        style={[styles.webView, !webViewReady && styles.hidden]}
-        onMessage={handleWebViewMessage}
-        onError={handleWebViewError}
-        onHttpError={handleWebViewError}
-        scrollEnabled={true}
-        showsVerticalScrollIndicator={true}
-        originWhitelist={['*']}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        startInLoadingState={false}
-        scalesPageToFit={false}
-        menuItems={[
-          { label: 'Explain', key: 'explain' },
-          { label: 'Ask', key: 'ask' },
-        ]}
-        onCustomMenuSelection={handleCustomMenuSelection}
-        // @ts-expect-error backgroundColor is valid for WebView
-        backgroundColor={theme.colors.background}
-      />
+      {embedSource && (
+        <WebView
+          ref={webViewRef}
+          source={embedSource}
+          style={[styles.webView, !webViewReady && styles.hidden]}
+          onMessage={handleWebViewMessage}
+          onError={handleWebViewError}
+          onHttpError={handleWebViewError}
+          scrollEnabled={true}
+          showsVerticalScrollIndicator={true}
+          originWhitelist={['*']}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          startInLoadingState={false}
+          scalesPageToFit={false}
+          menuItems={[
+            { label: 'Explain', key: 'explain' },
+            { label: 'Ask', key: 'ask' },
+          ]}
+          onCustomMenuSelection={handleCustomMenuSelection}
+          // @ts-expect-error backgroundColor is valid for WebView
+          backgroundColor={theme.colors.background}
+        />
+      )}
 
       {/* Resummarize button */}
       {displayText && !isLoading && webViewReady && (

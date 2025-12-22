@@ -44,21 +44,6 @@ body {
   color: #71717a;
 }
 
-/* Streaming cursor */
-.streaming-cursor {
-  display: inline-block;
-  width: 8px;
-  height: 16px;
-  background-color: #3b82f6;
-  margin-left: 2px;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
 /* Markdown content styles - matches mobile useMarkdownStyles (compact) */
 .markdown-content {
   font-size: 14px;

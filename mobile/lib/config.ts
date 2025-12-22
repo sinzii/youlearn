@@ -1,20 +1,27 @@
+import { Asset } from 'expo-asset';
+
 // Embed server URL for development
-const EMBED_DEV_URL = process.env.EXPO_PUBLIC_EMBED_URL || 'http://localhost:5173';
+// const EMBED_DEV_URL = process.env.EXPO_PUBLIC_EMBED_URL || 'http://localhost:5173';
 
-// In production, you can import the built HTML or set EXPO_PUBLIC_EMBED_URL to a hosted URL
-// For local bundling, import the HTML content and use: { html: embedHtml }
+export type EmbedSource = { uri: string };
 
-export type EmbedSource = { uri: string } | { html: string };
+let cachedUri: string | null = null;
 
-export function getEmbedSource(): EmbedSource {
-  // For now, always use URL-based loading
-  // To use bundled HTML in production:
-  // 1. Build embed project: cd embed && pnpm build
-  // 2. Import the built HTML or set a production URL
-  return { uri: EMBED_DEV_URL };
-}
+export async function getEmbedSource(): Promise<EmbedSource> {
+  // if (__DEV__) {
+  //   // Development: load from embed dev server
+  //   return { uri: EMBED_DEV_URL };
+  // }
 
-// Legacy function for backwards compatibility
-export function getEmbedUrl(): string {
-  return EMBED_DEV_URL;
+  // Return cached URI if available
+  if (cachedUri) {
+    return { uri: cachedUri };
+  }
+
+  // Production: load HTML from bundled asset
+  const asset = Asset.fromModule(require('../assets/embed.html'));
+  await asset.downloadAsync();
+
+  cachedUri = asset.localUri!;
+  return { uri: cachedUri };
 }
