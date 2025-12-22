@@ -101,6 +101,13 @@ export function ChatTab({ videoId }: ChatTabProps) {
     }
   }, []);
 
+  // Auto-scroll to question when streaming response updates
+  useEffect(() => {
+    if (streamingResponse && !userHasScrolledRef.current && questionPositionRef.current > 0) {
+      scrollViewRef.current?.scrollTo({ y: questionPositionRef.current, animated: false });
+    }
+  }, [streamingResponse]);
+
   const handleSend = useCallback(async () => {
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
@@ -188,7 +195,11 @@ export function ChatTab({ videoId }: ChatTabProps) {
               onLayout={
                 isLastUserMessage
                   ? (e) => {
-                      questionPositionRef.current = e.nativeEvent.layout.y;
+                      questionPositionRef.current = e.nativeEvent.layout.y - 5;
+                      if (shouldScrollToQuestionRef.current && !userHasScrolledRef.current) {
+                        shouldScrollToQuestionRef.current = false;
+                        scrollViewRef.current?.scrollTo({ y: questionPositionRef.current, animated: true });
+                      }
                     }
                   : undefined
               }
