@@ -1,9 +1,9 @@
 import { useAuth } from '@clerk/clerk-expo';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
-  ScrollView,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
   View,
@@ -71,6 +71,12 @@ function TypingIndicator({ color }: { color: string }) {
   );
 }
 
+// Types for list items
+type MessageItem = ChatMessage & { itemType: 'message'; messageIndex: number };
+type TypingItem = { itemType: 'typing' };
+type StreamingItem = { itemType: 'streaming'; content: string };
+type ListItem = MessageItem | TypingItem | StreamingItem;
+
 interface PendingAction {
   action: 'explain' | 'ask';
   text: string;
@@ -94,31 +100,51 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
   const [input, setInput] = useState('');
   const [contextText, setContextText] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList<ListItem>>(null);
   const userHasScrolledRef = useRef(false);
-  const questionPositionRef = useRef(0);
-  const shouldScrollToQuestionRef = useRef(false);
   const markdownStyles = useMarkdownStyles('compact');
 
   // Get messages from store, considering pending messages during streaming
-  const messages = streaming.pendingChatMessages || video?.chatMessages || [];
+  const messages = useMemo(() => {
+    return streaming.pendingChatMessages || video?.chatMessages || [];
+  }, [streaming.pendingChatMessages, video?.chatMessages]);
   const isLoading = streaming.isLoadingChat;
   const streamingResponse = streaming.streamingChat;
   const initialMessagesRef = useRef(messages.length);
 
-  // Scroll to bottom on mount if there are existing messages
+  // Build list data with proper typing
+  const listData = useMemo((): ListItem[] => {
+    const data: ListItem[] = messages.map((msg, index) => ({
+      ...msg,
+      itemType: 'message' as const,
+      messageIndex: index,
+    }));
+
+    if (isLoading && !streamingResponse) {
+      data.push({ itemType: 'typing' });
+    }
+    if (streamingResponse) {
+      data.push({ itemType: 'streaming', content: streamingResponse });
+    }
+
+    return data;
+  }, [messages, isLoading, streamingResponse]);
+
+  // Scroll to end on mount if there are existing messages
   useEffect(() => {
     if (initialMessagesRef.current > 0) {
-      scrollViewRef.current?.scrollToEnd({ animated: false });
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: false });
+      }, 20);
     }
   }, []);
 
-  // Auto-scroll to question when streaming response updates
+  // Auto-scroll when new content is added (streaming or new messages)
   useEffect(() => {
-    if (streamingResponse && !userHasScrolledRef.current && questionPositionRef.current > 0) {
-      scrollViewRef.current?.scrollTo({ y: questionPositionRef.current, animated: false });
+    if (!userHasScrolledRef.current && listData.length > 0) {
+      flatListRef.current?.scrollToEnd({ animated: true });
     }
-  }, [streamingResponse]);
+  }, [listData.length, streamingResponse]);
 
   // Track the last handled pending action to prevent duplicate sends
   const lastHandledActionRef = useRef<string | null>(null);
@@ -127,9 +153,8 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
   const sendMessage = useCallback(async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
 
-    // Reset scroll flags on new question
+    // Reset scroll flag on new question
     userHasScrolledRef.current = false;
-    shouldScrollToQuestionRef.current = true;
 
     const userMessage: ChatMessage = { role: 'user', content: messageText };
     const currentMessages = video?.chatMessages || [];
@@ -200,7 +225,7 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
     // Format message with context if present
     let messageText = trimmedInput;
     if (contextText) {
-      messageText = `${trimmedInput}\n\nContext: "${contextText}"`;
+      messageText = `${trimmedInput}\n\n"${contextText}"`;
       setContextText(null);
     }
 
@@ -208,75 +233,89 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
     await sendMessage(messageText);
   }, [input, contextText, sendMessage]);
 
+  // Render individual list item
+  const renderItem = useCallback(({ item }: { item: ListItem }) => {
+    if (item.itemType === 'typing') {
+      return (
+        <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.grey1 }]}>
+          <TypingIndicator color={theme.colors.grey3} />
+        </View>
+      );
+    }
+
+    if (item.itemType === 'streaming') {
+      return (
+        <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.grey1 }]}>
+          <Markdown style={markdownStyles}>{item.content}</Markdown>
+        </View>
+      );
+    }
+
+    // Regular message
+    const message = item as MessageItem;
+    return (
+      <View
+        style={[
+          styles.messageBubble,
+          message.role === 'user' ? styles.userBubble : styles.assistantBubble,
+          message.role === 'user'
+            ? { backgroundColor: theme.colors.primary }
+            : { backgroundColor: theme.colors.grey1 },
+        ]}
+      >
+        {message.role === 'user' ? (
+          <Text style={[styles.messageText, styles.userText]}>
+            {message.content}
+          </Text>
+        ) : (
+          <Markdown style={markdownStyles}>{message.content}</Markdown>
+        )}
+      </View>
+    );
+  }, [theme.colors, markdownStyles]);
+
+  // Key extractor
+  const keyExtractor = useCallback((item: ListItem, index: number) => {
+    if (item.itemType === 'typing') return 'typing';
+    if (item.itemType === 'streaming') return 'streaming';
+    return `message-${index}`;
+  }, []);
+
+  // Empty list component
+  const ListEmptyComponent = useCallback(() => (
+    <View style={styles.emptyContainer}>
+      <Text style={[styles.emptyText, { color: theme.colors.grey4 }]}>
+        Ask questions about the video content
+      </Text>
+    </View>
+  ), [theme.colors.grey4]);
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={headerHeight + 110}
     >
-      <ScrollView
-        ref={scrollViewRef}
+      <FlatList
+        ref={flatListRef}
+        data={listData}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
         style={styles.messagesContainer}
-        contentContainerStyle={styles.messagesContent}
+        contentContainerStyle={[
+          styles.messagesContent,
+          listData.length === 0 && styles.emptyContent,
+        ]}
+        ListEmptyComponent={ListEmptyComponent}
         onScrollBeginDrag={() => {
           userHasScrolledRef.current = true;
         }}
-      >
-        {messages.length === 0 && (
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: theme.colors.grey4 }]}>
-              Ask questions about the video content
-            </Text>
-          </View>
-        )}
-        {messages.map((message, index) => {
-          // Find the index of the last user message for scroll tracking
-          const lastUserIndex = messages.findLastIndex((m) => m.role === 'user');
-          const isLastUserMessage = message.role === 'user' && index === lastUserIndex;
-
-          return (
-            <View
-              key={index}
-              style={[
-                styles.messageBubble,
-                message.role === 'user' ? styles.userBubble : styles.assistantBubble,
-                message.role === 'user'
-                  ? { backgroundColor: theme.colors.primary }
-                  : { backgroundColor: theme.colors.grey1 },
-              ]}
-              onLayout={
-                isLastUserMessage
-                  ? (e) => {
-                      questionPositionRef.current = e.nativeEvent.layout.y - 5;
-                      if (shouldScrollToQuestionRef.current && !userHasScrolledRef.current) {
-                        shouldScrollToQuestionRef.current = false;
-                        scrollViewRef.current?.scrollTo({ y: questionPositionRef.current, animated: true });
-                      }
-                    }
-                  : undefined
-              }
-            >
-              {message.role === 'user' ? (
-                <Text style={[styles.messageText, styles.userText]}>
-                  {message.content}
-                </Text>
-              ) : (
-                <Markdown style={markdownStyles}>{message.content}</Markdown>
-              )}
-            </View>
-          );
-        })}
-        {isLoading && !streamingResponse && (
-          <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.grey1 }]}>
-            <TypingIndicator color={theme.colors.grey3} />
-          </View>
-        )}
-        {streamingResponse && (
-          <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.grey1 }]}>
-            <Markdown style={markdownStyles}>{streamingResponse}</Markdown>
-          </View>
-        )}
-      </ScrollView>
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+      />
 
       <SafeAreaView edges={['bottom']}>
         {contextText && (
@@ -328,12 +367,13 @@ const styles = StyleSheet.create({
   },
   messagesContent: {
     padding: 16,
+    paddingBottom: 100,
+  },
+  emptyContent: {
     flexGrow: 1,
-    paddingBottom: 100
+    justifyContent: 'center',
   },
   emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   emptyText: {
