@@ -67,13 +67,9 @@ coverage/
 /build
 
 # misc
-.DS_Store
 *.pem
 
 # debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
@@ -115,15 +111,8 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
-.DS_Store
-*.pem
-
 # local env files
 .env*.local
-
-# typescript
-*.tsbuildinfo
 
 app-example
 
@@ -135,3 +124,15 @@ android/local.properties
 ios/Pods/
 ios/build/
 ios/DerivedData/
+
+# Logs
+dist-ssr
+*.local
+
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
