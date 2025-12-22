@@ -134,3 +134,50 @@ export function useRemoveVideo() {
     [setVideos]
   );
 }
+
+// Streaming State (not persisted - ephemeral)
+export interface VideoStreamingState {
+  streamingSummary: string;
+  streamingChat: string;
+  isLoadingSummary: boolean;
+  isLoadingChat: boolean;
+  pendingChatMessages: ChatMessage[] | null; // Messages waiting for response
+}
+
+export type StreamingState = Record<string, VideoStreamingState>;
+
+const defaultStreamingState: VideoStreamingState = {
+  streamingSummary: '',
+  streamingChat: '',
+  isLoadingSummary: false,
+  isLoadingChat: false,
+  pendingChatMessages: null,
+};
+
+// Non-persisted atom for streaming state
+export const streamingStateAtom = atom<StreamingState>({});
+
+// Hook to get and update streaming state for a video
+export function useVideoStreaming(videoId: string) {
+  const streamingState = useAtomValue(streamingStateAtom);
+  const setStreamingState = useSetAtom(streamingStateAtom);
+
+  const streaming = useMemo(() => {
+    return streamingState[videoId] || defaultStreamingState;
+  }, [streamingState, videoId]);
+
+  const updateStreaming = useCallback(
+    (update: Partial<VideoStreamingState>) => {
+      setStreamingState((prev) => {
+        const existing = prev[videoId] || defaultStreamingState;
+        return {
+          ...prev,
+          [videoId]: { ...existing, ...update },
+        };
+      });
+    },
+    [videoId, setStreamingState]
+  );
+
+  return { streaming, updateStreaming };
+}

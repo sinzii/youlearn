@@ -8,69 +8,55 @@ import {
 } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { Text, Button, useTheme } from '@rneui/themed';
+import { useSetAtom } from 'jotai';
 
-import { streamSummary } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
-import { useVideoCache } from '@/lib/store';
+import { useVideoCache, useVideoStreaming, videosAtom, streamingStateAtom } from '@/lib/store';
 import { useMarkdownStyles } from '@/hooks/useMarkdownStyles';
+import { startSummaryStream } from '@/lib/streaming';
 
 interface SummaryTabProps {
   videoId: string;
-  summary: string | null;
-  onSummaryUpdate: (summary: string) => void;
 }
 
-export function SummaryTab({ videoId, summary, onSummaryUpdate }: SummaryTabProps) {
+export function SummaryTab({ videoId }: SummaryTabProps) {
   const { video } = useVideoCache(videoId);
+  const { streaming } = useVideoStreaming(videoId);
+  const setStreamingState = useSetAtom(streamingStateAtom);
+  const setVideos = useSetAtom(videosAtom);
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const { theme } = useTheme();
   const { getToken } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [streamingText, setStreamingText] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const fullTextRef = useRef('');
   const hasAutoTriggeredRef = useRef(false);
   const markdownStyles = useMarkdownStyles();
 
+  const isLoading = streaming.isLoadingSummary;
+  const streamingText = streaming.streamingSummary;
+
   const handleSummarize = useCallback(async () => {
-    setIsLoading(true);
     setError(null);
-    onSummaryUpdate('');
-    setStreamingText('');
-    fullTextRef.current = '';
 
     const token = await getToken();
     if (!token) {
-      setIsLoading(false);
       setError('Not authenticated');
       return;
     }
 
-    streamSummary(videoId, transcript, token, {
-      onChunk: (chunk) => {
-        fullTextRef.current += chunk;
-        setStreamingText(fullTextRef.current);
-      },
-      onDone: () => {
-        setIsLoading(false);
-        onSummaryUpdate(fullTextRef.current);
-      },
-      onError: (err) => {
-        setIsLoading(false);
-        setError(err.message);
-      },
-    });
-  }, [videoId, onSummaryUpdate, getToken, transcript]);
+    startSummaryStream(videoId, transcript, token, setStreamingState, setVideos);
+  }, [videoId, getToken, transcript, setStreamingState, setVideos]);
+
+  const summary = video?.summary || null;
 
   // Auto-trigger summarization when transcript is available
   useEffect(() => {
-    if (transcript && !summary && !isLoading && !hasAutoTriggeredRef.current) {
+    if (transcript && !summary && !isLoading && !streamingText && !hasAutoTriggeredRef.current) {
       hasAutoTriggeredRef.current = true;
       handleSummarize();
     }
-  }, [transcript, summary, isLoading, handleSummarize]);
+  }, [transcript, summary, isLoading, streamingText, handleSummarize]);
 
-  const displayText = summary || streamingText;
+  const displayText = isLoading ? streamingText : summary;
 
   if (!displayText && !isLoading) {
     return (

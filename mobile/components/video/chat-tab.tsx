@@ -9,14 +9,65 @@ import {
   ActivityIndicator,
   View,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+  withDelay,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Markdown from 'react-native-markdown-display';
 import { Text, Input, Button, useTheme } from '@rneui/themed';
+import { useSetAtom } from 'jotai';
 
-import { streamChat, ChatMessage } from '@/lib/api';
+import { ChatMessage } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
-import { useVideoCache } from '@/lib/store';
+import { useVideoCache, useVideoStreaming, videosAtom, streamingStateAtom } from '@/lib/store';
 import { useMarkdownStyles } from '@/hooks/useMarkdownStyles';
+import { startChatStream } from '@/lib/streaming';
+
+function TypingDot({ delay, color }: { delay: number; color: string }) {
+  const opacity = useSharedValue(0.3);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      delay,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 400 }),
+          withTiming(0.3, { duration: 400 })
+        ),
+        -1,
+        false
+      )
+    );
+  }, [delay, opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        { width: 8, height: 8, borderRadius: 4, backgroundColor: color, marginHorizontal: 2 },
+        animatedStyle,
+      ]}
+    />
+  );
+}
+
+function TypingIndicator({ color }: { color: string }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4 }}>
+      <TypingDot delay={0} color={color} />
+      <TypingDot delay={150} color={color} />
+      <TypingDot delay={300} color={color} />
+    </View>
+  );
+}
 
 interface ChatTabProps {
   videoId: string;
@@ -25,17 +76,23 @@ interface ChatTabProps {
 export function ChatTab({ videoId }: ChatTabProps) {
   const headerHeight = useHeaderHeight();
   const { video, updateVideo } = useVideoCache(videoId);
+  const { streaming } = useVideoStreaming(videoId);
+  const setStreamingState = useSetAtom(streamingStateAtom);
+  const setVideos = useSetAtom(videosAtom);
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const { theme } = useTheme();
   const { getToken } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>(video?.chatMessages || []);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [streamingResponse, setStreamingResponse] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
   const userHasScrolledRef = useRef(false);
   const questionPositionRef = useRef(0);
+  const shouldScrollToQuestionRef = useRef(false);
   const markdownStyles = useMarkdownStyles('compact');
+
+  // Get messages from store, considering pending messages during streaming
+  const messages = streaming.pendingChatMessages || video?.chatMessages || [];
+  const isLoading = streaming.isLoadingChat;
+  const streamingResponse = streaming.streamingChat;
   const initialMessagesRef = useRef(messages.length);
 
   // Scroll to bottom on mount if there are existing messages
@@ -45,33 +102,31 @@ export function ChatTab({ videoId }: ChatTabProps) {
     }
   }, []);
 
-  // Persist messages to store whenever they change
-  const updateMessages = useCallback((newMessages: ChatMessage[]) => {
-    setMessages(newMessages);
-    updateVideo({ chatMessages: newMessages });
-  }, [updateVideo]);
-
-  const scrollToQuestion = useCallback(() => {
-    if (userHasScrolledRef.current) return;
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: questionPositionRef.current, animated: true });
-    }, 100);
-  }, []);
-
   const handleSend = useCallback(async () => {
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
 
-    // Reset scroll flag on new question
+    // Reset scroll flags on new question
     userHasScrolledRef.current = false;
+    shouldScrollToQuestionRef.current = true;
 
     const userMessage: ChatMessage = { role: 'user', content: trimmedInput };
-    const newMessages = [...messages, userMessage];
-    updateMessages(newMessages);
+    const currentMessages = video?.chatMessages || [];
+    const newMessages = [...currentMessages, userMessage];
+
+    // Save user message to store immediately
+    updateVideo({ chatMessages: newMessages });
     setInput('');
-    setIsLoading(true);
-    setStreamingResponse('');
-    scrollToQuestion();
+
+    // Show loading indicator immediately (before async getToken)
+    setStreamingState((prev) => ({
+      ...prev,
+      [videoId]: {
+        ...(prev[videoId] || { streamingSummary: '', streamingChat: '', isLoadingSummary: false, isLoadingChat: false, pendingChatMessages: null }),
+        isLoadingChat: true,
+        pendingChatMessages: newMessages,
+      },
+    }));
 
     const token = await getToken();
     if (!token) {
@@ -79,35 +134,21 @@ export function ChatTab({ videoId }: ChatTabProps) {
         role: 'assistant',
         content: 'Error: Not authenticated',
       };
-      updateMessages([...newMessages, errorMessage]);
-      setIsLoading(false);
+      updateVideo({ chatMessages: [...newMessages, errorMessage] });
+      // Clear loading state on error
+      setStreamingState((prev) => ({
+        ...prev,
+        [videoId]: {
+          ...(prev[videoId] || { streamingSummary: '', streamingChat: '', isLoadingSummary: false, isLoadingChat: false, pendingChatMessages: null }),
+          isLoadingChat: false,
+          pendingChatMessages: null,
+        },
+      }));
       return;
     }
 
-    let fullResponse = '';
-
-    streamChat(videoId, newMessages, transcript, token, {
-      onChunk: (chunk) => {
-        fullResponse += chunk;
-        setStreamingResponse(fullResponse);
-        scrollToQuestion();
-      },
-      onDone: () => {
-        const assistantMessage: ChatMessage = { role: 'assistant', content: fullResponse };
-        updateMessages([...newMessages, assistantMessage]);
-        setStreamingResponse('');
-        setIsLoading(false);
-      },
-      onError: (err) => {
-        const errorMessage: ChatMessage = {
-          role: 'assistant',
-          content: `Error: ${err.message}`,
-        };
-        updateMessages([...newMessages, errorMessage]);
-        setIsLoading(false);
-      },
-    });
-  }, [input, messages, videoId, isLoading, scrollToQuestion, getToken, transcript, updateMessages]);
+    startChatStream(videoId, newMessages, transcript, token, setStreamingState, setVideos);
+  }, [input, video?.chatMessages, videoId, isLoading, getToken, transcript, updateVideo, setStreamingState, setVideos]);
 
   return (
     <KeyboardAvoidingView
@@ -163,12 +204,17 @@ export function ChatTab({ videoId }: ChatTabProps) {
             </View>
           );
         })}
+        {isLoading && !streamingResponse && (
+          <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.grey1 }]}>
+            <TypingIndicator color={theme.colors.grey3} />
+          </View>
+        )}
         {streamingResponse && (
           <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.grey1 }]}>
             <Markdown style={markdownStyles}>{streamingResponse}</Markdown>
             <ActivityIndicator
               size="small"
-              color={theme.colors.primary}
+              color={theme.colors.grey3}
               style={styles.streamingIndicator}
             />
           </View>
@@ -214,6 +260,7 @@ const styles = StyleSheet.create({
   messagesContent: {
     padding: 16,
     flexGrow: 1,
+    paddingBottom: 100
   },
   emptyContainer: {
     flex: 1,
@@ -246,7 +293,7 @@ const styles = StyleSheet.create({
   },
   streamingIndicator: {
     marginTop: 4,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
   },
   inputContainer: {
     flexDirection: 'row',

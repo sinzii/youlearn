@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-expo';
-import { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
 import {
   StyleSheet,
   useWindowDimensions,
@@ -113,7 +113,6 @@ export default function VideoDetailsScreen() {
   const [transcript, setTranscript] = useState<TranscriptResponse | null>(
     cachedVideo?.transcript || null
   );
-  const [summary, setSummary] = useState<string | null>(cachedVideo?.summary || null);
   const [isLoading, setIsLoading] = useState(!cachedVideo?.transcript);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('summary');
@@ -167,7 +166,6 @@ export default function VideoDetailsScreen() {
     // If cached, use it
     if (cachedVideo?.transcript) {
       setTranscript(cachedVideo.transcript);
-      setSummary(cachedVideo.summary || null);
       setIsLoading(false);
       return;
     }
@@ -224,14 +222,6 @@ export default function VideoDetailsScreen() {
     }
   };
 
-  const handleSummaryUpdate = useCallback(
-    (newSummary: string) => {
-      setSummary(newSummary);
-      updateVideo({ summary: newSummary });
-    },
-    [updateVideo]
-  );
-
   const mergedSegments = useMemo(() => {
     if (!transcript?.segments) return [];
     if (transcript.is_generated) {
@@ -255,13 +245,7 @@ export default function VideoDetailsScreen() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'summary':
-        return (
-          <SummaryTab
-            videoId={id || ''}
-            summary={summary}
-            onSummaryUpdate={handleSummaryUpdate}
-          />
-        );
+        return <SummaryTab videoId={id || ''} />;
       case 'ask':
         return <ChatTab videoId={id || ''} />;
       case 'transcript':
