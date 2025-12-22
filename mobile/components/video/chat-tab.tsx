@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/clerk-expo';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -36,6 +36,14 @@ export function ChatTab({ videoId }: ChatTabProps) {
   const userHasScrolledRef = useRef(false);
   const questionPositionRef = useRef(0);
   const markdownStyles = useMarkdownStyles('compact');
+  const initialMessagesRef = useRef(messages.length);
+
+  // Scroll to bottom on mount if there are existing messages
+  useEffect(() => {
+    if (initialMessagesRef.current > 0) {
+      scrollViewRef.current?.scrollToEnd({ animated: false });
+    }
+  }, []);
 
   // Persist messages to store whenever they change
   const updateMessages = useCallback((newMessages: ChatMessage[]) => {
