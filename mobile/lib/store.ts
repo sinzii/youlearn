@@ -2,7 +2,7 @@ import { atom, useAtomValue, useSetAtom } from 'jotai';
 import { atomWithStorage, createJSONStorage } from 'jotai/utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useMemo } from 'react';
-import { TranscriptResponse } from './api';
+import { TranscriptResponse, ChatMessage } from './api';
 
 // Theme Types
 export type ThemePreference = 'light' | 'dark' | 'system';
@@ -33,6 +33,7 @@ export interface VideoCache {
   length: number; // in seconds
   transcript: TranscriptResponse | null;
   summary: string | null;
+  chatMessages: ChatMessage[] | null;
   lastAccessed: number;
 }
 
@@ -91,6 +92,7 @@ export function useVideoCache(videoId: string) {
           length: update.length ?? existing?.length ?? 0,
           transcript: update.transcript ?? existing?.transcript ?? null,
           summary: update.summary ?? existing?.summary ?? null,
+          chatMessages: update.chatMessages ?? existing?.chatMessages ?? null,
           lastAccessed: Date.now(),
         };
         return {

@@ -22,15 +22,21 @@ interface ChatTabProps {
 
 export function ChatTab({ videoId }: ChatTabProps) {
   const headerHeight = useHeaderHeight();
-  const { video } = useVideoCache(videoId);
+  const { video, updateVideo } = useVideoCache(videoId);
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const { theme } = useTheme();
   const { getToken } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(video?.chatMessages || []);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [streamingResponse, setStreamingResponse] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Persist messages to store whenever they change
+  const updateMessages = useCallback((newMessages: ChatMessage[]) => {
+    setMessages(newMessages);
+    updateVideo({ chatMessages: newMessages });
+  }, [updateVideo]);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -44,7 +50,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
 
     const userMessage: ChatMessage = { role: 'user', content: trimmedInput };
     const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    updateMessages(newMessages);
     setInput('');
     setIsLoading(true);
     setStreamingResponse('');
@@ -56,7 +62,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
         role: 'assistant',
         content: 'Error: Not authenticated',
       };
-      setMessages([...newMessages, errorMessage]);
+      updateMessages([...newMessages, errorMessage]);
       setIsLoading(false);
       return;
     }
@@ -71,7 +77,7 @@ export function ChatTab({ videoId }: ChatTabProps) {
       },
       onDone: () => {
         const assistantMessage: ChatMessage = { role: 'assistant', content: fullResponse };
-        setMessages([...newMessages, assistantMessage]);
+        updateMessages([...newMessages, assistantMessage]);
         setStreamingResponse('');
         setIsLoading(false);
       },
@@ -80,11 +86,11 @@ export function ChatTab({ videoId }: ChatTabProps) {
           role: 'assistant',
           content: `Error: ${err.message}`,
         };
-        setMessages([...newMessages, errorMessage]);
+        updateMessages([...newMessages, errorMessage]);
         setIsLoading(false);
       },
     });
-  }, [input, messages, videoId, isLoading, scrollToBottom, getToken, transcript]);
+  }, [input, messages, videoId, isLoading, scrollToBottom, getToken, transcript, updateMessages]);
 
   return (
     <KeyboardAvoidingView
