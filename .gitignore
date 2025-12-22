@@ -127,6 +127,11 @@ yarn-error.*
 
 app-example
 
-# generated native folders
-/ios
-/android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+
+ios/Pods/
+ios/build/
+ios/DerivedData/
