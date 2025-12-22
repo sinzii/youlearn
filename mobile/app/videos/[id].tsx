@@ -245,23 +245,6 @@ export default function VideoDetailsScreen() {
     setPendingAction(null);
   }, []);
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'summary':
-        return <SummaryTab videoId={id || ''} onTextAction={handleTextAction} />;
-      case 'ask':
-        return (
-          <ChatTab
-            videoId={id || ''}
-            pendingAction={pendingAction}
-            onActionHandled={handleActionHandled}
-          />
-        );
-      case 'transcript':
-        return <TranscriptTab segments={mergedSegments} />;
-    }
-  };
-
   if (isLoading) {
     return <LoadingSkeleton />;
   }
@@ -369,7 +352,33 @@ export default function VideoDetailsScreen() {
       </View>
 
       {/* Tab Content */}
-      <View style={styles.tabContent}>{renderTabContent()}</View>
+      <View style={styles.tabContent}>
+        {/* Summary - always mounted, hidden when inactive */}
+        <View style={[
+          styles.tabPane,
+          activeTab !== 'summary' && styles.hiddenTab
+        ]}>
+          <SummaryTab videoId={id || ''} onTextAction={handleTextAction} />
+        </View>
+
+        {/* Chat - load on demand */}
+        {activeTab === 'ask' && (
+          <View style={styles.tabPane}>
+            <ChatTab
+              videoId={id || ''}
+              pendingAction={pendingAction}
+              onActionHandled={handleActionHandled}
+            />
+          </View>
+        )}
+
+        {/* Transcript - load on demand */}
+        {activeTab === 'transcript' && (
+          <View style={styles.tabPane}>
+            <TranscriptTab segments={mergedSegments} />
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -460,6 +469,13 @@ const styles = StyleSheet.create({
   },
   tabContent: {
     flex: 1,
+    position: 'relative',
+  },
+  tabPane: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  hiddenTab: {
+    left: -9999
   },
   tabBar: {
     flexDirection: 'row',
