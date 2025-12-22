@@ -68,11 +68,18 @@ function TypingIndicator({ color }: { color: string }) {
   );
 }
 
-interface ChatTabProps {
-  videoId: string;
+interface PendingAction {
+  action: 'explain' | 'ask';
+  text: string;
 }
 
-export function ChatTab({ videoId }: ChatTabProps) {
+interface ChatTabProps {
+  videoId: string;
+  pendingAction?: PendingAction | null;
+  onActionHandled?: () => void;
+}
+
+export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProps) {
   const headerHeight = useHeaderHeight();
   const { video, updateVideo } = useVideoCache(videoId);
   const { streaming } = useVideoStreaming(videoId);
@@ -108,23 +115,25 @@ export function ChatTab({ videoId }: ChatTabProps) {
     }
   }, [streamingResponse]);
 
-  const handleSend = useCallback(async () => {
-    const trimmedInput = input.trim();
-    if (!trimmedInput || isLoading) return;
+  // Track the last handled pending action to prevent duplicate sends
+  const lastHandledActionRef = useRef<string | null>(null);
+
+  // Helper function to send a message programmatically
+  const sendMessage = useCallback(async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return;
 
     // Reset scroll flags on new question
     userHasScrolledRef.current = false;
     shouldScrollToQuestionRef.current = true;
 
-    const userMessage: ChatMessage = { role: 'user', content: trimmedInput };
+    const userMessage: ChatMessage = { role: 'user', content: messageText };
     const currentMessages = video?.chatMessages || [];
     const newMessages = [...currentMessages, userMessage];
 
     // Save user message to store immediately
     updateVideo({ chatMessages: newMessages });
-    setInput('');
 
-    // Show loading indicator immediately (before async getToken)
+    // Show loading indicator immediately
     setStreamingState((prev) => ({
       ...prev,
       [videoId]: {
@@ -141,7 +150,6 @@ export function ChatTab({ videoId }: ChatTabProps) {
         content: 'Error: Not authenticated',
       };
       updateVideo({ chatMessages: [...newMessages, errorMessage] });
-      // Clear loading state on error
       setStreamingState((prev) => ({
         ...prev,
         [videoId]: {
@@ -154,7 +162,37 @@ export function ChatTab({ videoId }: ChatTabProps) {
     }
 
     startChatStream(videoId, newMessages, transcript, token, setStreamingState, setVideos);
-  }, [input, video?.chatMessages, videoId, isLoading, getToken, transcript, updateVideo, setStreamingState, setVideos]);
+  }, [video?.chatMessages, videoId, isLoading, getToken, transcript, updateVideo, setStreamingState, setVideos]);
+
+  // Handle pending action from Summary tab text selection
+  useEffect(() => {
+    if (!pendingAction) return;
+
+    // Create a unique key for this action to prevent duplicate handling
+    const actionKey = `${pendingAction.action}:${pendingAction.text}`;
+    if (lastHandledActionRef.current === actionKey) return;
+
+    lastHandledActionRef.current = actionKey;
+
+    if (pendingAction.action === 'explain') {
+      // Auto-send explanation request
+      const explainPrompt = `Explain this: "${pendingAction.text}"`;
+      sendMessage(explainPrompt);
+    } else if (pendingAction.action === 'ask') {
+      // Pre-fill input for user to review
+      setInput(pendingAction.text);
+    }
+
+    // Clear the pending action
+    onActionHandled?.();
+  }, [pendingAction, sendMessage, onActionHandled]);
+
+  const handleSend = useCallback(async () => {
+    const trimmedInput = input.trim();
+    if (!trimmedInput) return;
+    setInput('');
+    await sendMessage(trimmedInput);
+  }, [input, sendMessage]);
 
   return (
     <KeyboardAvoidingView

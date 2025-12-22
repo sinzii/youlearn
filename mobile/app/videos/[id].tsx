@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-expo';
-import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
 import {
   StyleSheet,
   useWindowDimensions,
@@ -30,6 +30,11 @@ import { mergeSegmentsIntoSentences } from '@/utils/transcript';
 import { formatDuration } from '@/lib/datetime';
 
 type TabType = 'summary' | 'ask' | 'transcript';
+
+interface PendingAction {
+  action: 'explain' | 'ask';
+  text: string;
+}
 
 const TAB_CONFIG: { key: TabType; label: string; icon: 'article' | 'question-answer' | 'subtitles' }[] = [
   { key: 'summary', label: 'Summary', icon: 'article' },
@@ -118,6 +123,7 @@ export default function VideoDetailsScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [showVideo, setShowVideo] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
   const playerHeight = (width - 32) * (9 / 16);
   const keyboard = useAnimatedKeyboard();
@@ -230,6 +236,32 @@ export default function VideoDetailsScreen() {
     return mergeSegmentsIntoSentences(transcript.segments);
   }, [transcript?.segments, transcript?.is_generated]);
 
+  const handleTextAction = useCallback((action: 'explain' | 'ask', text: string) => {
+    setPendingAction({ action, text });
+    setActiveTab('ask');
+  }, []);
+
+  const handleActionHandled = useCallback(() => {
+    setPendingAction(null);
+  }, []);
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'summary':
+        return <SummaryTab videoId={id || ''} onTextAction={handleTextAction} />;
+      case 'ask':
+        return (
+          <ChatTab
+            videoId={id || ''}
+            pendingAction={pendingAction}
+            onActionHandled={handleActionHandled}
+          />
+        );
+      case 'transcript':
+        return <TranscriptTab segments={mergedSegments} />;
+    }
+  };
+
   if (isLoading) {
     return <LoadingSkeleton />;
   }
@@ -242,16 +274,6 @@ export default function VideoDetailsScreen() {
     );
   }
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'summary':
-        return <SummaryTab videoId={id || ''} />;
-      case 'ask':
-        return <ChatTab videoId={id || ''} />;
-      case 'transcript':
-        return <TranscriptTab segments={mergedSegments} />;
-    }
-  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
