@@ -4,8 +4,12 @@ import {
   StyleSheet,
   View,
   ActivityIndicator,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
+import * as Clipboard from 'expo-clipboard';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -45,6 +49,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const [webViewReady, setWebViewReady] = useState(false);
   const [webViewError, setWebViewError] = useState<string | null>(null);
   const [embedSource, setEmbedSource] = useState<EmbedSource | null>(null);
+  const [fabMenuOpen, setFabMenuOpen] = useState(false);
 
   const hasAutoTriggeredRef = useRef(false);
   const webViewRef = useRef<WebView>(null);
@@ -178,6 +183,25 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
     startSummaryStream(videoId, transcript, token, setStreamingState, setVideos);
   }, [videoId, getToken, transcript, setStreamingState, setVideos]);
 
+  const handleCopy = useCallback(async () => {
+    if (summary) {
+      await Clipboard.setStringAsync(summary);
+    }
+    setFabMenuOpen(false);
+  }, [summary]);
+
+  const handleResummarize = useCallback(() => {
+    setFabMenuOpen(false);
+    Alert.alert(
+      'Resummarize',
+      'Are you sure you want to regenerate the summary?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Resummarize', onPress: () => handleSummarize() },
+      ]
+    );
+  }, [handleSummarize]);
+
   // Auto-trigger summarization when transcript is available
   useEffect(() => {
     if (transcript && !summary && !isLoading && !streamingText && !hasAutoTriggeredRef.current) {
@@ -265,15 +289,31 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
         </Animated.View>
       )}
 
-      {/* Resummarize button */}
+      {/* FAB Menu */}
       {displayText && !isLoading && webViewReady && (
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Resummarize"
-            type="clear"
-            onPress={handleSummarize}
-            titleStyle={[styles.resummarizeText, { color: theme.colors.grey4 }]}
-          />
+        <View style={styles.fabContainer}>
+          {fabMenuOpen && (
+            <View style={styles.fabMenu}>
+              <TouchableOpacity
+                style={[styles.fabMenuIcon, { backgroundColor: theme.colors.grey0 }]}
+                onPress={handleResummarize}
+              >
+                <MaterialIcons name="refresh" size={24} color={theme.colors.black} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.fabMenuIcon, { backgroundColor: theme.colors.grey0 }]}
+                onPress={handleCopy}
+              >
+                <MaterialIcons name="content-copy" size={24} color={theme.colors.black} />
+              </TouchableOpacity>
+            </View>
+          )}
+          <TouchableOpacity
+            style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+            onPress={() => setFabMenuOpen(!fabMenuOpen)}
+          >
+            <MaterialIcons name={fabMenuOpen ? 'close' : 'bolt'} size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
       )}
 
@@ -317,11 +357,39 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: 'center',
   },
-  buttonContainer: {
-    padding: 8,
-    alignItems: 'center',
+  fabContainer: {
+    position: 'absolute',
+    bottom: 35,
+    right: 16,
+    alignItems: 'flex-end',
   },
-  resummarizeText: {
-    fontSize: 14,
+  fab: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  fabMenu: {
+    marginBottom: 16,
+    alignItems: 'flex-end',
+    gap: 12,
+  },
+  fabMenuIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
 });
