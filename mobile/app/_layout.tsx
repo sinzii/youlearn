@@ -10,6 +10,7 @@ import 'react-native-reanimated';
 
 import { rneTheme, navigationLightTheme, navigationDarkTheme } from '@/constants/rne-theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useShareIntentHandler } from '@/hooks/useShareIntentHandler';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -30,6 +31,9 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const navTheme = isDark ? navigationDarkTheme : navigationLightTheme;
+
+  // Handle shared YouTube URLs from other apps
+  useShareIntentHandler();
 
   return (
     <ThemeProvider theme={{ ...rneTheme, mode: isDark ? 'dark' : 'light' }}>

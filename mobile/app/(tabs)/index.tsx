@@ -13,6 +13,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Input, Button, useTheme } from '@rneui/themed';
 
+import { extractVideoId } from '@/utils/youtube';
+
 const EXAMPLE_VIDEOS = [
   { id: 'XA9Q5p9ODac', title: 'Quantum Consciousness and the Origin of Life' },
   { id: 'BHEhxPuMmQI', title: 'Physicist Brian Cox explains quantum physics in 22 minutes' },
@@ -130,29 +132,6 @@ export default function NewScreen() {
       </View>
     </SafeAreaView>
   );
-}
-
-function extractVideoId(input: string): string | null {
-  const videoIdPattern = /^[a-zA-Z0-9_-]{11}$/;
-  if (videoIdPattern.test(input)) {
-    return input;
-  }
-
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
-    /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
-    /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-    /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-  ];
-
-  for (const pattern of patterns) {
-    const match = input.match(pattern);
-    if (match) {
-      return match[1];
-    }
-  }
-
-  return input;
 }
 
 const styles = StyleSheet.create({
