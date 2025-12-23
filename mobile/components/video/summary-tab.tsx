@@ -243,7 +243,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
           <WebView
             ref={webViewRef}
             source={embedSource}
-            style={styles.webView}
+            style={{...styles.webView, backgroundColor: theme.colors.background }}
             onMessage={handleWebViewMessage}
             onError={handleWebViewError}
             onHttpError={handleWebViewError}
