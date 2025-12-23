@@ -8,7 +8,7 @@ import {
   View,
   Image,
 } from 'react-native';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Animated, {
@@ -115,6 +115,7 @@ export default function VideoDetailsScreen() {
   const { theme } = useTheme();
   const { getToken } = useAuth();
   const navigation = useNavigation();
+  const router = useRouter();
 
   const { video: cachedVideo, updateVideo } = useVideoCache(id || '');
   const hasFetchedRef = useRef(false);
@@ -150,6 +151,21 @@ export default function VideoDetailsScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: headerTitle,
+      // Show back button if opened from share intent (no back history)
+      headerLeft: router.canGoBack()
+        ? undefined
+        : () => (
+            <TouchableOpacity
+              onPress={() => router.replace('/')}
+              style={styles.headerButton}
+            >
+              <MaterialIcons
+                name="arrow-back-ios"
+                size={22}
+                color={theme.mode === 'dark' ? '#fff' : '#000'}
+              />
+            </TouchableOpacity>
+          ),
       headerRight: () => (
         <TouchableOpacity
           onPress={() => {
@@ -161,12 +177,12 @@ export default function VideoDetailsScreen() {
           <MaterialIcons
             name={showVideo ? 'visibility' : 'visibility-off'}
             size={24}
-            color={theme.colors.black}
+            color={theme.mode === 'dark' ? '#fff' : '#000'}
           />
         </TouchableOpacity>
       ),
     });
-  }, [navigation, showVideo, theme, headerTitle]);
+  }, [navigation, showVideo, theme, headerTitle, router]);
 
   useEffect(() => {
     if (!id) return;
