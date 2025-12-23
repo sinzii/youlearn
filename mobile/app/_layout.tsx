@@ -1,7 +1,8 @@
 import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { ThemeProvider, useTheme } from '@rneui/themed';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import { ShareIntentProvider } from 'expo-share-intent';
 import { StatusBar } from 'expo-status-bar';
 import { Provider as JotaiProvider } from 'jotai';
 import { Suspense } from 'react';
@@ -64,13 +65,23 @@ const styles = StyleSheet.create({
 });
 
 export default function RootLayout() {
+  const router = useRouter();
+
   return (
-    <JotaiProvider>
-      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        <ClerkLoaded>
-          <RootLayoutNav />
-        </ClerkLoaded>
-      </ClerkProvider>
-    </JotaiProvider>
+    <ShareIntentProvider
+      options={{
+        debug: __DEV__,
+        resetOnBackground: true,
+        onResetShareIntent: () => router.replace('/'),
+      }}
+    >
+      <JotaiProvider>
+        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+          <ClerkLoaded>
+            <RootLayoutNav />
+          </ClerkLoaded>
+        </ClerkProvider>
+      </JotaiProvider>
+    </ShareIntentProvider>
   );
 }

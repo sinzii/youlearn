@@ -22,8 +22,8 @@ export function useShareIntentHandler() {
         const videoId = extractVideoId(sharedContent);
 
         if (videoId) {
-          // Navigate to the video details screen
-          router.push({ pathname: '/videos/[id]', params: { id: videoId } });
+          // Navigate to the video details screen (use replace to avoid back navigation issues)
+          router.replace({ pathname: '/videos/[id]', params: { id: videoId } });
           // Reset the share intent so it doesn't trigger again
           resetShareIntent();
         }

@@ -28,7 +28,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoAsset (12.0.11):
+  - ExpoAsset (12.0.12):
     - ExpoModulesCore
   - ExpoClipboard (8.0.8):
     - ExpoModulesCore
@@ -54,7 +54,7 @@ PODS:
     - ExpoModulesCore
   - ExpoLinearGradient (15.0.8):
     - ExpoModulesCore
-  - ExpoLinking (8.0.10):
+  - ExpoLinking (8.0.11):
     - ExpoModulesCore
   - ExpoModulesCore (3.0.29):
     - hermes-engine
@@ -80,6 +80,8 @@ PODS:
     - ReactNativeDependencies
     - Yoga
   - ExpoSecureStore (15.0.8):
+    - ExpoModulesCore
+  - ExpoShareIntentModule (5.1.1):
     - ExpoModulesCore
   - ExpoSplashScreen (31.0.12):
     - ExpoModulesCore
@@ -2118,6 +2120,7 @@ DEPENDENCIES:
   - ExpoLinking (from `../node_modules/expo-linking/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
+  - ExpoShareIntentModule (from `../node_modules/expo-share-intent/ios`)
   - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - ExpoSymbols (from `../node_modules/expo-symbols/ios`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
@@ -2242,6 +2245,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoSecureStore:
     :path: "../node_modules/expo-secure-store/ios"
+  ExpoShareIntentModule:
+    :path: "../node_modules/expo-share-intent/ios"
   ExpoSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
   ExpoSymbols:
@@ -2406,7 +2411,7 @@ SPEC CHECKSUMS:
   EXApplication: 1e98d4b1dccdf30627f92917f4b2c5a53c330e5f
   EXConstants: 805f35b1b295c542ca6acce836f21a1f9ee104d5
   Expo: 8fa2204bf8483fe546b4ec87c90d3ca189afc8db
-  ExpoAsset: 23a958e97d3d340919fe6774db35d563241e6c03
+  ExpoAsset: f867e55ceb428aab99e1e8c082b5aee7c159ea18
   ExpoClipboard: b36b287d8356887844bb08ed5c84b5979bb4dd1e
   ExpoCrypto: b6105ebaa15d6b38a811e71e43b52cd934945322
   ExpoFileSystem: 858a44267a3e6e9057e0888ad7c7cfbf55d52063
@@ -2416,9 +2421,10 @@ SPEC CHECKSUMS:
   ExpoImage: 686f972bff29525733aa13357f6691dc90aa03d8
   ExpoKeepAwake: 55f75eca6499bb9e4231ebad6f3e9cb8f99c0296
   ExpoLinearGradient: 809102bdb979f590083af49f7fa4805cd931bd58
-  ExpoLinking: f4c4a351523da72a6bfa7e1f4ca92aee1043a3ca
+  ExpoLinking: 8f0aaf69aa56f832913030503b6263dc6f647f37
   ExpoModulesCore: f3da4f1ab5a8375d0beafab763739dbee8446583
   ExpoSecureStore: d32f751874a2ceb5aaeebeb3578e165c1ba2b24a
+  ExpoShareIntentModule: 928ff229dd5e577561944786f0de08be339f640b
   ExpoSplashScreen: 76af87337650d06926aa7d0157fe98b4fddca336
   ExpoSymbols: 349ee2b4d7d5ff3ea8436467914f8a67635aa354
   ExpoSystemUI: 2ad325f361a2fcd96a464e8574e19935c461c9cc
