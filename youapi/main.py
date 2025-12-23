@@ -19,7 +19,7 @@ from youtube_transcript_api._errors import (
 )
 from youtube_transcript_api.proxies import WebshareProxyConfig
 
-from ai_sdk import stream_text, openai
+from ai_sdk import generate_object, stream_text, openai
 from ai_sdk.types import CoreSystemMessage, CoreUserMessage, CoreAssistantMessage
 
 load_dotenv()
@@ -60,7 +60,7 @@ app.add_middleware(
 )
 
 # Routes that don't require authentication
-PUBLIC_ROUTES = ["/", "/swagger"]
+PUBLIC_ROUTES = ["/", "/swagger", "/openapi.json"]
 
 
 @app.middleware("http")
@@ -135,6 +135,23 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage]
     transcript: str | None = None  # Optional: pass transcript to avoid re-fetching
     model: ModelName = ModelName.GPT_4O_MINI
+
+
+class SuggestQuestionsRequest(BaseModel):
+    video_id: str
+    transcript: str
+    model: ModelName = ModelName.GPT_4O_MINI
+
+
+class SuggestQuestionsResponse(BaseModel):
+    video_id: str
+    questions: list[str]
+
+
+class SuggestedQuestionsSchema(BaseModel):
+    """Schema for generate_object to return structured questions."""
+
+    questions: list[str]
 
 
 # YouTube URL parsing utility
@@ -444,4 +461,54 @@ Video Transcript:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to generate response: {str(e)}",
+        )
+
+
+@app.post("/youtube/suggest-questions", response_model=SuggestQuestionsResponse)
+async def suggest_questions(request: SuggestQuestionsRequest):
+    """
+    Generate suggested questions about a YouTube video transcript.
+    Returns 3 short, interesting questions to help users understand the content.
+
+    - **video_id**: YouTube video ID or URL
+    - **transcript**: Video transcript text
+    - **model**: LLM model to use (gpt-4o-mini or gpt-4o)
+    """
+    try:
+        actual_video_id = extract_video_id(request.video_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    try:
+        model = openai(request.model.value)
+
+        result = generate_object(
+            model=model,
+            schema=SuggestedQuestionsSchema,
+            prompt=f"""Based on this video transcript, generate exactly 3 suggested questions that a viewer might want to ask to better understand the content.
+
+Rules:
+- Each question should be SHORT (under 10 words if possible)
+- Questions should be interesting and thought-provoking
+- Focus on key concepts, insights, or practical applications
+- Make questions specific to the video content, not generic
+- If the transcript contains claims, opinions, or criticism, include questions that encourage critical evaluation
+- Consider broader perspectives - help viewers question authenticity and think beyond what's presented
+
+Transcript:
+{request.transcript[:8000]}""",
+        )
+
+        # Get questions directly from structured output
+        questions = result.object.questions[:3]
+
+        return SuggestQuestionsResponse(
+            video_id=actual_video_id,
+            questions=questions,
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate suggested questions: {str(e)}",
         )

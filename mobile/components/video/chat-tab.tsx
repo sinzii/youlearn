@@ -82,6 +82,59 @@ interface PendingAction {
   text: string;
 }
 
+interface SuggestedQuestionsProps {
+  questions: string[];
+  onQuestionPress: (question: string) => void;
+  disabled: boolean;
+  theme: ReturnType<typeof useTheme>['theme'];
+}
+
+function SuggestedQuestions({
+  questions,
+  onQuestionPress,
+  disabled,
+  theme,
+}: SuggestedQuestionsProps) {
+  return (
+    <View style={suggestedStyles.container}>
+      <Text style={[suggestedStyles.title, { color: theme.colors.grey4 }]}>
+        Quick questions
+      </Text>
+      <View style={suggestedStyles.questionsContainer}>
+        {questions.map((question, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              suggestedStyles.questionChip,
+              {
+                backgroundColor: theme.colors.grey0,
+                borderColor: theme.colors.grey2,
+              },
+              disabled && { opacity: 0.5 },
+            ]}
+            onPress={() => onQuestionPress(question)}
+            disabled={disabled}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons
+              name="chat-bubble-outline"
+              size={14}
+              color={theme.colors.primary}
+              style={suggestedStyles.questionIcon}
+            />
+            <Text
+              style={[suggestedStyles.questionText, { color: theme.colors.black }]}
+              numberOfLines={2}
+            >
+              {question}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 interface ChatTabProps {
   videoId: string;
   pendingAction?: PendingAction | null;
@@ -281,14 +334,41 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
     return `message-${index}`;
   }, []);
 
-  // Empty list component
-  const ListEmptyComponent = useCallback(() => (
-    <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: theme.colors.grey4 }]}>
-        Ask questions about the video content
-      </Text>
-    </View>
-  ), [theme.colors.grey4]);
+  // Get suggested questions
+  const suggestedQuestions = useMemo(
+    () => video?.suggestedQuestions || [],
+    [video?.suggestedQuestions]
+  );
+
+  // Handle suggested question press
+  const handleSuggestedQuestionPress = useCallback(
+    (question: string) => {
+      sendMessage(question);
+    },
+    [sendMessage]
+  );
+
+  // Empty list component - show suggested questions if available
+  const ListEmptyComponent = useCallback(() => {
+    if (suggestedQuestions.length > 0) {
+      return (
+        <SuggestedQuestions
+          questions={suggestedQuestions}
+          onQuestionPress={handleSuggestedQuestionPress}
+          disabled={isLoading}
+          theme={theme}
+        />
+      );
+    }
+
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={[styles.emptyText, { color: theme.colors.grey4 }]}>
+          Ask questions about the video content
+        </Text>
+      </View>
+    );
+  }, [suggestedQuestions, handleSuggestedQuestionPress, isLoading, theme]);
 
   return (
     <KeyboardAvoidingView
@@ -438,5 +518,36 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     fontStyle: 'italic',
+  },
+});
+
+const suggestedStyles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+  },
+  title: {
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  questionsContainer: {
+    width: '100%',
+    gap: 10,
+  },
+  questionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  questionIcon: {
+    marginRight: 10,
+  },
+  questionText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

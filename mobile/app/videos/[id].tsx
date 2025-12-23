@@ -24,9 +24,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SummaryTab } from '@/components/video/summary-tab';
 import { ChatTab } from '@/components/video/chat-tab';
 import { TranscriptTab } from '@/components/video/transcript-tab';
-import { fetchVideoInfo, fetchTranscript, TranscriptResponse } from '@/lib/api';
+import {
+  fetchVideoInfo,
+  fetchTranscript,
+  fetchSuggestedQuestions,
+  TranscriptResponse,
+} from '@/lib/api';
 import { useVideoCache } from '@/lib/store';
-import { mergeSegmentsIntoSentences } from '@/utils/transcript';
+import { mergeSegmentsIntoSentences, segmentsToText } from '@/utils/transcript';
 import { formatDuration } from '@/lib/datetime';
 
 type TabType = 'summary' | 'ask' | 'transcript';
@@ -215,6 +220,26 @@ export default function VideoDetailsScreen() {
 
     loadVideoData();
   }, [id]);
+
+  // Fetch suggested questions if we have transcript but no questions
+  useEffect(() => {
+    if (!id || !transcript || cachedVideo?.suggestedQuestions) return;
+
+    const fetchQuestions = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+
+        const transcriptText = segmentsToText(transcript.segments);
+        const response = await fetchSuggestedQuestions(id, transcriptText, token);
+        updateVideo({ suggestedQuestions: response.questions });
+      } catch (err) {
+        console.warn('Failed to fetch suggested questions:', err);
+      }
+    };
+
+    fetchQuestions();
+  }, [id, transcript, cachedVideo?.suggestedQuestions]);
 
   const handlePlayPress = () => {
     shouldAutoplay.current = true;

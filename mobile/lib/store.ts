@@ -34,6 +34,7 @@ export interface VideoCache {
   transcript: TranscriptResponse | null;
   summary: string | null;
   chatMessages: ChatMessage[] | null;
+  suggestedQuestions: string[] | null;
   lastAccessed: number;
 }
 
@@ -93,6 +94,8 @@ export function useVideoCache(videoId: string) {
           transcript: update.transcript ?? existing?.transcript ?? null,
           summary: update.summary ?? existing?.summary ?? null,
           chatMessages: update.chatMessages ?? existing?.chatMessages ?? null,
+          suggestedQuestions:
+            update.suggestedQuestions ?? existing?.suggestedQuestions ?? null,
           lastAccessed: Date.now(),
         };
         return {

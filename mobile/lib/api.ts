@@ -23,6 +23,11 @@ export interface TranscriptResponse {
   segments: TranscriptSegment[];
 }
 
+export interface SuggestQuestionsResponse {
+  video_id: string;
+  questions: string[];
+}
+
 export async function fetchVideoInfo(
   videoId: string,
   token: string
@@ -60,6 +65,32 @@ export async function fetchTranscript(
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.detail || 'Failed to fetch transcript');
+  }
+
+  return response.json();
+}
+
+export async function fetchSuggestedQuestions(
+  videoId: string,
+  transcript: string,
+  token: string
+): Promise<SuggestQuestionsResponse> {
+  const response = await fetch(`${API_ENDPOINT}/youtube/suggest-questions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      video_id: videoId,
+      transcript,
+      model: 'gpt-4o-mini',
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to fetch suggested questions');
   }
 
   return response.json();
