@@ -45,6 +45,7 @@
       [
         "expo-share-intent",
         {
+          "iosAppGroupIdentifier": "group.dedotdev.app.videoinsight",
           "iosActivationRules": {
             "NSExtensionActivationSupportsWebURLWithMaxCount": 1,
             "NSExtensionActivationSupportsText": true
