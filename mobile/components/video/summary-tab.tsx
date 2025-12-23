@@ -14,6 +14,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withDelay,
 } from 'react-native-reanimated';
 import { Text, Button, useTheme } from '@rneui/themed';
 import { useSetAtom } from 'jotai';
@@ -59,6 +60,22 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const opacity = useSharedValue(0);
   const fadeStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
+  }));
+
+  // FAB menu item animations (bottom to top stagger)
+  const menuItem1Opacity = useSharedValue(0);
+  const menuItem1TranslateY = useSharedValue(20);
+  const menuItem2Opacity = useSharedValue(0);
+  const menuItem2TranslateY = useSharedValue(20);
+
+  const menuItem1Style = useAnimatedStyle(() => ({
+    opacity: menuItem1Opacity.value,
+    transform: [{ translateY: menuItem1TranslateY.value }],
+  }));
+
+  const menuItem2Style = useAnimatedStyle(() => ({
+    opacity: menuItem2Opacity.value,
+    transform: [{ translateY: menuItem2TranslateY.value }],
   }));
 
   // Load embed source on mount
@@ -170,6 +187,24 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
       sendToWebView('CONTENT_DONE', { finalContent: summary });
     }
   }, [isLoading, summary, webViewReady, sendToWebView]);
+
+  // Animate FAB menu items when opening/closing
+  useEffect(() => {
+    if (fabMenuOpen) {
+      // Bottom button first (Copy)
+      menuItem1Opacity.value = withTiming(1, { duration: 200 });
+      menuItem1TranslateY.value = withTiming(0, { duration: 200 });
+      // Top button second (Resummarize) with delay
+      menuItem2Opacity.value = withDelay(80, withTiming(1, { duration: 200 }));
+      menuItem2TranslateY.value = withDelay(80, withTiming(0, { duration: 200 }));
+    } else {
+      // Reset immediately
+      menuItem1Opacity.value = 0;
+      menuItem1TranslateY.value = 20;
+      menuItem2Opacity.value = 0;
+      menuItem2TranslateY.value = 20;
+    }
+  }, [fabMenuOpen, menuItem1Opacity, menuItem1TranslateY, menuItem2Opacity, menuItem2TranslateY]);
 
   const handleSummarize = useCallback(async () => {
     setError(null);
@@ -294,18 +329,22 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
         <View style={styles.fabContainer}>
           {fabMenuOpen && (
             <View style={styles.fabMenu}>
-              <TouchableOpacity
-                style={[styles.fabMenuIcon, { backgroundColor: theme.colors.grey0 }]}
-                onPress={handleResummarize}
-              >
-                <MaterialIcons name="refresh" size={24} color={theme.colors.black} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.fabMenuIcon, { backgroundColor: theme.colors.grey0 }]}
-                onPress={handleCopy}
-              >
-                <MaterialIcons name="content-copy" size={24} color={theme.colors.black} />
-              </TouchableOpacity>
+              <Animated.View style={menuItem2Style}>
+                <TouchableOpacity
+                  style={[styles.fabMenuIcon, { backgroundColor: theme.colors.grey0 }]}
+                  onPress={handleResummarize}
+                >
+                  <MaterialIcons name="refresh" size={24} color={theme.colors.black} />
+                </TouchableOpacity>
+              </Animated.View>
+              <Animated.View style={menuItem1Style}>
+                <TouchableOpacity
+                  style={[styles.fabMenuIcon, { backgroundColor: theme.colors.grey0 }]}
+                  onPress={handleCopy}
+                >
+                  <MaterialIcons name="content-copy" size={24} color={theme.colors.black} />
+                </TouchableOpacity>
+              </Animated.View>
             </View>
           )}
           <TouchableOpacity
