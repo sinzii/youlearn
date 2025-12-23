@@ -68,11 +68,29 @@ export default function RootLayout() {
   const router = useRouter();
 
   return (
+    /**
+     * ShareIntentProvider enables receiving shared content from other apps (Safari, YouTube, etc.)
+     *
+     * How it works:
+     * 1. When user shares a URL to VideoInsight, iOS Share Extension stores it in UserDefaults
+     * 2. The extension redirects to app with: videoinsight://dataUrl=videoinsightShareKey#weburl
+     * 3. +native-intent.ts intercepts this to prevent "Unmatched Route" error
+     * 4. ShareIntentProvider reads the actual URL from UserDefaults (via App Group)
+     * 5. useShareIntentHandler hook (in RootLayoutNav) detects it and navigates to /videos/[id]
+     *
+     * Configuration in app.json:
+     * - iosAppGroupIdentifier: "group.dedotdev.app.videoinsight" (must match Swift extension)
+     * - iosActivationRules: What content types trigger the share extension
+     *
+     * @see hooks/useShareIntentHandler.ts - handles navigation after receiving shared content
+     * @see app/+native-intent.ts - intercepts deep link to prevent routing errors
+     * @see https://github.com/achorein/expo-share-intent
+     */
     <ShareIntentProvider
       options={{
-        debug: __DEV__,
-        resetOnBackground: true,
-        onResetShareIntent: () => router.replace('/'),
+        debug: __DEV__, // Log share intent events in development
+        resetOnBackground: true, // Clear share intent when app goes to background
+        onResetShareIntent: () => router.replace('/'), // Navigate home when share intent is reset
       }}
     >
       <JotaiProvider>
