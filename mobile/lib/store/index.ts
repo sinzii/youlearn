@@ -15,28 +15,27 @@ import themeReducer from './slices/themeSlice';
 import videosReducer from './slices/videosSlice';
 import streamingReducer from './slices/streamingSlice';
 
-// Persist config for theme
-const themePersistConfig = {
-  key: 'videoinsight-theme',
-  storage: AsyncStorage,
-  version: 1,
-};
-
-// Persist config for videos
-const videosPersistConfig = {
-  key: 'videoinsight-videos',
-  storage: AsyncStorage,
-  version: 1,
-};
-
+// Combine all reducers first
 const rootReducer = combineReducers({
-  theme: persistReducer(themePersistConfig, themeReducer),
-  videos: persistReducer(videosPersistConfig, videosReducer),
-  streaming: streamingReducer, // NOT persisted - ephemeral state
+  theme: themeReducer,
+  videos: videosReducer,
+  streaming: streamingReducer,
 });
 
+// Single persist config at root level
+// This ensures PersistGate properly waits for ALL persisted state to load
+const persistConfig = {
+  key: 'videoinsight-root',
+  storage: AsyncStorage,
+  version: 1,
+  whitelist: ['theme', 'videos'], // Only persist these slices (not streaming)
+};
+
+// Wrap the entire root reducer with persistReducer
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
 export const store = configureStore({
-  reducer: rootReducer,
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
