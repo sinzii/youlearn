@@ -17,10 +17,9 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated';
 import { Text, Button, useTheme } from '@rneui/themed';
-import { useSetAtom } from 'jotai';
 
 import { segmentsToText } from '@/utils/transcript';
-import { useVideoCache, useVideoStreaming, videosAtom, streamingStateAtom } from '@/lib/store';
+import { useVideoCache, useVideoStreaming, useAppDispatch } from '@/lib/store';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { startSummaryStream } from '@/lib/streaming';
 import { getEmbedSource, type EmbedSource } from '@/lib/config';
@@ -39,8 +38,7 @@ interface SummaryTabProps {
 export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const { video } = useVideoCache(videoId);
   const { streaming } = useVideoStreaming(videoId);
-  const setStreamingState = useSetAtom(streamingStateAtom);
-  const setVideos = useSetAtom(videosAtom);
+  const dispatch = useAppDispatch();
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const { theme } = useTheme();
   const { getToken } = useAuth();
@@ -215,8 +213,8 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
       return;
     }
 
-    startSummaryStream(videoId, transcript, token, setStreamingState, setVideos);
-  }, [videoId, getToken, transcript, setStreamingState, setVideos]);
+    startSummaryStream(videoId, transcript, token, dispatch);
+  }, [videoId, getToken, transcript, dispatch]);
 
   const handleCopy = useCallback(async () => {
     if (summary) {

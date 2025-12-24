@@ -4,11 +4,13 @@ import { ThemeProvider, useTheme } from '@rneui/themed';
 import { Stack, useRouter } from 'expo-router';
 import { ShareIntentProvider } from 'expo-share-intent';
 import { StatusBar } from 'expo-status-bar';
-import { Provider as JotaiProvider } from 'jotai';
+import { Provider as ReduxProvider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 import { Suspense } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
 
+import { store, persistor } from '@/lib/store';
 import { rneTheme, navigationLightTheme, navigationDarkTheme } from '@/constants/rne-theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useShareIntentHandler } from '@/hooks/useShareIntentHandler';
@@ -17,6 +19,15 @@ const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
 if (!publishableKey) {
   throw new Error('Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in environment variables');
+}
+
+// Loading screen shown during redux-persist rehydration
+function RehydrationLoading() {
+  return (
+    <View style={styles.rehydrationLoading}>
+      <ActivityIndicator size="large" color="#3b82f6" />
+    </View>
+  );
 }
 
 function GlobalLoading() {
@@ -62,6 +73,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  rehydrationLoading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
 });
 
 export default function RootLayout() {
@@ -93,13 +110,15 @@ export default function RootLayout() {
         onResetShareIntent: () => router.replace('/'), // Navigate home when share intent is reset
       }}
     >
-      <JotaiProvider>
-        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-          <ClerkLoaded>
-            <RootLayoutNav />
-          </ClerkLoaded>
-        </ClerkProvider>
-      </JotaiProvider>
+      <ReduxProvider store={store}>
+        <PersistGate loading={<RehydrationLoading />} persistor={persistor}>
+          <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+            <ClerkLoaded>
+              <RootLayoutNav />
+            </ClerkLoaded>
+          </ClerkProvider>
+        </PersistGate>
+      </ReduxProvider>
     </ShareIntentProvider>
   );
 }

@@ -22,11 +22,10 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Markdown from 'react-native-markdown-display';
 import { Text, Input, Button, useTheme } from '@rneui/themed';
-import { useSetAtom } from 'jotai';
 
 import { ChatMessage } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
-import { useVideoCache, useVideoStreaming, videosAtom, streamingStateAtom } from '@/lib/store';
+import { useVideoCache, useVideoStreaming, useAppDispatch, updateStreaming } from '@/lib/store';
 import { useMarkdownStyles } from '@/hooks/useMarkdownStyles';
 import { startChatStream } from '@/lib/streaming';
 
@@ -145,8 +144,7 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
   const headerHeight = useHeaderHeight();
   const { video, updateVideo } = useVideoCache(videoId);
   const { streaming } = useVideoStreaming(videoId);
-  const setStreamingState = useSetAtom(streamingStateAtom);
-  const setVideos = useSetAtom(videosAtom);
+  const dispatch = useAppDispatch();
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const { theme } = useTheme();
   const { getToken } = useAuth();
@@ -217,10 +215,9 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
     updateVideo({ chatMessages: newMessages });
 
     // Show loading indicator immediately
-    setStreamingState((prev) => ({
-      ...prev,
-      [videoId]: {
-        ...(prev[videoId] || { streamingSummary: '', streamingChat: '', isLoadingSummary: false, isLoadingChat: false, pendingChatMessages: null }),
+    dispatch(updateStreaming({
+      videoId,
+      update: {
         isLoadingChat: true,
         pendingChatMessages: newMessages,
       },
@@ -233,10 +230,9 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
         content: 'Error: Not authenticated',
       };
       updateVideo({ chatMessages: [...newMessages, errorMessage] });
-      setStreamingState((prev) => ({
-        ...prev,
-        [videoId]: {
-          ...(prev[videoId] || { streamingSummary: '', streamingChat: '', isLoadingSummary: false, isLoadingChat: false, pendingChatMessages: null }),
+      dispatch(updateStreaming({
+        videoId,
+        update: {
           isLoadingChat: false,
           pendingChatMessages: null,
         },
@@ -244,8 +240,8 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
       return;
     }
 
-    startChatStream(videoId, newMessages, transcript, token, setStreamingState, setVideos);
-  }, [video?.chatMessages, videoId, isLoading, getToken, transcript, updateVideo, setStreamingState, setVideos]);
+    startChatStream(videoId, newMessages, transcript, token, dispatch);
+  }, [video?.chatMessages, videoId, isLoading, getToken, transcript, updateVideo, dispatch]);
 
   // Handle pending action from Summary tab text selection
   useEffect(() => {
