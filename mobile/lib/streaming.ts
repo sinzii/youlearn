@@ -26,18 +26,35 @@ export function startSummaryStream(
   );
 
   let fullText = '';
+  let pendingDispatch: ReturnType<typeof setTimeout> | null = null;
+
+  // Throttle Redux updates to reduce re-renders (100ms interval)
+  const flushUpdate = () => {
+    dispatch(
+      updateStreaming({
+        videoId,
+        update: { streamingSummary: fullText },
+      })
+    );
+    pendingDispatch = null;
+  };
 
   const cancel = streamSummary(videoId, transcript, token, {
     onChunk: (chunk) => {
       fullText += chunk;
-      dispatch(
-        updateStreaming({
-          videoId,
-          update: { streamingSummary: fullText },
-        })
-      );
+      // Only schedule a dispatch if none is pending
+      if (!pendingDispatch) {
+        pendingDispatch = setTimeout(flushUpdate, 100);
+      }
     },
     onDone: () => {
+      // Flush any pending update immediately
+      if (pendingDispatch) {
+        clearTimeout(pendingDispatch);
+        pendingDispatch = null;
+      }
+      flushUpdate();
+
       // Save final summary to persisted store
       dispatch(
         updateVideo({
@@ -58,6 +75,11 @@ export function startSummaryStream(
     },
     onError: (err) => {
       console.error('Summary stream error:', err);
+      // Clear any pending dispatch
+      if (pendingDispatch) {
+        clearTimeout(pendingDispatch);
+        pendingDispatch = null;
+      }
       dispatch(
         updateStreaming({
           videoId,
@@ -97,18 +119,35 @@ export function startChatStream(
   );
 
   let fullResponse = '';
+  let pendingDispatch: ReturnType<typeof setTimeout> | null = null;
+
+  // Throttle Redux updates to reduce re-renders (100ms interval)
+  const flushUpdate = () => {
+    dispatch(
+      updateStreaming({
+        videoId,
+        update: { streamingChat: fullResponse },
+      })
+    );
+    pendingDispatch = null;
+  };
 
   const cancel = streamChat(videoId, messages, transcript, token, {
     onChunk: (chunk) => {
       fullResponse += chunk;
-      dispatch(
-        updateStreaming({
-          videoId,
-          update: { streamingChat: fullResponse },
-        })
-      );
+      // Only schedule a dispatch if none is pending
+      if (!pendingDispatch) {
+        pendingDispatch = setTimeout(flushUpdate, 100);
+      }
     },
     onDone: () => {
+      // Flush any pending update immediately
+      if (pendingDispatch) {
+        clearTimeout(pendingDispatch);
+        pendingDispatch = null;
+      }
+      flushUpdate();
+
       // Save messages with assistant response to persisted store
       const assistantMessage: ChatMessage = { role: 'assistant', content: fullResponse };
       const newMessages = [...messages, assistantMessage];
@@ -136,6 +175,11 @@ export function startChatStream(
     },
     onError: (err) => {
       console.error('Chat stream error:', err);
+      // Clear any pending dispatch
+      if (pendingDispatch) {
+        clearTimeout(pendingDispatch);
+        pendingDispatch = null;
+      }
       // Save error message
       const errorMessage: ChatMessage = { role: 'assistant', content: `Error: ${err.message}` };
       const newMessages = [...messages, errorMessage];
