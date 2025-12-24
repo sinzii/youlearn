@@ -1,17 +1,18 @@
 import { useEffect } from 'react';
 import { useShareIntent } from 'expo-share-intent';
-import { useRouter } from 'expo-router';
+import { useNavigationContainerRef } from 'expo-router';
+import { CommonActions } from '@react-navigation/native';
 
 import { extractVideoId } from '@/utils/youtube';
 
 /**
  * Hook to handle shared YouTube URLs from other apps.
  * When a user shares a YouTube URL to the app, this hook extracts the video ID
- * and navigates to the video details screen.
+ * and navigates to the video details screen with home in the back history.
  */
 export function useShareIntentHandler() {
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
-  const router = useRouter();
+  const navigationRef = useNavigationContainerRef();
 
   useEffect(() => {
     if (hasShareIntent && shareIntent) {
@@ -22,12 +23,22 @@ export function useShareIntentHandler() {
         const videoId = extractVideoId(sharedContent);
 
         if (videoId) {
-          // Navigate to the video details screen (use replace to avoid back navigation issues)
-          router.replace({ pathname: '/videos/[id]', params: { id: videoId } });
+          // Reset navigation state with home in history, video detail as current
+          // This gives us: [Home, VideoDetail] with VideoDetail active
+          // The native back button will work and go to home
+          navigationRef.dispatch(
+            CommonActions.reset({
+              index: 1,
+              routes: [
+                { name: '(tabs)' },
+                { name: 'videos/[id]', params: { id: videoId } },
+              ],
+            })
+          );
           // Reset the share intent so it doesn't trigger again
           resetShareIntent();
         }
       }
     }
-  }, [hasShareIntent, shareIntent, router, resetShareIntent]);
+  }, [hasShareIntent, shareIntent, navigationRef, resetShareIntent]);
 }
