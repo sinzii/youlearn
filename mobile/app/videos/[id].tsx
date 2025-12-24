@@ -157,7 +157,7 @@ export default function VideoDetailsScreen() {
         : () => (
             <TouchableOpacity
               onPress={() => router.replace('/')}
-              style={styles.headerButton}
+              style={styles.headerLeftButton}
             >
               <MaterialIcons
                 name="arrow-back-ios"
@@ -426,6 +426,10 @@ export default function VideoDetailsScreen() {
 const styles = StyleSheet.create({
   headerButton: {
     paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  headerLeftButton: {
+    paddingRight: 12,
     paddingVertical: 6,
   },
   container: {
