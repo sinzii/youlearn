@@ -19,7 +19,7 @@ import Animated, {
 import { Text, Button, useTheme } from '@rneui/themed';
 
 import { segmentsToText } from '@/utils/transcript';
-import { useVideoCache, useVideoStreaming, useAppDispatch } from '@/lib/store';
+import { useVideoCache, useSummaryStreaming, useAppDispatch } from '@/lib/store/hooks';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { startSummaryStream } from '@/lib/streaming';
 import { getEmbedSource, type EmbedSource } from '@/lib/config';
@@ -37,7 +37,7 @@ interface SummaryTabProps {
 
 export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const { video } = useVideoCache(videoId);
-  const { streaming } = useVideoStreaming(videoId);
+  const { isLoading, streamingContent: streamingText } = useSummaryStreaming(videoId);
   const dispatch = useAppDispatch();
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const { theme } = useTheme();
@@ -80,9 +80,6 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   useEffect(() => {
     getEmbedSource().then(setEmbedSource);
   }, []);
-
-  const isLoading = streaming.isLoadingSummary;
-  const streamingText = streaming.streamingSummary;
   const summary = video?.summary || null;
   const displayText = isLoading ? streamingText : summary;
 

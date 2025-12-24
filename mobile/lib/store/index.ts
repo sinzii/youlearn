@@ -49,3 +49,29 @@ export const persistor = persistStore(store);
 // Types
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+// Re-export hooks and actions
+// export {
+//   useAppDispatch,
+//   useAppSelector,
+//   useThemePreference,
+//   useSetThemePreference,
+//   useVideoCache,
+//   useRecentVideos,
+//   useClearVideos,
+//   useRemoveVideo,
+//   useVideoStreaming,
+//   useChatStreaming,
+//   useSummaryStreaming,
+// } from './hooks';
+
+export type {
+  ThemePreference,
+  VideoCache,
+  VideosState,
+  VideoStreamingState,
+  StreamingState,
+} from './hooks';
+
+export { updateStreaming, resetStreaming } from './slices/streamingSlice';
+export { updateVideo, removeVideo, clearVideos } from './slices/videosSlice';

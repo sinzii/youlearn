@@ -92,6 +92,33 @@ export function useVideoStreaming(videoId: string) {
   return { streaming, updateStreaming };
 }
 
+// Granular hooks for better performance - prevents unnecessary re-renders
+
+export function useChatStreaming(videoId: string) {
+  const isLoading = useAppSelector(
+    (state) => state.streaming[videoId]?.isLoadingChat ?? false
+  );
+  const streamingContent = useAppSelector(
+    (state) => state.streaming[videoId]?.streamingChat ?? ''
+  );
+  const pendingMessages = useAppSelector(
+    (state) => state.streaming[videoId]?.pendingChatMessages ?? null
+  );
+
+  return { isLoading, streamingContent, pendingMessages };
+}
+
+export function useSummaryStreaming(videoId: string) {
+  const isLoading = useAppSelector(
+    (state) => state.streaming[videoId]?.isLoadingSummary ?? false
+  );
+  const streamingContent = useAppSelector(
+    (state) => state.streaming[videoId]?.streamingSummary ?? ''
+  );
+
+  return { isLoading, streamingContent };
+}
+
 // Re-export types for convenience
 export type { ThemePreference } from './slices/themeSlice';
 export type { VideoCache, VideosState } from './slices/videosSlice';

@@ -25,9 +25,14 @@ import { Text, Input, Button, useTheme } from '@rneui/themed';
 
 import { ChatMessage } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
-import { useVideoCache, useVideoStreaming, useAppDispatch, updateStreaming } from '@/lib/store';
+import { updateStreaming } from '@/lib/store';
 import { useMarkdownStyles } from '@/hooks/useMarkdownStyles';
 import { startChatStream } from '@/lib/streaming';
+import {
+  useChatStreaming,
+  useVideoCache,
+  useAppDispatch,
+} from "@/lib/store/hooks";
 
 function TypingDot({ delay, color }: { delay: number; color: string }) {
   const opacity = useSharedValue(0.3);
@@ -142,25 +147,24 @@ interface ChatTabProps {
 
 export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProps) {
   const headerHeight = useHeaderHeight();
-  const { video, updateVideo } = useVideoCache(videoId);
-  const { streaming } = useVideoStreaming(videoId);
+  const {video, updateVideo} = useVideoCache(videoId);
+  const {isLoading, streamingContent: streamingResponse, pendingMessages} = useChatStreaming(videoId);
   const dispatch = useAppDispatch();
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
-  const { theme } = useTheme();
-  const { getToken } = useAuth();
+  const {theme} = useTheme();
+  const {getToken} = useAuth();
   const [input, setInput] = useState('');
   const [contextText, setContextText] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
   const flatListRef = useRef<FlatList<ListItem>>(null);
   const userHasScrolledRef = useRef(false);
+  const [shouldScroll, setShouldScroll] = useState(false);
   const markdownStyles = useMarkdownStyles('compact');
 
   // Get messages from store, considering pending messages during streaming
   const messages = useMemo(() => {
-    return streaming.pendingChatMessages || video?.chatMessages || [];
-  }, [streaming.pendingChatMessages, video?.chatMessages]);
-  const isLoading = streaming.isLoadingChat;
-  const streamingResponse = streaming.streamingChat;
+    return pendingMessages || video?.chatMessages || [];
+  }, [pendingMessages, video?.chatMessages]);
   const initialMessagesRef = useRef(messages.length);
 
   // Build list data with proper typing
@@ -190,12 +194,17 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
     }
   }, []);
 
-  // Auto-scroll when new content is added (streaming or new messages)
+  // Auto-scroll to show user's question when new message is sent
   useEffect(() => {
-    if (!userHasScrolledRef.current && listData.length > 0) {
-      flatListRef.current?.scrollToEnd({ animated: true });
+    if (shouldScroll && !userHasScrolledRef.current && listData.length > 0) {
+      setShouldScroll(false);
+
+      // Longer delay to ensure layout is complete
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({animated: true});
+      }, 150);
     }
-  }, [listData.length, streamingResponse]);
+  }, [shouldScroll, listData.length]);
 
   // Track the last handled pending action to prevent duplicate sends
   const lastHandledActionRef = useRef<string | null>(null);
@@ -207,12 +216,15 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
     // Reset scroll flag on new question
     userHasScrolledRef.current = false;
 
-    const userMessage: ChatMessage = { role: 'user', content: messageText };
+    const userMessage: ChatMessage = {role: 'user', content: messageText};
     const currentMessages = video?.chatMessages || [];
     const newMessages = [...currentMessages, userMessage];
 
+    // Trigger auto-scroll to show user's question
+    setShouldScroll(true);
+
     // Save user message to store immediately
-    updateVideo({ chatMessages: newMessages });
+    updateVideo({chatMessages: newMessages});
 
     // Show loading indicator immediately
     dispatch(updateStreaming({
