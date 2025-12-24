@@ -5,6 +5,7 @@
  * - Short URLs: https://youtu.be/VIDEO_ID
  * - Embed URLs: https://www.youtube.com/embed/VIDEO_ID
  * - Shorts URLs: https://www.youtube.com/shorts/VIDEO_ID
+ * - Live URLs: https://www.youtube.com/live/VIDEO_ID
  * - Direct video IDs: VIDEO_ID (11 characters)
  */
 export function extractVideoId(input: string): string | null {
@@ -32,6 +33,8 @@ export function extractVideoId(input: string): string | null {
     /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
     // Shorts URL: youtube.com/shorts/VIDEO_ID
     /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+    // Live URL: youtube.com/live/VIDEO_ID
+    /(?:youtube\.com\/live\/)([a-zA-Z0-9_-]{11})/,
     // With additional parameters
     /(?:youtube\.com\/watch\?.*v=)([a-zA-Z0-9_-]{11})/,
   ];

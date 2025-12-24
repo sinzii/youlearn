@@ -164,6 +164,7 @@ def extract_video_id(video_id_or_url: str) -> str:
     - youtu.be/VIDEO_ID
     - youtube.com/embed/VIDEO_ID
     - youtube.com/shorts/VIDEO_ID
+    - youtube.com/live/VIDEO_ID
     - Direct 11-character video ID
     """
     # Pattern for direct video ID (11 characters: alphanumeric, underscore, hyphen)
@@ -177,6 +178,7 @@ def extract_video_id(video_id_or_url: str) -> str:
         r"(?:youtu\.be\/)([a-zA-Z0-9_-]{11})",  # youtu.be/
         r"(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})",  # youtube.com/embed/
         r"(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})",  # youtube.com/shorts/
+        r"(?:youtube\.com\/live\/)([a-zA-Z0-9_-]{11})",  # youtube.com/live/
     ]
 
     for pattern in patterns:
