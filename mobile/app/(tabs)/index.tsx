@@ -1,5 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
+import { useState, useEffect } from 'react';
 import {
   StyleSheet,
   KeyboardAvoidingView,
@@ -11,6 +12,12 @@ import {
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Input, useTheme } from '@rneui/themed';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { extractVideoId } from '@/utils/youtube';
 
@@ -20,16 +27,47 @@ const EXAMPLE_VIDEOS = [
   { id: 'kO41iURud9c', title: 'Brian Cox: The quantum roots of reality' },
 ];
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export default function NewScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const [error, setError] = useState<string | null>(null);
+
+  // Shake animation
+  const shakeX = useSharedValue(0);
+  const shakeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shakeX.value }],
+  }));
+
+  const triggerShake = () => {
+    shakeX.value = withSequence(
+      withTiming(-10, { duration: 50 }),
+      withTiming(10, { duration: 50 }),
+      withTiming(-10, { duration: 50 }),
+      withTiming(10, { duration: 50 }),
+      withTiming(0, { duration: 50 })
+    );
+  };
+
+  // Auto-hide error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timeout = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [error]);
 
   const handlePaste = async () => {
     const text = await Clipboard.getStringAsync();
     if (text) {
       const videoId = extractVideoId(text.trim());
       if (videoId) {
+        setError(null);
         router.push({ pathname: '/videos/[id]', params: { id: videoId } });
+      } else {
+        setError('Invalid YouTube URL. Please paste a valid link.');
+        triggerShake();
       }
     }
   };
@@ -61,20 +99,26 @@ export default function NewScreen() {
                 editable={false}
                 renderErrorMessage={false}
                 rightIcon={
-                  <Pressable onPress={handlePaste} style={[styles.pasteButton, { backgroundColor: theme.colors.primary }]}>
+                  <AnimatedPressable
+                    onPress={handlePaste}
+                    style={[styles.pasteButton, { backgroundColor: theme.colors.primary }, shakeStyle]}
+                  >
                     <Text style={styles.pasteButtonText}>Paste</Text>
                     <MaterialIcons name="content-paste" size={16} color="#fff" />
-                  </Pressable>
+                  </AnimatedPressable>
                 }
                 inputContainerStyle={[
                   styles.inputContainer,
                   {
                     backgroundColor: theme.colors.grey0,
-                    borderColor: theme.colors.greyOutline,
+                    borderColor: error ? '#ef4444' : theme.colors.greyOutline,
                   },
                 ]}
                 containerStyle={styles.inputWrapper}
               />
+              <Text style={[styles.errorText, !error && styles.errorTextHidden]}>
+                {error || ' '}
+              </Text>
             </View>
 
             {/* Example Videos */}
@@ -123,7 +167,16 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   form: {
-    gap: 12,
+    gap: 4,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 13,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  errorTextHidden: {
+    opacity: 0,
   },
   header: {
     alignItems: 'center',
@@ -152,7 +205,7 @@ const styles = StyleSheet.create({
     paddingRight: 0,
   },
   exampleSection: {
-    marginTop: 32,
+    marginTop: 16,
   },
   sectionTitle: {
     fontSize: 14,
