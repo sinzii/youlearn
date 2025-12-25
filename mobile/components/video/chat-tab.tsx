@@ -429,7 +429,10 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
             containerStyle={styles.inputWrapper}
             inputContainerStyle={[
               styles.inputField,
-              { borderColor: theme.colors.grey3 },
+              {
+                backgroundColor: theme.colors.grey0,
+                borderColor: theme.colors.greyOutline,
+              },
             ]}
             renderErrorMessage={false}
           />
