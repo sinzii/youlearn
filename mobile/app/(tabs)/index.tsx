@@ -1,6 +1,5 @@
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import {
   StyleSheet,
   KeyboardAvoidingView,
@@ -11,7 +10,7 @@ import {
 } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, Input, Button, useTheme } from '@rneui/themed';
+import { Text, Input, useTheme } from '@rneui/themed';
 
 import { extractVideoId } from '@/utils/youtube';
 
@@ -22,30 +21,17 @@ const EXAMPLE_VIDEOS = [
 ];
 
 export default function NewScreen() {
-  const [videoUrl, setVideoUrl] = useState('');
   const router = useRouter();
   const { theme } = useTheme();
-
-  const handleStartLearning = () => {
-    const trimmedUrl = videoUrl.trim();
-    if (!trimmedUrl) return;
-
-    const videoId = extractVideoId(trimmedUrl);
-    if (videoId) {
-      setVideoUrl('');
-      router.push({ pathname: '/videos/[id]', params: { id: videoId } });
-    }
-  };
 
   const handlePaste = async () => {
     const text = await Clipboard.getStringAsync();
     if (text) {
-      setVideoUrl(text);
+      const videoId = extractVideoId(text.trim());
+      if (videoId) {
+        router.push({ pathname: '/videos/[id]', params: { id: videoId } });
+      }
     }
-  };
-
-  const handleClear = () => {
-    setVideoUrl('');
   };
 
   return (
@@ -71,29 +57,14 @@ export default function NewScreen() {
 
             <View style={styles.form}>
               <Input
-                placeholder="Paste YouTube URL or video ID..."
-                value={videoUrl}
-                onChangeText={setVideoUrl}
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="go"
-                onSubmitEditing={handleStartLearning}
+                placeholder="Paste YouTube URL"
+                editable={false}
                 renderErrorMessage={false}
                 rightIcon={
-                  videoUrl ? (
-                    <MaterialIcons
-                      name="close"
-                      size={20}
-                      color={theme.colors.grey4}
-                      onPress={handleClear}
-                      style={{ paddingHorizontal: 8 }}
-                    />
-                  ) : (
-                    <Pressable onPress={handlePaste} style={[styles.pasteButton, { backgroundColor: theme.colors.primary }]}>
-                      <Text style={styles.pasteButtonText}>Paste</Text>
-                      <MaterialIcons name="content-paste" size={16} color="#fff" />
-                    </Pressable>
-                  )
+                  <Pressable onPress={handlePaste} style={[styles.pasteButton, { backgroundColor: theme.colors.primary }]}>
+                    <Text style={styles.pasteButtonText}>Paste</Text>
+                    <MaterialIcons name="content-paste" size={16} color="#fff" />
+                  </Pressable>
                 }
                 inputContainerStyle={[
                   styles.inputContainer,
@@ -103,12 +74,6 @@ export default function NewScreen() {
                   },
                 ]}
                 containerStyle={styles.inputWrapper}
-              />
-
-              <Button
-                title="Start Learning"
-                onPress={handleStartLearning}
-                disabled={!videoUrl.trim()}
               />
             </View>
 
