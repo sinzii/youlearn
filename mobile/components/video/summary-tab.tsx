@@ -33,9 +33,10 @@ interface EmbedMessage {
 interface SummaryTabProps {
   videoId: string;
   onTextAction?: (action: 'explain' | 'ask', text: string) => void;
+  onSeekTo?: (seconds: number) => void;
 }
 
-export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
+export function SummaryTab({ videoId, onTextAction, onSeekTo }: SummaryTabProps) {
   const { video } = useVideoCache(videoId);
   const { isLoading, streamingContent: streamingText } = useSummaryStreaming(videoId);
   const dispatch = useAppDispatch();

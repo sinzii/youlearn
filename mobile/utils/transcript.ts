@@ -8,6 +8,46 @@ export function segmentsToText(segments: TranscriptSegment[]): string {
 }
 
 /**
+ * Timestamp reference extracted from LLM response text.
+ */
+export interface TimestampRef {
+  start: number; // Start time in seconds
+  end: number | null; // End time in seconds (null for single timestamp)
+  original: string; // Original matched text, e.g., "[123-456]"
+  index: number; // Index position in the original text
+}
+
+/**
+ * Extract all timestamp references [start-end] from text.
+ * Matches patterns like [123] or [123-456] where numbers are seconds.
+ */
+export function extractTimestampRefs(text: string): TimestampRef[] {
+  // Pattern: [123] or [123-456] (seconds)
+  const pattern = /\[(\d+)(?:-(\d+))?\]/g;
+  const refs: TimestampRef[] = [];
+  let match;
+
+  while ((match = pattern.exec(text)) !== null) {
+    refs.push({
+      start: parseInt(match[1], 10),
+      end: match[2] ? parseInt(match[2], 10) : null,
+      original: match[0],
+      index: match.index,
+    });
+  }
+  return refs;
+}
+
+/**
+ * Format seconds to display as M:SS or MM:SS.
+ */
+export function formatSecondsToTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+/**
  * Merge small transcript segments into complete sentences.
  * Segments are merged until a sentence-ending punctuation (. ! ?) is found.
  */

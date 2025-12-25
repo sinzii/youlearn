@@ -9,7 +9,7 @@ import {
   Image,
 } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import YoutubePlayer from 'react-native-youtube-iframe';
+import YoutubePlayer, { YoutubeIframeRef } from 'react-native-youtube-iframe';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Animated, {
   useAnimatedKeyboard,
@@ -119,6 +119,7 @@ export default function VideoDetailsScreen() {
   const { video: cachedVideo, updateVideo } = useVideoCache(id || '');
   const hasFetchedRef = useRef(false);
   const shouldAutoplay = useRef(false);
+  const playerRef = useRef<YoutubeIframeRef>(null);
 
   const [transcript, setTranscript] = useState<TranscriptResponse | null>(
     cachedVideo?.transcript || null
@@ -270,6 +271,13 @@ export default function VideoDetailsScreen() {
     setPendingAction(null);
   }, []);
 
+  // Seek to a specific timestamp in the video
+  const handleSeekTo = useCallback((seconds: number) => {
+    playerRef.current?.seekTo(seconds, true);
+    setPlaying(true);
+    // Note: Don't auto-show video if hidden - will be added in future iteration
+  }, []);
+
   if (isLoading) {
     return <LoadingSkeleton />;
   }
@@ -290,6 +298,7 @@ export default function VideoDetailsScreen() {
         <Animated.View style={[styles.playerContainer, playerAnimatedStyle]}>
           <View style={{ paddingTop: 16}}>
             <YoutubePlayer
+              ref={playerRef}
               height={playerHeight}
               videoId={id}
               play={playing}
@@ -381,7 +390,7 @@ export default function VideoDetailsScreen() {
         {/* Summary - load on demand */}
         {activeTab === 'summary' && (
           <View style={styles.tabPane}>
-            <SummaryTab videoId={id || ''} onTextAction={handleTextAction} />
+            <SummaryTab videoId={id || ''} onTextAction={handleTextAction} onSeekTo={handleSeekTo} />
           </View>
         )}
 
@@ -392,6 +401,7 @@ export default function VideoDetailsScreen() {
               videoId={id || ''}
               pendingAction={pendingAction}
               onActionHandled={handleActionHandled}
+              onSeekTo={handleSeekTo}
             />
           </View>
         )}
@@ -399,7 +409,7 @@ export default function VideoDetailsScreen() {
         {/* Transcript - load on demand */}
         {activeTab === 'transcript' && (
           <View style={styles.tabPane}>
-            <TranscriptTab segments={mergedSegments} />
+            <TranscriptTab segments={mergedSegments} onSeekTo={handleSeekTo} />
           </View>
         )}
       </View>

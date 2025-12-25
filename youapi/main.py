@@ -225,8 +225,12 @@ def fetch_transcript_text(video_id: str) -> tuple[str, TranscriptResponse]:
             segments=segments,
         )
 
-        # Combine all text for LLM context
-        full_text = " ".join(snippet.text for snippet in transcript.snippets)
+        # Combine all text with timestamps for LLM context
+        # Format: [seconds] text content
+        full_text = "\n".join(
+            f"[{int(snippet.start)}] {snippet.text}"
+            for snippet in transcript.snippets
+        )
 
         return full_text, response
 
@@ -377,8 +381,10 @@ Rules:
 - Start directly with the first main topic header
 - Include key points, insights, and takeaways
 - Be comprehensive but concise
+- IMPORTANT: Include timestamp references in format [start-end] (seconds) when referencing specific parts
+- Example: "The speaker explains quantum physics [154-252] using simple analogies"
 
-Transcript:
+Transcript (with timestamps in seconds):
 {transcript_text}""",
             )
             async for chunk in result.text_stream:
@@ -425,7 +431,12 @@ async def chat_with_video(request: ChatRequest):
 Use the following transcript to answer the user's questions accurately and helpfully.
 If the answer cannot be found in the transcript, say so clearly.
 
-Video Transcript:
+IMPORTANT: When referencing specific parts of the video, include timestamp references in format [start-end] (seconds).
+- Use [start-end] to indicate the start and end time in seconds of the relevant section
+- Example: "This topic is covered [323-465] where the speaker discusses..."
+- If user asks "which part mentions X", always include the timestamp reference
+
+Video Transcript (with timestamps in seconds):
 {transcript_text}"""
 
     # Convert messages to the format expected by AI SDK

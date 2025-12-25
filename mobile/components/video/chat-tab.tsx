@@ -28,6 +28,7 @@ import { segmentsToText } from '@/utils/transcript';
 import { updateStreaming } from '@/lib/store';
 import { useMarkdownStyles } from '@/hooks/useMarkdownStyles';
 import { startChatStream } from '@/lib/streaming';
+import { MarkdownWithTimestamps } from './markdown-with-timestamps';
 import {
   useChatStreaming,
   useVideoCache,
@@ -143,9 +144,10 @@ interface ChatTabProps {
   videoId: string;
   pendingAction?: PendingAction | null;
   onActionHandled?: () => void;
+  onSeekTo?: (seconds: number) => void;
 }
 
-export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProps) {
+export function ChatTab({ videoId, pendingAction, onActionHandled, onSeekTo }: ChatTabProps) {
   const headerHeight = useHeaderHeight();
   const {video, updateVideo} = useVideoCache(videoId);
   const {isLoading, streamingContent: streamingResponse, pendingMessages} = useChatStreaming(videoId);
@@ -307,7 +309,11 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
     if (item.itemType === 'streaming') {
       return (
         <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.grey1 }]}>
-          <Markdown style={markdownStyles}>{item.content}</Markdown>
+          {onSeekTo ? (
+            <MarkdownWithTimestamps content={item.content} onSeekTo={onSeekTo} />
+          ) : (
+            <Markdown style={markdownStyles}>{item.content}</Markdown>
+          )}
         </View>
       );
     }
@@ -328,12 +334,14 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
           <Text style={[styles.messageText, styles.userText]}>
             {message.content}
           </Text>
+        ) : onSeekTo ? (
+          <MarkdownWithTimestamps content={message.content} onSeekTo={onSeekTo} />
         ) : (
           <Markdown style={markdownStyles}>{message.content}</Markdown>
         )}
       </View>
     );
-  }, [theme.colors, markdownStyles]);
+  }, [theme.colors, markdownStyles, onSeekTo]);
 
   // Key extractor
   const keyExtractor = useCallback((item: ListItem, index: number) => {

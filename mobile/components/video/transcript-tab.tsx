@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
-import { StyleSheet, FlatList, ListRenderItem, View } from 'react-native';
+import { StyleSheet, FlatList, ListRenderItem, View, Pressable } from 'react-native';
 import { Text, useTheme } from '@rneui/themed';
 
 import { TranscriptSegment } from '@/lib/api';
 
 interface TranscriptTabProps {
   segments: TranscriptSegment[];
+  onSeekTo?: (seconds: number) => void;
 }
 
 const formatTime = (seconds: number): string => {
@@ -14,17 +15,27 @@ const formatTime = (seconds: number): string => {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
-export function TranscriptTab({ segments }: TranscriptTabProps) {
+export function TranscriptTab({ segments, onSeekTo }: TranscriptTabProps) {
   const { theme } = useTheme();
 
   const renderItem: ListRenderItem<TranscriptSegment> = useCallback(
     ({ item }) => (
       <View style={styles.segment}>
-        <Text style={[styles.timestamp, { color: theme.colors.grey4 }]}>{formatTime(item.start)}</Text>
+        <Pressable
+          onPress={() => onSeekTo?.(item.start)}
+          style={({ pressed }) => [
+            styles.timestampButton,
+            pressed && { backgroundColor: theme.colors.primary + '20' },
+          ]}
+        >
+          <Text style={[styles.timestamp, { color: theme.colors.primary }]}>
+            {formatTime(item.start)}
+          </Text>
+        </Pressable>
         <Text style={[styles.segmentText, { color: theme.colors.black }]}>{item.text}</Text>
       </View>
     ),
-    [theme]
+    [theme, onSeekTo]
   );
 
   const keyExtractor = useCallback(
@@ -73,10 +84,17 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     gap: 12,
   },
+  timestampButton: {
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    marginLeft: -4,
+  },
   timestamp: {
     fontSize: 12,
     fontFamily: 'monospace',
     minWidth: 45,
+    fontWeight: '500',
   },
   segmentText: {
     flex: 1,
