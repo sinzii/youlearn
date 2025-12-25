@@ -80,12 +80,20 @@ export default function NewScreen() {
                 onSubmitEditing={handleStartLearning}
                 renderErrorMessage={false}
                 rightIcon={
-                  <MaterialIcons
-                    name={videoUrl ? 'close' : 'content-paste'}
-                    size={20}
-                    color={theme.colors.grey4}
-                    onPress={videoUrl ? handleClear : handlePaste}
-                  />
+                  videoUrl ? (
+                    <MaterialIcons
+                      name="close"
+                      size={20}
+                      color={theme.colors.grey4}
+                      onPress={handleClear}
+                      style={{ paddingHorizontal: 8 }}
+                    />
+                  ) : (
+                    <Pressable onPress={handlePaste} style={styles.pasteButton}>
+                      <Text style={styles.pasteButtonText}>Paste</Text>
+                      <MaterialIcons name="content-paste" size={16} color="#fff" />
+                    </Pressable>
+                  )
                 }
                 inputContainerStyle={[
                   styles.inputContainer,
@@ -175,7 +183,8 @@ const styles = StyleSheet.create({
     height: 50,
     borderWidth: 1,
     borderRadius: 12,
-    paddingHorizontal: 12,
+    paddingLeft: 12,
+    paddingRight: 0,
   },
   exampleSection: {
     marginTop: 32,
@@ -194,6 +203,20 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   videoTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  pasteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 4,
+  },
+  pasteButtonText: {
+    color: '#fff',
     fontSize: 14,
     fontWeight: '500',
   },
