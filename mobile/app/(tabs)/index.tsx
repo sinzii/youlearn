@@ -1,6 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
-import { useRouter } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   KeyboardAvoidingView,
@@ -33,6 +33,14 @@ export default function NewScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const [error, setError] = useState<string | null>(null);
+  const [focusKey, setFocusKey] = useState(0);
+
+  // Force re-render when tab gains focus to fix blank screen issue with tab animation
+  useFocusEffect(
+    useCallback(() => {
+      setFocusKey(prev => prev + 1);
+    }, [])
+  );
 
   // Shake animation
   const shakeX = useSharedValue(0);
@@ -73,7 +81,7 @@ export default function NewScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
+    <SafeAreaView key={focusKey} style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
