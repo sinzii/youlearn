@@ -89,7 +89,7 @@ export default function NewScreen() {
                       style={{ paddingHorizontal: 8 }}
                     />
                   ) : (
-                    <Pressable onPress={handlePaste} style={styles.pasteButton}>
+                    <Pressable onPress={handlePaste} style={[styles.pasteButton, { backgroundColor: theme.colors.primary }]}>
                       <Text style={styles.pasteButtonText}>Paste</Text>
                       <MaterialIcons name="content-paste" size={16} color="#fff" />
                     </Pressable>
@@ -209,7 +209,6 @@ const styles = StyleSheet.create({
   pasteButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#6366f1',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
