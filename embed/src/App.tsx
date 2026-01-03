@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import ReactMarkdown from "react-markdown";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
 import "./index.css";
 
 type EmbedMessageType =
@@ -7,7 +7,8 @@ type EmbedMessageType =
   | "CONTENT_UPDATE"
   | "CONTENT_DONE"
   | "THEME_CHANGE"
-  | "READY";
+  | "READY"
+  | "SEEK_TO";
 
 interface EmbedMessage {
   type: EmbedMessageType;
@@ -43,6 +44,59 @@ declare global {
   }
 }
 
+/**
+ * Format seconds to MM:SS display format
+ */
+function formatSecondsToTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+/**
+ * Process content to convert [seconds] timestamps to formatted markdown links.
+ * Converts [123] or [123-456] to [M:SS](timestamp://123) or [M:SS-M:SS](timestamp://123-456)
+ */
+function processTimestamps(content: string): string {
+  return content.replace(/\[(\d+)(?:-(\d+))?\]/g, (_match, start, end) => {
+    const startSec = parseInt(start, 10);
+    const endSec = end ? parseInt(end, 10) : null;
+
+    // Format as MM:SS for display
+    const label = endSec
+      ? `${formatSecondsToTime(startSec)}-${formatSecondsToTime(endSec)}`
+      : formatSecondsToTime(startSec);
+
+    // Create markdown link with timestamp:// protocol
+    const url = `timestamp://${startSec}${endSec ? `-${endSec}` : ""}`;
+
+    return `[${label}](${url})`;
+  });
+}
+
+/**
+ * Custom URL transform to allow timestamp:// protocol.
+ * React-markdown's defaultUrlTransform strips unknown protocols for security.
+ */
+function customUrlTransform(url: string): string {
+  // Allow timestamp:// protocol for video seeking
+  if (url.startsWith("timestamp://")) {
+    return url;
+  }
+  // Allow common safe protocols and relative URLs
+  if (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("mailto:") ||
+    url.startsWith("/") ||
+    url.startsWith("#")
+  ) {
+    return url;
+  }
+  // Strip other protocols for security
+  return "";
+}
+
 function App() {
   const [content, setContent] = useState<string>("");
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -61,6 +115,48 @@ function App() {
       }
     },
     []
+  );
+
+  // Custom components for ReactMarkdown to handle timestamp links
+  const markdownComponents: Components = useMemo(
+    () => ({
+      a: ({ href, children }) => {
+        if (href?.startsWith("timestamp://")) {
+          // Extract seconds from timestamp URL
+          const timeStr = href.replace("timestamp://", "");
+          const seconds = parseInt(timeStr.split("-")[0], 10);
+
+          // Use span instead of anchor to avoid WebView navigation issues
+          return (
+            <span
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                sendToNative("SEEK_TO", { seconds });
+              }}
+              className="timestamp-link"
+              role="button"
+              tabIndex={0}
+            >
+              {children}
+            </span>
+          );
+        }
+        // Regular links open normally
+        return (
+          <a href={href} target="_blank" rel="noopener noreferrer">
+            {children}
+          </a>
+        );
+      },
+    }),
+    [sendToNative]
+  );
+
+  // Process content to format timestamps
+  const processedContent = useMemo(
+    () => processTimestamps(content),
+    [content]
   );
 
   const handleMessage = useCallback((event: MessageEvent) => {
@@ -133,7 +229,12 @@ function App() {
 
       {content && (
         <div className={`markdown-content theme-${theme}`}>
-          <ReactMarkdown>{content}</ReactMarkdown>
+          <ReactMarkdown
+            components={markdownComponents}
+            urlTransform={customUrlTransform}
+          >
+            {processedContent}
+          </ReactMarkdown>
         </div>
       )}
     </div>

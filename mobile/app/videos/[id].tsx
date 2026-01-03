@@ -273,9 +273,13 @@ export default function VideoDetailsScreen() {
 
   // Seek to a specific timestamp in the video
   const handleSeekTo = useCallback((seconds: number) => {
-    playerRef.current?.seekTo(seconds, true);
+    // Show video if hidden
+    setShowVideo(true);
     setPlaying(true);
-    // Note: Don't auto-show video if hidden - will be added in future iteration
+    // Small delay to ensure player is mounted before seeking
+    setTimeout(() => {
+      playerRef.current?.seekTo(seconds, true);
+    }, 100);
   }, []);
 
   if (isLoading) {

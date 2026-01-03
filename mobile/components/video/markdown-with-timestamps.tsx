@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { useMarkdownStyles } from '@/hooks/useMarkdownStyles';
-import { extractTimestampRefs } from '@/utils/transcript';
-import { TimestampLink } from './timestamp-link';
+import { formatSecondsToTime } from '@/utils/transcript';
 
 interface MarkdownWithTimestampsProps {
   content: string;
@@ -11,55 +9,27 @@ interface MarkdownWithTimestampsProps {
   variant?: 'default' | 'compact';
 }
 
-interface TextSegment {
-  type: 'text' | 'timestamp';
-  content: string;
-  start?: number;
-  end?: number | null;
-}
-
 /**
- * Parse content into segments of text and timestamp references.
+ * Pre-process content to convert [seconds] timestamps to formatted markdown links.
+ * Replaces [123] or [123-456] with [M:SS](timestamp://123) or [M:SS-M:SS](timestamp://123-456)
  */
-function parseContentWithTimestamps(content: string): TextSegment[] {
-  const timestampRefs = extractTimestampRefs(content);
+function processTimestamps(content: string): string {
+  return content.replace(/\[(\d+)(?:-(\d+))?\]/g, (match, start, end) => {
+    const startSec = parseInt(start, 10);
+    const endSec = end ? parseInt(end, 10) : null;
 
-  if (timestampRefs.length === 0) {
-    return [{ type: 'text', content }];
-  }
+    // Format as MM:SS for display
+    const label = endSec
+      ? `${formatSecondsToTime(startSec)}-${formatSecondsToTime(endSec)}`
+      : formatSecondsToTime(startSec);
 
-  const segments: TextSegment[] = [];
-  let lastIndex = 0;
+    // Create markdown link with timestamp:// protocol
+    const url = endSec
+      ? `timestamp://${startSec}-${endSec}`
+      : `timestamp://${startSec}`;
 
-  for (const ref of timestampRefs) {
-    // Add text before this timestamp
-    if (ref.index > lastIndex) {
-      segments.push({
-        type: 'text',
-        content: content.slice(lastIndex, ref.index),
-      });
-    }
-
-    // Add the timestamp
-    segments.push({
-      type: 'timestamp',
-      content: ref.original,
-      start: ref.start,
-      end: ref.end,
-    });
-
-    lastIndex = ref.index + ref.original.length;
-  }
-
-  // Add remaining text after last timestamp
-  if (lastIndex < content.length) {
-    segments.push({
-      type: 'text',
-      content: content.slice(lastIndex),
-    });
-  }
-
-  return segments;
+    return `[${label}](${url})`;
+  });
 }
 
 export function MarkdownWithTimestamps({
@@ -68,51 +38,27 @@ export function MarkdownWithTimestamps({
   variant = 'compact',
 }: MarkdownWithTimestampsProps) {
   const markdownStyles = useMarkdownStyles(variant);
-  const segments = useMemo(() => parseContentWithTimestamps(content), [content]);
 
-  // If no timestamps, render as plain markdown
-  const hasTimestamps = segments.some((s) => s.type === 'timestamp');
-  if (!hasTimestamps) {
-    return <Markdown style={markdownStyles}>{content}</Markdown>;
-  }
+  // Pre-process content to convert timestamps to clickable links
+  const processedContent = useMemo(() => processTimestamps(content), [content]);
 
-  // Render with mixed content - this is a simplified approach
-  // For more complex cases, we might need to handle markdown parsing differently
+  // Handle link presses - intercept timestamp:// links
+  const handleLinkPress = (url: string): boolean => {
+    if (url.startsWith('timestamp://')) {
+      // Extract the start seconds from the URL
+      const timeStr = url.replace('timestamp://', '');
+      const seconds = parseInt(timeStr.split('-')[0], 10);
+      if (!isNaN(seconds)) {
+        onSeekTo(seconds);
+      }
+      return false; // Prevent default link handling
+    }
+    return true; // Allow other links to open normally
+  };
+
   return (
-    <View style={styles.container}>
-      {segments.map((segment, index) => {
-        if (segment.type === 'timestamp') {
-          return (
-            <TimestampLink
-              key={`ts-${index}`}
-              start={segment.start!}
-              end={segment.end ?? null}
-              onPress={onSeekTo}
-            />
-          );
-        }
-
-        // For text segments, render as markdown
-        // Trim trailing/leading whitespace for cleaner display
-        const text = segment.content;
-        if (!text.trim()) {
-          return <Text key={`space-${index}`}> </Text>;
-        }
-
-        return (
-          <Markdown key={`md-${index}`} style={markdownStyles}>
-            {text}
-          </Markdown>
-        );
-      })}
-    </View>
+    <Markdown style={markdownStyles} onLinkPress={handleLinkPress}>
+      {processedContent}
+    </Markdown>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'flex-start',
-  },
-});

@@ -25,7 +25,7 @@ import { startSummaryStream } from '@/lib/streaming';
 import { getEmbedSource, type EmbedSource } from '@/lib/config';
 
 interface EmbedMessage {
-  type: 'INIT' | 'CONTENT_UPDATE' | 'CONTENT_DONE' | 'THEME_CHANGE' | 'READY';
+  type: 'INIT' | 'CONTENT_UPDATE' | 'CONTENT_DONE' | 'THEME_CHANGE' | 'READY' | 'SEEK_TO';
   payload: unknown;
   timestamp: number;
 }
@@ -146,11 +146,14 @@ export function SummaryTab({ videoId, onTextAction, onSeekTo }: SummaryTabProps)
 
       if (message.type === 'READY') {
         handleWebViewReady();
+      } else if (message.type === 'SEEK_TO') {
+        const payload = message.payload as { seconds: number };
+        onSeekTo?.(payload.seconds);
       }
     } catch (err) {
       console.error('Failed to parse WebView message:', err);
     }
-  }, [handleWebViewReady]);
+  }, [handleWebViewReady, onSeekTo]);
 
   // Handle custom menu selection (Explain this / Ask)
   const handleCustomMenuSelection = useCallback((event: { nativeEvent: { key: string; selectedText: string } }) => {
@@ -316,6 +319,7 @@ export function SummaryTab({ videoId, onTextAction, onSeekTo }: SummaryTabProps)
             onCustomMenuSelection={handleCustomMenuSelection}
             // @ts-expect-error backgroundColor is valid for WebView
             backgroundColor={theme.colors.background}
+            webviewDebuggingEnabled={true}
           />
         </Animated.View>
       )}
