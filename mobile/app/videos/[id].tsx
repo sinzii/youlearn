@@ -44,8 +44,8 @@ interface PendingAction {
 
 const TAB_CONFIG: { key: TabType; label: string; icon: 'article' | 'question-answer' | 'view-list' }[] = [
   { key: 'summary', label: 'Summary', icon: 'article' },
-  { key: 'ask', label: 'Ask', icon: 'question-answer' },
   { key: 'chapters', label: 'Chapters', icon: 'view-list' },
+  { key: 'ask', label: 'Ask', icon: 'question-answer' },
 ];
 
 function LoadingSkeleton() {
@@ -133,6 +133,7 @@ export default function VideoDetailsScreen() {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [chaptersLoading, setChaptersLoading] = useState(false);
   const [chapterRange, setChapterRange] = useState<{ start: number; end: number } | null>(null);
+  const [selectedChapterIndex, setSelectedChapterIndex] = useState<number | null>(null);
 
   const playerHeight = (width - 32) * (9 / 16);
   const keyboard = useAnimatedKeyboard();
@@ -158,7 +159,14 @@ export default function VideoDetailsScreen() {
         <TouchableOpacity
           onPress={() => {
             setPlaying(false);
-            setShowVideo((prev) => !prev);
+            setShowVideo((prev) => {
+              if (prev) {
+                // Reset chapter selection when hiding video
+                setChapterRange(null);
+                setSelectedChapterIndex(null);
+              }
+              return !prev;
+            });
           }}
           style={styles.headerButton}
         >
@@ -294,6 +302,7 @@ export default function VideoDetailsScreen() {
     const endTime = nextChapter ? Math.floor(nextChapter.start) - 1 : cachedVideo?.length || 0;
 
     setChapterRange({ start: Math.floor(startTime), end: endTime });
+    setSelectedChapterIndex(chapterIndex);
     setShowVideo(true);
     setPlaying(true);
   }, [cachedVideo?.chapters, cachedVideo?.length]);
@@ -437,6 +446,7 @@ export default function VideoDetailsScreen() {
               chapters={cachedVideo?.chapters || []}
               videoLength={cachedVideo?.length || 0}
               loading={chaptersLoading}
+              selectedIndex={selectedChapterIndex}
               onChapterPress={handleChapterPress}
             />
           </View>

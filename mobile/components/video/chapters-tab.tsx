@@ -10,6 +10,7 @@ interface ChaptersTabProps {
   chapters: Chapter[];
   videoLength: number;
   loading: boolean;
+  selectedIndex: number | null;
   onChapterPress: (startTime: number, index: number) => void;
 }
 
@@ -33,7 +34,7 @@ interface ChapterWithDuration extends Chapter {
   index: number;
 }
 
-export function ChaptersTab({ chapters, videoLength, loading, onChapterPress }: ChaptersTabProps) {
+export function ChaptersTab({ chapters, videoLength, loading, selectedIndex, onChapterPress }: ChaptersTabProps) {
   const { theme } = useTheme();
 
   // Calculate duration for each chapter
@@ -45,17 +46,29 @@ export function ChaptersTab({ chapters, videoLength, loading, onChapterPress }: 
   });
 
   const renderItem: ListRenderItem<ChapterWithDuration> = useCallback(
-    ({ item }) => (
-      <TouchableOpacity
-        style={[
-          styles.chapterCard,
-          { backgroundColor: theme.colors.grey0 },
-        ]}
-        onPress={() => onChapterPress(item.start, item.index)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.chapterHeader}>
-          <View style={styles.timeInfo}>
+    ({ item }) => {
+      const isSelected = item.index === selectedIndex;
+      return (
+        <TouchableOpacity
+          style={[
+            styles.chapterCard,
+            { backgroundColor: theme.colors.grey0 },
+            isSelected && { backgroundColor: theme.colors.primary + '20', borderColor: theme.colors.primary, borderWidth: 1 },
+          ]}
+          onPress={() => onChapterPress(item.start, item.index)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.chapterHeader}>
+            <Text style={[styles.title, { color: theme.colors.black }]} numberOfLines={2}>
+              {item.title}
+            </Text>
+            <MaterialIcons
+              name={isSelected ? 'play-circle-filled' : 'play-circle-outline'}
+              size={24}
+              color={isSelected ? theme.colors.primary : theme.colors.grey4}
+            />
+          </View>
+          <View style={styles.timeRow}>
             <Text style={[styles.timestamp, { color: theme.colors.primary }]}>
               {formatTime(item.start)}
             </Text>
@@ -63,14 +76,10 @@ export function ChaptersTab({ chapters, videoLength, loading, onChapterPress }: 
               {formatDuration(item.duration)}
             </Text>
           </View>
-          <MaterialIcons name="play-circle-outline" size={24} color={theme.colors.grey4} />
-        </View>
-        <Text style={[styles.title, { color: theme.colors.black }]} numberOfLines={2}>
-          {item.title}
-        </Text>
-      </TouchableOpacity>
-    ),
-    [theme, onChapterPress]
+        </TouchableOpacity>
+      );
+    },
+    [theme, selectedIndex, onChapterPress]
   );
 
   const keyExtractor = useCallback(
@@ -93,13 +102,11 @@ export function ChaptersTab({ chapters, videoLength, loading, onChapterPress }: 
               key={i}
               style={[styles.chapterCard, { backgroundColor: theme.colors.grey0 }]}
             >
-              <View style={styles.chapterHeader}>
-                <View style={styles.timeInfo}>
-                  <Skeleton width={50} height={16} {...skeletonProps} />
-                  <Skeleton width={40} height={14} style={{ marginTop: 4 }} {...skeletonProps} />
-                </View>
+              <Skeleton width="80%" height={18} {...skeletonProps} />
+              <View style={styles.timeRow}>
+                <Skeleton width={50} height={14} {...skeletonProps} />
+                <Skeleton width={40} height={14} {...skeletonProps} />
               </View>
-              <Skeleton width="80%" height={18} style={{ marginTop: 8 }} {...skeletonProps} />
             </View>
           ))}
         </View>
@@ -154,23 +161,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    gap: 12,
   },
-  timeInfo: {
-    flexDirection: 'column',
+  title: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    lineHeight: 22,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 8,
   },
   timestamp: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     fontFamily: 'monospace',
   },
   duration: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginTop: 8,
-    lineHeight: 22,
+    fontSize: 13,
   },
 });
