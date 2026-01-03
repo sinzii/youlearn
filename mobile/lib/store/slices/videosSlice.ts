@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit';
-import { TranscriptResponse, ChatMessage } from '@/lib/api';
+import { TranscriptResponse, ChatMessage, Chapter } from '@/lib/api';
 
 export interface VideoCache {
   video_id: string;
@@ -11,6 +11,7 @@ export interface VideoCache {
   summary: string | null;
   chatMessages: ChatMessage[] | null;
   suggestedQuestions: string[] | null;
+  chapters: Chapter[] | null;
   lastAccessed: number;
 }
 

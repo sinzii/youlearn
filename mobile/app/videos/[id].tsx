@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-expo';
-import { useState, useEffect, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import {
   StyleSheet,
   useWindowDimensions,
@@ -23,28 +23,29 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { SummaryTab } from '@/components/video/summary-tab';
 import { ChatTab } from '@/components/video/chat-tab';
-import { TranscriptTab } from '@/components/video/transcript-tab';
+import { ChaptersTab } from '@/components/video/chapters-tab';
 import {
   fetchVideoInfo,
   fetchTranscript,
   fetchSuggestedQuestions,
+  fetchChapters,
   TranscriptResponse,
 } from '@/lib/api';
 import { useVideoCache } from '@/lib/store';
-import { mergeSegmentsIntoSentences, segmentsToText } from '@/utils/transcript';
+import { segmentsToText } from '@/utils/transcript';
 import { formatDuration } from '@/lib/datetime';
 
-type TabType = 'summary' | 'ask' | 'transcript';
+type TabType = 'summary' | 'ask' | 'chapters';
 
 interface PendingAction {
   action: 'explain' | 'ask';
   text: string;
 }
 
-const TAB_CONFIG: { key: TabType; label: string; icon: 'article' | 'question-answer' | 'subtitles' }[] = [
+const TAB_CONFIG: { key: TabType; label: string; icon: 'article' | 'question-answer' | 'view-list' }[] = [
   { key: 'summary', label: 'Summary', icon: 'article' },
   { key: 'ask', label: 'Ask', icon: 'question-answer' },
-  { key: 'transcript', label: 'Transcript', icon: 'subtitles' },
+  { key: 'chapters', label: 'Chapters', icon: 'view-list' },
 ];
 
 function LoadingSkeleton() {
@@ -119,6 +120,7 @@ export default function VideoDetailsScreen() {
   const { video: cachedVideo, updateVideo } = useVideoCache(id || '');
   const hasFetchedRef = useRef(false);
   const shouldAutoplay = useRef(false);
+  const playerRef = useRef<{ seekTo: (seconds: number, allowSeekAhead?: boolean) => void } | null>(null);
 
   const [transcript, setTranscript] = useState<TranscriptResponse | null>(
     cachedVideo?.transcript || null
@@ -129,6 +131,8 @@ export default function VideoDetailsScreen() {
   const [showVideo, setShowVideo] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [chaptersLoading, setChaptersLoading] = useState(false);
+  const [chapterRange, setChapterRange] = useState<{ start: number; end: number } | null>(null);
 
   const playerHeight = (width - 32) * (9 / 16);
   const keyboard = useAnimatedKeyboard();
@@ -241,6 +245,28 @@ export default function VideoDetailsScreen() {
     fetchQuestions();
   }, [id, transcript, cachedVideo?.suggestedQuestions]);
 
+  // Fetch chapters if we have transcript but no chapters
+  useEffect(() => {
+    if (!id || !transcript || cachedVideo?.chapters) return;
+
+    const fetchVideoChapters = async () => {
+      setChaptersLoading(true);
+      try {
+        const token = await getToken();
+        if (!token) return;
+
+        const response = await fetchChapters(id, transcript.segments, token);
+        updateVideo({ chapters: response.chapters });
+      } catch (err) {
+        console.warn('Failed to fetch chapters:', err);
+      } finally {
+        setChaptersLoading(false);
+      }
+    };
+
+    fetchVideoChapters();
+  }, [id, transcript, cachedVideo?.chapters]);
+
   const handlePlayPress = () => {
     shouldAutoplay.current = true;
     setShowVideo(true);
@@ -253,14 +279,6 @@ export default function VideoDetailsScreen() {
     }
   };
 
-  const mergedSegments = useMemo(() => {
-    if (!transcript?.segments) return [];
-    if (transcript.is_generated) {
-      return transcript.segments;
-    }
-    return mergeSegmentsIntoSentences(transcript.segments);
-  }, [transcript?.segments, transcript?.is_generated]);
-
   const handleTextAction = useCallback((action: 'explain' | 'ask', text: string) => {
     setPendingAction({ action, text });
     setActiveTab('ask');
@@ -269,6 +287,16 @@ export default function VideoDetailsScreen() {
   const handleActionHandled = useCallback(() => {
     setPendingAction(null);
   }, []);
+
+  const handleChapterPress = useCallback((startTime: number, chapterIndex: number) => {
+    const chapters = cachedVideo?.chapters || [];
+    const nextChapter = chapters[chapterIndex + 1];
+    const endTime = nextChapter ? Math.floor(nextChapter.start) - 1 : cachedVideo?.length || 0;
+
+    setChapterRange({ start: Math.floor(startTime), end: endTime });
+    setShowVideo(true);
+    setPlaying(true);
+  }, [cachedVideo?.chapters, cachedVideo?.length]);
 
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -290,11 +318,17 @@ export default function VideoDetailsScreen() {
         <Animated.View style={[styles.playerContainer, playerAnimatedStyle]}>
           <View style={{ paddingTop: 16}}>
             <YoutubePlayer
+              key={chapterRange ? `${chapterRange.start}-${chapterRange.end}` : 'default'}
+              ref={playerRef}
               height={playerHeight}
               videoId={id}
               play={playing}
               onReady={handlePlayerReady}
               webViewStyle={styles.player}
+              initialPlayerParams={{
+                start: chapterRange?.start,
+                end: chapterRange?.end,
+              }}
             />
           </View>
         </Animated.View>
@@ -396,10 +430,15 @@ export default function VideoDetailsScreen() {
           </View>
         )}
 
-        {/* Transcript - load on demand */}
-        {activeTab === 'transcript' && (
+        {/* Chapters - load on demand */}
+        {activeTab === 'chapters' && (
           <View style={styles.tabPane}>
-            <TranscriptTab segments={mergedSegments} />
+            <ChaptersTab
+              chapters={cachedVideo?.chapters || []}
+              videoLength={cachedVideo?.length || 0}
+              loading={chaptersLoading}
+              onChapterPress={handleChapterPress}
+            />
           </View>
         )}
       </View>

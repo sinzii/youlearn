@@ -28,6 +28,16 @@ export interface SuggestQuestionsResponse {
   questions: string[];
 }
 
+export interface Chapter {
+  title: string;
+  start: number; // seconds
+}
+
+export interface GenerateChaptersResponse {
+  video_id: string;
+  chapters: Chapter[];
+}
+
 export async function fetchVideoInfo(
   videoId: string,
   token: string
@@ -91,6 +101,32 @@ export async function fetchSuggestedQuestions(
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.detail || 'Failed to fetch suggested questions');
+  }
+
+  return response.json();
+}
+
+export async function fetchChapters(
+  videoId: string,
+  segments: TranscriptSegment[],
+  token: string
+): Promise<GenerateChaptersResponse> {
+  const response = await fetch(`${API_ENDPOINT}/youtube/generate-chapters`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      video_id: videoId,
+      segments,
+      model: 'gpt-4o-mini',
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to generate chapters');
   }
 
   return response.json();

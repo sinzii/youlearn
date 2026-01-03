@@ -154,6 +154,28 @@ class SuggestedQuestionsSchema(BaseModel):
     questions: list[str]
 
 
+class Chapter(BaseModel):
+    title: str
+    start: float  # start time in seconds
+
+
+class ChaptersSchema(BaseModel):
+    """Schema for generate_object to return structured chapters."""
+
+    chapters: list[Chapter]
+
+
+class GenerateChaptersRequest(BaseModel):
+    video_id: str
+    segments: list[TranscriptSegment]
+    model: ModelName = ModelName.GPT_4O_MINI
+
+
+class GenerateChaptersResponse(BaseModel):
+    video_id: str
+    chapters: list[Chapter]
+
+
 # YouTube URL parsing utility
 def extract_video_id(video_id_or_url: str) -> str:
     """
@@ -513,4 +535,61 @@ Transcript:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to generate suggested questions: {str(e)}",
+        )
+
+
+@app.post("/youtube/generate-chapters", response_model=GenerateChaptersResponse)
+async def generate_chapters(request: GenerateChaptersRequest):
+    """
+    Generate logical chapters from video transcript segments.
+    Uses AI to identify natural topic breaks and create meaningful chapter titles.
+
+    - **video_id**: YouTube video ID or URL
+    - **segments**: List of transcript segments with text, start time, and duration
+    - **model**: LLM model to use (gpt-4o-mini or gpt-4o)
+    """
+    try:
+        actual_video_id = extract_video_id(request.video_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Format segments with timestamps for the LLM
+    formatted_segments = "\n".join(
+        f"[{seg.start}] {seg.text}"
+        for seg in request.segments
+    )
+
+    try:
+        model = openai(request.model.value)
+
+        result = generate_object(
+            model=model,
+            schema=ChaptersSchema,
+            prompt=f"""Analyze this video transcript and divide it into logical chapters.
+
+Step 1: Determine the appropriate number of chapters
+- Read through the transcript and identify natural topic transitions
+- Each chapter should represent a distinct, meaningful section of content
+- Don't artificially limit or inflate the number - let the content dictate
+
+Step 2: Generate the chapters
+- Each chapter title should be SHORT (3-7 words), descriptive, and capture the main topic
+- The start time MUST be an exact timestamp from the transcript where a new topic begins
+- First chapter should start at 0.0 or very close to it
+- Titles should be engaging and informative (like YouTube chapter titles)
+
+Transcript with timestamps:
+{formatted_segments}
+""",
+        )
+
+        return GenerateChaptersResponse(
+            video_id=actual_video_id,
+            chapters=result.object.chapters,
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate chapters: {str(e)}",
         )
