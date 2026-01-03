@@ -21,7 +21,7 @@ export interface SummarizeResponse {
   model: string;
 }
 
-export type ModelName = "gpt-4o-mini" | "gpt-4o";
+export type ModelName = "gpt-5.1" | "gpt-4o";
 
 export async function fetchTranscript(
   videoId: string,
@@ -44,7 +44,7 @@ export async function fetchTranscript(
 
 export async function* streamSummary(
   videoId: string,
-  model: ModelName = "gpt-4o-mini"
+  model: ModelName = "gpt-5.1"
 ): AsyncGenerator<string> {
   const response = await fetch(`${API_BASE_URL}/summarize`, {
     method: "POST",
@@ -87,7 +87,7 @@ export interface ChatMessage {
 export async function* streamChat(
   videoId: string,
   messages: ChatMessage[],
-  model: ModelName = "gpt-4o-mini"
+  model: ModelName = "gpt-5.1"
 ): AsyncGenerator<string> {
   const response = await fetch(`${API_BASE_URL}/chat`, {
     method: "POST",

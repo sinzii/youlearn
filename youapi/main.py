@@ -88,6 +88,7 @@ async def clerk_auth_middleware(request: Request, call_next):
 class ModelName(str, Enum):
     GPT_4O_MINI = "gpt-4o-mini"
     GPT_4O = "gpt-4o"
+    GPT_51 = "gpt-5.1"
 
 
 # Request/Response Models
@@ -116,7 +117,7 @@ class TranscriptResponse(BaseModel):
 class SummarizeRequest(BaseModel):
     video_id: str
     transcript: str | None = None  # Optional: pass transcript to avoid re-fetching
-    model: ModelName = ModelName.GPT_4O_MINI
+    model: ModelName = ModelName.GPT_51
 
 
 class SummarizeResponse(BaseModel):
@@ -134,13 +135,13 @@ class ChatRequest(BaseModel):
     video_id: str
     messages: list[ChatMessage]
     transcript: str | None = None  # Optional: pass transcript to avoid re-fetching
-    model: ModelName = ModelName.GPT_4O_MINI
+    model: ModelName = ModelName.GPT_51
 
 
 class SuggestQuestionsRequest(BaseModel):
     video_id: str
     transcript: str
-    model: ModelName = ModelName.GPT_4O_MINI
+    model: ModelName = ModelName.GPT_51
 
 
 class SuggestQuestionsResponse(BaseModel):
@@ -168,7 +169,7 @@ class ChaptersSchema(BaseModel):
 class GenerateChaptersRequest(BaseModel):
     video_id: str
     segments: list[TranscriptSegment]
-    model: ModelName = ModelName.GPT_4O_MINI
+    model: ModelName = ModelName.GPT_51
 
 
 class GenerateChaptersResponse(BaseModel):
@@ -377,7 +378,7 @@ async def summarize_video(request: SummarizeRequest):
 
     - **video_id**: YouTube video ID or URL
     - **transcript**: Optional transcript text (to avoid re-fetching)
-    - **model**: LLM model to use (gpt-4o-mini or gpt-4o)
+    - **model**: LLM model to use (gpt-5.1 or gpt-4o)
     """
     # Use provided transcript or fetch from YouTube
     if request.transcript:
@@ -434,7 +435,7 @@ async def chat_with_video(request: ChatRequest):
     - **video_id**: YouTube video ID or URL
     - **messages**: Chat history
     - **transcript**: Optional transcript text (to avoid re-fetching)
-    - **model**: LLM model to use (gpt-4o-mini or gpt-4o)
+    - **model**: LLM model to use (gpt-5.1 or gpt-4o)
     """
     # Use provided transcript or fetch from YouTube
     if request.transcript:
@@ -496,7 +497,7 @@ async def suggest_questions(request: SuggestQuestionsRequest):
 
     - **video_id**: YouTube video ID or URL
     - **transcript**: Video transcript text
-    - **model**: LLM model to use (gpt-4o-mini or gpt-4o)
+    - **model**: LLM model to use (gpt-5.1 or gpt-4o)
     """
     try:
         actual_video_id = extract_video_id(request.video_id)
@@ -546,7 +547,7 @@ async def generate_chapters(request: GenerateChaptersRequest):
 
     - **video_id**: YouTube video ID or URL
     - **segments**: List of transcript segments with text, start time, and duration
-    - **model**: LLM model to use (gpt-4o-mini or gpt-4o)
+    - **model**: LLM model to use (gpt-5.1 or gpt-4o)
     """
     try:
         actual_video_id = extract_video_id(request.video_id)

@@ -94,7 +94,7 @@ export async function fetchSuggestedQuestions(
     body: JSON.stringify({
       video_id: videoId,
       transcript,
-      model: 'gpt-4o-mini',
+      model: 'gpt-5.1',
     }),
   });
 
@@ -120,7 +120,7 @@ export async function fetchChapters(
     body: JSON.stringify({
       video_id: videoId,
       segments,
-      model: 'gpt-4o-mini',
+      model: 'gpt-5.1',
     }),
   });
 
@@ -185,6 +185,7 @@ export function streamSummary(
     } else {
       try {
         const error = JSON.parse(xhr.responseText);
+        console.log('error', error);
         onError(new Error(error.detail || 'Failed to generate summary'));
       } catch {
         onError(new Error('Failed to generate summary'));
@@ -196,7 +197,7 @@ export function streamSummary(
     onError(new Error('Network error'));
   };
 
-  xhr.send(JSON.stringify({ video_id: videoId, transcript, model: 'gpt-4o-mini' }));
+  xhr.send(JSON.stringify({ video_id: videoId, transcript, model: 'gpt-5.1' }));
 
   return () => xhr.abort();
 }
@@ -254,7 +255,7 @@ export function streamChat(
     onError(new Error('Network error'));
   };
 
-  xhr.send(JSON.stringify({ video_id: videoId, messages, transcript, model: 'gpt-4o-mini' }));
+  xhr.send(JSON.stringify({ video_id: videoId, messages, transcript, model: 'gpt-5.1' }));
 
   return () => xhr.abort();
 }

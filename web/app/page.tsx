@@ -13,7 +13,7 @@ import SummaryChat from "./components/SummaryChat";
 
 export default function Home() {
   const [videoUrl, setVideoUrl] = useState("");
-  const [model, setModel] = useState<ModelName>("gpt-4o-mini");
+  const [model, setModel] = useState<ModelName>("gpt-5.1");
   const [transcript, setTranscript] = useState<TranscriptResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +67,7 @@ export default function Home() {
                 onChange={(e) => setModel(e.target.value as ModelName)}
                 className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
               >
-                <option value="gpt-4o-mini">GPT-4o Mini</option>
+                <option value="gpt-5.1">GPT-4o Mini</option>
                 <option value="gpt-4o">GPT-4o</option>
               </select>
               <button
