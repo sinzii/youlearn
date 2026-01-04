@@ -80,6 +80,11 @@ export function useMarkdownStyles(variant: MarkdownVariant = 'default') {
         borderRadius: 4,
         marginVertical: isCompact ? 4 : 0,
       },
+      hr: {
+        backgroundColor: theme.colors.greyOutline,
+        height: 1,
+        marginVertical: isCompact ? 8 : 12,
+      },
     }),
     [theme, codeBgColor, isCompact]
   );

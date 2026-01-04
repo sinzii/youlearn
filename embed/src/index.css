@@ -119,6 +119,20 @@ body {
   overflow-x: auto;
 }
 
+.markdown-content hr {
+  border: none;
+  height: 1px;
+  margin: 8px 0;
+}
+
+.markdown-content.theme-light hr {
+  background-color: #ddd;
+}
+
+.markdown-content.theme-dark hr {
+  background-color: #333;
+}
+
 /* Light theme */
 .markdown-content.theme-light {
   color: #11181C;
