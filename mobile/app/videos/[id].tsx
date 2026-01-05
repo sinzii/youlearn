@@ -234,6 +234,9 @@ export default function VideoDetailsScreen() {
     loadVideoData();
   }, [id]);
 
+  // Use content language from cache (set when user changes language) or fall back to preferred
+  const contentLanguage = cachedVideo?.contentLanguage || preferredLanguage;
+
   // Fetch suggested questions if we have transcript but no questions
   useEffect(() => {
     if (!id || !transcript || cachedVideo?.suggestedQuestions) return;
@@ -244,7 +247,7 @@ export default function VideoDetailsScreen() {
         if (!token) return;
 
         const transcriptText = segmentsToText(transcript.segments);
-        const response = await fetchSuggestedQuestions(id, transcriptText, token, preferredLanguage);
+        const response = await fetchSuggestedQuestions(id, transcriptText, token, contentLanguage);
         updateVideo({ suggestedQuestions: response.questions });
       } catch (err) {
         console.warn('Failed to fetch suggested questions:', err);
@@ -252,7 +255,7 @@ export default function VideoDetailsScreen() {
     };
 
     fetchQuestions();
-  }, [id, transcript, cachedVideo?.suggestedQuestions]);
+  }, [id, transcript, cachedVideo?.suggestedQuestions, contentLanguage]);
 
   // Fetch chapters if we have transcript but no chapters
   useEffect(() => {
@@ -264,7 +267,7 @@ export default function VideoDetailsScreen() {
         const token = await getToken();
         if (!token) return;
 
-        const response = await fetchChapters(id, transcript.segments, token, preferredLanguage);
+        const response = await fetchChapters(id, transcript.segments, token, contentLanguage);
         updateVideo({ chapters: response.chapters });
       } catch (err) {
         console.warn('Failed to fetch chapters:', err);
@@ -274,7 +277,7 @@ export default function VideoDetailsScreen() {
     };
 
     fetchVideoChapters();
-  }, [id, transcript, cachedVideo?.chapters]);
+  }, [id, transcript, cachedVideo?.chapters, contentLanguage]);
 
   const handlePlayPress = () => {
     shouldAutoplay.current = true;

@@ -6,6 +6,9 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  Modal,
+  FlatList,
+  Pressable,
 } from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
 import * as Clipboard from 'expo-clipboard';
@@ -17,9 +20,18 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated';
 import { Text, Button, useTheme } from '@rneui/themed';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { segmentsToText } from '@/utils/transcript';
-import { useVideoCache, useSummaryStreaming, useAppDispatch, usePreferredLanguage } from '@/lib/store/hooks';
+import {
+  useVideoCache,
+  useSummaryStreaming,
+  useAppDispatch,
+  usePreferredLanguage,
+  LANGUAGE_OPTIONS,
+  LanguageCode,
+  LanguageOption,
+} from '@/lib/store/hooks';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { startSummaryStream } from '@/lib/streaming';
 import { getEmbedSource, type EmbedSource } from '@/lib/config';
@@ -36,7 +48,7 @@ interface SummaryTabProps {
 }
 
 export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
-  const { video } = useVideoCache(videoId);
+  const { video, updateVideo } = useVideoCache(videoId);
   const { isLoading, streamingContent: streamingText } = useSummaryStreaming(videoId);
   const dispatch = useAppDispatch();
   const preferredLanguage = usePreferredLanguage();
@@ -50,6 +62,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const [webViewError, setWebViewError] = useState<string | null>(null);
   const [embedSource, setEmbedSource] = useState<EmbedSource | null>(null);
   const [fabMenuOpen, setFabMenuOpen] = useState(false);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
   const hasAutoTriggeredRef = useRef(false);
   const webViewRef = useRef<WebView>(null);
@@ -66,6 +79,8 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const menuItem1TranslateY = useSharedValue(20);
   const menuItem2Opacity = useSharedValue(0);
   const menuItem2TranslateY = useSharedValue(20);
+  const menuItem3Opacity = useSharedValue(0);
+  const menuItem3TranslateY = useSharedValue(20);
 
   const menuItem1Style = useAnimatedStyle(() => ({
     opacity: menuItem1Opacity.value,
@@ -75,6 +90,11 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const menuItem2Style = useAnimatedStyle(() => ({
     opacity: menuItem2Opacity.value,
     transform: [{ translateY: menuItem2TranslateY.value }],
+  }));
+
+  const menuItem3Style = useAnimatedStyle(() => ({
+    opacity: menuItem3Opacity.value,
+    transform: [{ translateY: menuItem3TranslateY.value }],
   }));
 
   // Load embed source on mount
@@ -190,17 +210,25 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
       // Bottom button first (Copy)
       menuItem1Opacity.value = withTiming(1, { duration: 200 });
       menuItem1TranslateY.value = withTiming(0, { duration: 200 });
-      // Top button second (Resummarize) with delay
+      // Second button (Resummarize) with delay
       menuItem2Opacity.value = withDelay(80, withTiming(1, { duration: 200 }));
       menuItem2TranslateY.value = withDelay(80, withTiming(0, { duration: 200 }));
+      // Top button (Language) with more delay
+      menuItem3Opacity.value = withDelay(160, withTiming(1, { duration: 200 }));
+      menuItem3TranslateY.value = withDelay(160, withTiming(0, { duration: 200 }));
     } else {
       // Reset immediately
       menuItem1Opacity.value = 0;
       menuItem1TranslateY.value = 20;
       menuItem2Opacity.value = 0;
       menuItem2TranslateY.value = 20;
+      menuItem3Opacity.value = 0;
+      menuItem3TranslateY.value = 20;
     }
-  }, [fabMenuOpen, menuItem1Opacity, menuItem1TranslateY, menuItem2Opacity, menuItem2TranslateY]);
+  }, [fabMenuOpen, menuItem1Opacity, menuItem1TranslateY, menuItem2Opacity, menuItem2TranslateY, menuItem3Opacity, menuItem3TranslateY]);
+
+  // Get current content language (from video cache or fall back to preferred)
+  const currentContentLanguage = video?.contentLanguage || preferredLanguage;
 
   const handleSummarize = useCallback(async () => {
     setError(null);
@@ -211,8 +239,8 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
       return;
     }
 
-    startSummaryStream(videoId, transcript, token, dispatch, preferredLanguage);
-  }, [videoId, getToken, transcript, dispatch, preferredLanguage]);
+    startSummaryStream(videoId, transcript, token, dispatch, currentContentLanguage);
+  }, [videoId, getToken, transcript, dispatch, currentContentLanguage]);
 
   const handleCopy = useCallback(async () => {
     if (summary) {
@@ -232,6 +260,29 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
       ]
     );
   }, [handleSummarize]);
+
+  const handleOpenLanguageModal = useCallback(() => {
+    setFabMenuOpen(false);
+    setLanguageModalVisible(true);
+  }, []);
+
+  const handleLanguageChange = useCallback(async (newLanguage: LanguageCode) => {
+    setLanguageModalVisible(false);
+
+    // Clear existing content to trigger regeneration
+    updateVideo({
+      summary: null,
+      chapters: null,
+      suggestedQuestions: null,
+      contentLanguage: newLanguage,
+    });
+
+    // Start new summary stream with selected language
+    const token = await getToken();
+    if (token) {
+      startSummaryStream(videoId, transcript, token, dispatch, newLanguage);
+    }
+  }, [videoId, transcript, getToken, dispatch, updateVideo]);
 
   // Auto-trigger summarization when transcript is available
   useEffect(() => {
@@ -325,6 +376,14 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
         <View style={styles.fabContainer}>
           {fabMenuOpen && (
             <View style={styles.fabMenu}>
+              <Animated.View style={menuItem3Style}>
+                <TouchableOpacity
+                  style={[styles.fabMenuIcon, { backgroundColor: theme.colors.grey0 }]}
+                  onPress={handleOpenLanguageModal}
+                >
+                  <MaterialIcons name="translate" size={24} color={theme.colors.black} />
+                </TouchableOpacity>
+              </Animated.View>
               <Animated.View style={menuItem2Style}>
                 <TouchableOpacity
                   style={[styles.fabMenuIcon, { backgroundColor: theme.colors.grey0 }]}
@@ -351,6 +410,54 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Language Picker Modal */}
+      <Modal
+        visible={languageModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.colors.greyOutline }]}>
+            <Text style={[styles.modalTitle, { color: theme.colors.black }]}>
+              Content Language
+            </Text>
+            <Pressable onPress={() => setLanguageModalVisible(false)} hitSlop={10}>
+              <MaterialIcons name="close" size={24} color={theme.colors.black} />
+            </Pressable>
+          </View>
+
+          <FlatList
+            data={LANGUAGE_OPTIONS}
+            keyExtractor={(item) => item.code}
+            renderItem={({ item }: { item: LanguageOption }) => {
+              const isSelected = item.code === currentContentLanguage;
+              return (
+                <Pressable
+                  style={[
+                    styles.languageOption,
+                    { backgroundColor: isSelected ? theme.colors.grey0 : 'transparent' },
+                  ]}
+                  onPress={() => handleLanguageChange(item.code)}
+                >
+                  <View style={styles.languageOptionText}>
+                    <Text style={[styles.languageOptionName, { color: theme.colors.black }]}>
+                      {item.name}
+                    </Text>
+                    <Text style={[styles.languageOptionNative, { color: theme.colors.grey4 }]}>
+                      {item.nativeName}
+                    </Text>
+                  </View>
+                  {isSelected && (
+                    <MaterialIcons name="check" size={20} color={theme.colors.primary} />
+                  )}
+                </Pressable>
+              );
+            }}
+          />
+        </SafeAreaView>
+      </Modal>
 
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
@@ -426,5 +533,46 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
+  },
+  languageBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginBottom: 8,
+  },
+  languageBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  languageOptionText: {
+    flex: 1,
+  },
+  languageOptionName: {
+    fontSize: 16,
+  },
+  languageOptionNative: {
+    fontSize: 13,
+    marginTop: 2,
   },
 });
