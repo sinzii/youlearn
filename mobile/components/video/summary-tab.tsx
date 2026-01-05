@@ -371,10 +371,10 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
         </Animated.View>
       )}
 
-      {/* FAB Menu */}
-      {displayText && !isLoading && webViewReady && (
+      {/* FAB Menu - show when streaming content or complete, not during initial loading */}
+      {displayText && webViewReady && (
         <View style={styles.fabContainer}>
-          {fabMenuOpen && (
+          {fabMenuOpen && !isLoading && (
             <View style={styles.fabMenu}>
               <Animated.View style={menuItem3Style}>
                 <TouchableOpacity
@@ -403,10 +403,19 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
             </View>
           )}
           <TouchableOpacity
-            style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-            onPress={() => setFabMenuOpen(!fabMenuOpen)}
+            style={[
+              styles.fab,
+              { backgroundColor: theme.colors.primary },
+              isLoading && { opacity: 0.6 },
+            ]}
+            onPress={() => !isLoading && setFabMenuOpen(!fabMenuOpen)}
+            disabled={isLoading}
           >
-            <MaterialIcons name={fabMenuOpen ? 'close' : 'bolt'} size={24} color="#fff" />
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <MaterialIcons name={fabMenuOpen ? 'close' : 'bolt'} size={24} color="#fff" />
+            )}
           </TouchableOpacity>
         </View>
       )}
