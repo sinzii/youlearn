@@ -61,16 +61,21 @@ export async function fetchVideoInfo(
 
 export async function fetchTranscript(
   videoId: string,
-  token: string
+  token: string,
+  language?: string
 ): Promise<TranscriptResponse> {
-  const response = await fetch(
-    `${API_ENDPOINT}/youtube/transcript?video_id=${encodeURIComponent(videoId)}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  // Build URL with optional language priority
+  let url = `${API_ENDPOINT}/youtube/transcript?video_id=${encodeURIComponent(videoId)}`;
+  if (language) {
+    // Send preferred language with English fallback
+    url += `&lang=${encodeURIComponent(language)},en`;
+  }
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   if (!response.ok) {
     const error = await response.json();
@@ -83,7 +88,8 @@ export async function fetchTranscript(
 export async function fetchSuggestedQuestions(
   videoId: string,
   transcript: string,
-  token: string
+  token: string,
+  language?: string
 ): Promise<SuggestQuestionsResponse> {
   const response = await fetch(`${API_ENDPOINT}/youtube/suggest-questions`, {
     method: 'POST',
@@ -95,6 +101,7 @@ export async function fetchSuggestedQuestions(
       video_id: videoId,
       transcript,
       model: 'gpt-5.1',
+      language,
     }),
   });
 
@@ -109,7 +116,8 @@ export async function fetchSuggestedQuestions(
 export async function fetchChapters(
   videoId: string,
   segments: TranscriptSegment[],
-  token: string
+  token: string,
+  language?: string
 ): Promise<GenerateChaptersResponse> {
   const response = await fetch(`${API_ENDPOINT}/youtube/generate-chapters`, {
     method: 'POST',
@@ -121,6 +129,7 @@ export async function fetchChapters(
       video_id: videoId,
       segments,
       model: 'gpt-5.1',
+      language,
     }),
   });
 
@@ -147,7 +156,8 @@ export function streamSummary(
   videoId: string,
   transcript: string,
   token: string,
-  callbacks: StreamCallbacks
+  callbacks: StreamCallbacks,
+  language?: string
 ): () => void {
   const { onChunk, onDone, onError } = callbacks;
 
@@ -197,7 +207,7 @@ export function streamSummary(
     onError(new Error('Network error'));
   };
 
-  xhr.send(JSON.stringify({ video_id: videoId, transcript, model: 'gpt-5.1' }));
+  xhr.send(JSON.stringify({ video_id: videoId, transcript, model: 'gpt-5.1', language }));
 
   return () => xhr.abort();
 }
@@ -207,7 +217,8 @@ export function streamChat(
   messages: ChatMessage[],
   transcript: string,
   token: string,
-  callbacks: StreamCallbacks
+  callbacks: StreamCallbacks,
+  language?: string
 ): () => void {
   const { onChunk, onDone, onError } = callbacks;
 
@@ -255,7 +266,7 @@ export function streamChat(
     onError(new Error('Network error'));
   };
 
-  xhr.send(JSON.stringify({ video_id: videoId, messages, transcript, model: 'gpt-5.1' }));
+  xhr.send(JSON.stringify({ video_id: videoId, messages, transcript, model: 'gpt-5.1', language }));
 
   return () => xhr.abort();
 }

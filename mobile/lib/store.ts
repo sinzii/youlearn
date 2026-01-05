@@ -13,6 +13,9 @@ export {
   useVideoStreaming,
   useAppDispatch,
   useAppSelector,
+  usePreferredLanguage,
+  useSetPreferredLanguage,
+  useLanguageOptions,
 } from './store/hooks';
 
 // Re-export types
@@ -22,9 +25,15 @@ export type {
   VideosState,
   VideoStreamingState,
   StreamingState,
+  LanguageCode,
+  LanguageOption,
 } from './store/hooks';
+
+// Re-export constants
+export { LANGUAGE_OPTIONS } from './store/hooks';
 
 // Re-export actions for direct dispatch usage
 export { updateVideo, removeVideo, clearVideos } from './store/slices/videosSlice';
 export { updateStreaming, resetStreaming } from './store/slices/streamingSlice';
 export { setThemePreference } from './store/slices/themeSlice';
+export { setPreferredLanguage } from './store/slices/languageSlice';

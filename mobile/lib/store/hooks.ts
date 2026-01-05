@@ -3,6 +3,11 @@ import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux';
 import type { RootState, AppDispatch } from './index';
 import { setThemePreference as setThemePreferenceAction, ThemePreference } from './slices/themeSlice';
 import {
+  setPreferredLanguage as setPreferredLanguageAction,
+  LanguageCode,
+  LANGUAGE_OPTIONS,
+} from './slices/languageSlice';
+import {
   updateVideo as updateVideoAction,
   removeVideo as removeVideoAction,
   clearVideos as clearVideosAction,
@@ -119,7 +124,29 @@ export function useSummaryStreaming(videoId: string) {
   return { isLoading, streamingContent };
 }
 
+// ============ Language Hooks ============
+
+export function usePreferredLanguage(): LanguageCode {
+  return useAppSelector((state) => state.language.preferredLanguage);
+}
+
+export function useSetPreferredLanguage() {
+  const dispatch = useAppDispatch();
+  return useCallback(
+    (language: LanguageCode) => {
+      dispatch(setPreferredLanguageAction(language));
+    },
+    [dispatch]
+  );
+}
+
+export function useLanguageOptions() {
+  return LANGUAGE_OPTIONS;
+}
+
 // Re-export types for convenience
 export type { ThemePreference } from './slices/themeSlice';
 export type { VideoCache, VideosState } from './slices/videosSlice';
 export type { VideoStreamingState, StreamingState } from './slices/streamingSlice';
+export type { LanguageCode, LanguageOption } from './slices/languageSlice';
+export { LANGUAGE_OPTIONS } from './slices/languageSlice';

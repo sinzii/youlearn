@@ -20,6 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { extractVideoId } from '@/utils/youtube';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 const EXAMPLE_VIDEOS = [
   { id: 'XA9Q5p9ODac', title: 'Quantum Consciousness and the Origin of Life' },
@@ -127,6 +128,14 @@ export default function NewScreen() {
               <Text style={[styles.errorText, !error && styles.errorTextHidden]}>
                 {error || ' '}
               </Text>
+
+              {/* Language Selector */}
+              <View style={styles.languageSection}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.black }]}>
+                  Language
+                </Text>
+                <LanguageSelector />
+              </View>
             </View>
 
             {/* Example Videos */}
@@ -177,6 +186,9 @@ const styles = StyleSheet.create({
   form: {
     gap: 4,
   },
+  languageSection: {
+    marginTop: 4,
+  },
   errorText: {
     color: '#ef4444',
     fontSize: 13,
@@ -216,7 +228,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,

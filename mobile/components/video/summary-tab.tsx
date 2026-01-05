@@ -19,7 +19,7 @@ import Animated, {
 import { Text, Button, useTheme } from '@rneui/themed';
 
 import { segmentsToText } from '@/utils/transcript';
-import { useVideoCache, useSummaryStreaming, useAppDispatch } from '@/lib/store/hooks';
+import { useVideoCache, useSummaryStreaming, useAppDispatch, usePreferredLanguage } from '@/lib/store/hooks';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { startSummaryStream } from '@/lib/streaming';
 import { getEmbedSource, type EmbedSource } from '@/lib/config';
@@ -39,6 +39,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const { video } = useVideoCache(videoId);
   const { isLoading, streamingContent: streamingText } = useSummaryStreaming(videoId);
   const dispatch = useAppDispatch();
+  const preferredLanguage = usePreferredLanguage();
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const { theme } = useTheme();
   const { getToken } = useAuth();
@@ -210,8 +211,8 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
       return;
     }
 
-    startSummaryStream(videoId, transcript, token, dispatch);
-  }, [videoId, getToken, transcript, dispatch]);
+    startSummaryStream(videoId, transcript, token, dispatch, preferredLanguage);
+  }, [videoId, getToken, transcript, dispatch, preferredLanguage]);
 
   const handleCopy = useCallback(async () => {
     if (summary) {

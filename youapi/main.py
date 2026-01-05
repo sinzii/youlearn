@@ -48,6 +48,32 @@ if webshare_username and webshare_password:
 else:
     ytt_api = YouTubeTranscriptApi()
 
+# Language code to name mapping
+LANGUAGE_NAMES = {
+    'en': 'English',
+    'vi': 'Vietnamese',
+    'es': 'Spanish',
+    'fr': 'French',
+    'de': 'German',
+    'ja': 'Japanese',
+    'ko': 'Korean',
+    'zh': 'Chinese',
+    'pt': 'Portuguese',
+    'ru': 'Russian',
+    'ar': 'Arabic',
+    'hi': 'Hindi',
+    'th': 'Thai',
+    'id': 'Indonesian',
+}
+
+
+def get_language_name(code: str | None) -> str | None:
+    """Convert language code to full language name."""
+    if not code:
+        return None
+    return LANGUAGE_NAMES.get(code, code)  # Fallback to code if not found
+
+
 app = FastAPI(docs_url="/swagger", title="YouAPI", description="YouTube Learning API")
 
 # CORS middleware for frontend access
@@ -118,6 +144,7 @@ class SummarizeRequest(BaseModel):
     video_id: str
     transcript: str | None = None  # Optional: pass transcript to avoid re-fetching
     model: ModelName = ModelName.GPT_51
+    language: str | None = None  # Optional: language for the summary output
 
 
 class SummarizeResponse(BaseModel):
@@ -136,12 +163,14 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage]
     transcript: str | None = None  # Optional: pass transcript to avoid re-fetching
     model: ModelName = ModelName.GPT_51
+    language: str | None = None  # Optional: language for the response
 
 
 class SuggestQuestionsRequest(BaseModel):
     video_id: str
     transcript: str
     model: ModelName = ModelName.GPT_51
+    language: str | None = None  # Optional: language for the questions
 
 
 class SuggestQuestionsResponse(BaseModel):
@@ -170,6 +199,7 @@ class GenerateChaptersRequest(BaseModel):
     video_id: str
     segments: list[TranscriptSegment]
     model: ModelName = ModelName.GPT_51
+    language: str | None = None  # Optional: language for the chapter titles
 
 
 class GenerateChaptersResponse(BaseModel):
@@ -327,10 +357,29 @@ def get_transcript(
         raise HTTPException(status_code=400, detail=str(e))
 
     try:
-        if lang:
-            transcript = ytt_api.fetch(actual_video_id, languages=[lang])
+        # Always get list of available transcripts first
+        transcript_list = ytt_api.list(actual_video_id)
+
+        # Extract available language codes
+        available_languages = [t.language_code for t in transcript_list]
+
+        if not available_languages:
+            raise NoTranscriptFound(actual_video_id)
+
+        # Determine which language to use (priority: target → English → first available)
+        selected_language = None
+
+        if lang and lang in available_languages:
+            # Priority 1: Use target language if available
+            selected_language = lang
+        elif 'en' in available_languages:
+            # Priority 2: Fallback to English if available
+            selected_language = 'en'
         else:
-            transcript = ytt_api.fetch(actual_video_id)
+            # Priority 3: Use first available
+            selected_language = available_languages[0]
+
+        transcript = ytt_api.fetch(actual_video_id, languages=[selected_language])
 
         segments = [
             TranscriptSegment(
@@ -390,6 +439,10 @@ async def summarize_video(request: SummarizeRequest):
     try:
         model = openai(request.model.value)
 
+        # Build language instruction if specified
+        language_name = get_language_name(request.language)
+        language_instruction = f"\n\nIMPORTANT: Write the entire summary in {language_name}." if language_name else ""
+
         async def generate():
             result = stream_text(
                 model=model,
@@ -399,7 +452,7 @@ Rules:
 - Use markdown: headers (###), bullet points, **bold** for emphasis
 - Start directly with the first main topic header
 - Include key points, insights, and takeaways
-- Be comprehensive but concise
+- Be comprehensive but concise{language_instruction}
 
 Transcript:
 {transcript_text}""",
@@ -443,10 +496,14 @@ async def chat_with_video(request: ChatRequest):
     else:
         transcript_text, _ = fetch_transcript_text(request.video_id)
 
+    # Build language instruction if specified
+    language_name = get_language_name(request.language)
+    language_instruction = f"\nIMPORTANT: Always respond in {language_name}." if language_name else ""
+
     # Build messages with system context
     system_prompt = f"""You are a helpful assistant that answers questions about a YouTube video.
 Use the following transcript to answer the user's questions accurately and helpfully.
-If the answer cannot be found in the transcript, say so clearly.
+If the answer cannot be found in the transcript, say so clearly.{language_instruction}
 
 Video Transcript:
 {transcript_text}"""
@@ -507,6 +564,10 @@ async def suggest_questions(request: SuggestQuestionsRequest):
     try:
         model = openai(request.model.value)
 
+        # Build language instruction if specified
+        language_name = get_language_name(request.language)
+        language_instruction = f"\n\nIMPORTANT: Write all questions in {language_name}." if language_name else ""
+
         result = generate_object(
             model=model,
             schema=SuggestedQuestionsSchema,
@@ -518,7 +579,7 @@ Rules:
 - Focus on key concepts, insights, or practical applications
 - Make questions specific to the video content, not generic
 - If the transcript contains claims, opinions, or criticism, include questions that encourage critical evaluation
-- Consider broader perspectives - help viewers question authenticity and think beyond what's presented
+- Consider broader perspectives - help viewers question authenticity and think beyond what's presented{language_instruction}
 
 Transcript:
 {request.transcript[:8000]}""",
@@ -563,6 +624,10 @@ async def generate_chapters(request: GenerateChaptersRequest):
     try:
         model = openai(request.model.value)
 
+        # Build language instruction if specified
+        language_name = get_language_name(request.language)
+        language_instruction = f"\n\nIMPORTANT: Write all chapter titles in {language_name}." if language_name else ""
+
         result = generate_object(
             model=model,
             schema=ChaptersSchema,
@@ -577,7 +642,7 @@ Step 2: Generate the chapters
 - Each chapter title should be SHORT (3-7 words), descriptive, and capture the main topic
 - The start time MUST be an exact timestamp from the transcript where a new topic begins
 - First chapter should start at 0.0 or very close to it
-- Titles should be engaging and informative (like YouTube chapter titles)
+- Titles should be engaging and informative (like YouTube chapter titles){language_instruction}
 
 Transcript with timestamps:
 {formatted_segments}

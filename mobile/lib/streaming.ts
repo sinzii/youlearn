@@ -10,7 +10,8 @@ export function startSummaryStream(
   videoId: string,
   transcript: string,
   token: string,
-  dispatch: AppDispatch
+  dispatch: AppDispatch,
+  language?: string
 ) {
   // Cancel any existing stream for this video
   if (activeStreams[`summary-${videoId}`]) {
@@ -88,7 +89,7 @@ export function startSummaryStream(
       );
       delete activeStreams[`summary-${videoId}`];
     },
-  });
+  }, language);
 
   activeStreams[`summary-${videoId}`] = cancel;
   return cancel;
@@ -99,7 +100,8 @@ export function startChatStream(
   messages: ChatMessage[],
   transcript: string,
   token: string,
-  dispatch: AppDispatch
+  dispatch: AppDispatch,
+  language?: string
 ) {
   // Cancel any existing chat stream for this video
   if (activeStreams[`chat-${videoId}`]) {
@@ -204,7 +206,7 @@ export function startChatStream(
 
       delete activeStreams[`chat-${videoId}`];
     },
-  });
+  }, language);
 
   activeStreams[`chat-${videoId}`] = cancel;
   return cancel;

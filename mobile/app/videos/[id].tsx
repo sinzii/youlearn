@@ -31,7 +31,7 @@ import {
   fetchChapters,
   TranscriptResponse,
 } from '@/lib/api';
-import { useVideoCache } from '@/lib/store';
+import { useVideoCache, usePreferredLanguage } from '@/lib/store';
 import { segmentsToText } from '@/utils/transcript';
 import { formatDuration } from '@/lib/datetime';
 
@@ -118,6 +118,7 @@ export default function VideoDetailsScreen() {
   const navigation = useNavigation();
 
   const { video: cachedVideo, updateVideo } = useVideoCache(id || '');
+  const preferredLanguage = usePreferredLanguage();
   const hasFetchedRef = useRef(false);
   const shouldAutoplay = useRef(false);
   const playerRef = useRef<{ seekTo: (seconds: number, allowSeekAhead?: boolean) => void } | null>(null);
@@ -211,7 +212,7 @@ export default function VideoDetailsScreen() {
         // Fetch video info and transcript in parallel
         const [videoInfo, transcriptData] = await Promise.all([
           fetchVideoInfo(id, token),
-          fetchTranscript(id, token),
+          fetchTranscript(id, token, preferredLanguage),
         ]);
 
         setTranscript(transcriptData);
@@ -243,7 +244,7 @@ export default function VideoDetailsScreen() {
         if (!token) return;
 
         const transcriptText = segmentsToText(transcript.segments);
-        const response = await fetchSuggestedQuestions(id, transcriptText, token);
+        const response = await fetchSuggestedQuestions(id, transcriptText, token, preferredLanguage);
         updateVideo({ suggestedQuestions: response.questions });
       } catch (err) {
         console.warn('Failed to fetch suggested questions:', err);
@@ -263,7 +264,7 @@ export default function VideoDetailsScreen() {
         const token = await getToken();
         if (!token) return;
 
-        const response = await fetchChapters(id, transcript.segments, token);
+        const response = await fetchChapters(id, transcript.segments, token, preferredLanguage);
         updateVideo({ chapters: response.chapters });
       } catch (err) {
         console.warn('Failed to fetch chapters:', err);

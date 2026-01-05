@@ -32,6 +32,7 @@ import {
   useChatStreaming,
   useVideoCache,
   useAppDispatch,
+  usePreferredLanguage,
 } from "@/lib/store/hooks";
 
 function TypingDot({ delay, color }: { delay: number; color: string }) {
@@ -150,6 +151,7 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
   const {video, updateVideo} = useVideoCache(videoId);
   const {isLoading, streamingContent: streamingResponse, pendingMessages} = useChatStreaming(videoId);
   const dispatch = useAppDispatch();
+  const preferredLanguage = usePreferredLanguage();
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const {theme} = useTheme();
   const {getToken} = useAuth();
@@ -252,8 +254,8 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
       return;
     }
 
-    startChatStream(videoId, newMessages, transcript, token, dispatch);
-  }, [video?.chatMessages, videoId, isLoading, getToken, transcript, updateVideo, dispatch]);
+    startChatStream(videoId, newMessages, transcript, token, dispatch, preferredLanguage);
+  }, [video?.chatMessages, videoId, isLoading, getToken, transcript, updateVideo, dispatch, preferredLanguage]);
 
   // Handle pending action from Summary tab text selection
   useEffect(() => {
