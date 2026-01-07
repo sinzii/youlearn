@@ -269,11 +269,12 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const handleLanguageChange = useCallback(async (newLanguage: LanguageCode) => {
     setLanguageModalVisible(false);
 
-    // Clear existing content to trigger regeneration
+    // Only clear suggestedQuestions if chat history is empty
+    const hasChatHistory = video?.chatMessages && video.chatMessages.length > 0;
     updateVideo({
       summary: null,
       chapters: null,
-      suggestedQuestions: null,
+      suggestedQuestions: hasChatHistory ? video?.suggestedQuestions : null,
       contentLanguage: newLanguage,
     });
 
@@ -282,7 +283,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
     if (token) {
       startSummaryStream(videoId, transcript, token, dispatch, newLanguage);
     }
-  }, [videoId, transcript, getToken, dispatch, updateVideo]);
+  }, [videoId, transcript, getToken, dispatch, updateVideo, video?.chatMessages, video?.suggestedQuestions]);
 
   // Auto-trigger summarization when transcript is available
   useEffect(() => {

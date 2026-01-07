@@ -223,6 +223,7 @@ export default function VideoDetailsScreen() {
           thumbnail_url: videoInfo.thumbnail_url,
           length: videoInfo.length,
           transcript: transcriptData,
+          contentLanguage: preferredLanguage,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load video');
