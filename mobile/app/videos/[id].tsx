@@ -172,7 +172,7 @@ export default function VideoDetailsScreen() {
           style={styles.headerButton}
         >
           <MaterialIcons
-            name={showVideo ? 'visibility' : 'visibility-off'}
+            name={showVideo ? 'tv-off' : 'tv'}
             size={24}
             color={theme.mode === 'dark' ? '#fff' : '#000'}
           />
