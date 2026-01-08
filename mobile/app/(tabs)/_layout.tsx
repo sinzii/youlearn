@@ -29,6 +29,9 @@ export default function TabLayout() {
         tabBarInactiveTintColor: theme.colors.grey4,
         headerShown: false,
         animation: 'shift',
+        sceneStyle: {
+          backgroundColor: theme.colors.background,
+        },
         tabBarStyle: {
           backgroundColor: theme.colors.background,
           borderTopColor: theme.colors.greyOutline,

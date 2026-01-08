@@ -54,6 +54,7 @@ function RootLayoutNav() {
           screenOptions={{
             headerStyle: { backgroundColor: navTheme.colors.card },
             headerTintColor: navTheme.colors.text,
+            contentStyle: { backgroundColor: navTheme.colors.background },
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
