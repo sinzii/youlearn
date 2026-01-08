@@ -59,7 +59,7 @@ interface LanguageState {
 
 const initialState: LanguageState = {
   preferredLanguage: 'en',
-  detailLevel: 'summary',
+  detailLevel: 'tldr',
 };
 
 const languageSlice = createSlice({
