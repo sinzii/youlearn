@@ -541,17 +541,21 @@ async def chat_with_video(request: ChatRequest):
     else:
         transcript_text, _ = fetch_transcript_text(request.video_id)
 
-    # Build language instruction if specified
-    language_name = get_language_name(request.language)
-    language_instruction = f"\nIMPORTANT: Always respond in {language_name}." if language_name else ""
-
     # Build messages with system context
     system_prompt = f"""You are a helpful assistant that answers questions about a YouTube video.
 Use the following transcript to answer the user's questions accurately and helpfully.
-If the answer cannot be found in the transcript, say so clearly.{language_instruction}
+If the answer cannot be found in the transcript, say so clearly.
+
+IMPORTANT: Always respond in the same language as the user's question. For example:
+- If the user asks in English, respond in English
+- If the user asks in Vietnamese, respond in Vietnamese
+- If the user explicitly requests a different language (e.g., "answer in French"), follow their request
 
 Video Transcript:
-{transcript_text}"""
+<transcript>
+{transcript_text}
+</transcript>
+"""
 
     # Convert messages to the format expected by AI SDK
     messages: list[CoreSystemMessage | CoreUserMessage | CoreAssistantMessage] = [
