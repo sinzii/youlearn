@@ -157,7 +157,8 @@ export function streamSummary(
   transcript: string,
   token: string,
   callbacks: StreamCallbacks,
-  language?: string
+  language?: string,
+  detailLevel?: string
 ): () => void {
   const { onChunk, onDone, onError } = callbacks;
 
@@ -207,7 +208,13 @@ export function streamSummary(
     onError(new Error('Network error'));
   };
 
-  xhr.send(JSON.stringify({ video_id: videoId, transcript, model: 'gpt-5.1', language }));
+  xhr.send(JSON.stringify({
+    video_id: videoId,
+    transcript,
+    model: 'gpt-5.1',
+    language,
+    detail_level: detailLevel,
+  }));
 
   return () => xhr.abort();
 }

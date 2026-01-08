@@ -28,9 +28,13 @@ import {
   useSummaryStreaming,
   useAppDispatch,
   usePreferredLanguage,
+  useDetailLevel,
   LANGUAGE_OPTIONS,
+  DETAIL_LEVEL_OPTIONS,
   LanguageCode,
   LanguageOption,
+  DetailLevel,
+  DetailLevelOption,
 } from '@/lib/store/hooks';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { startSummaryStream } from '@/lib/streaming';
@@ -52,6 +56,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const { isLoading, streamingContent: streamingText } = useSummaryStreaming(videoId);
   const dispatch = useAppDispatch();
   const preferredLanguage = usePreferredLanguage();
+  const globalDetailLevel = useDetailLevel();
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const { theme } = useTheme();
   const { getToken } = useAuth();
@@ -229,6 +234,8 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
 
   // Get current content language (from video cache or fall back to preferred)
   const currentContentLanguage = video?.contentLanguage || preferredLanguage;
+  // Get current detail level (from video cache or fall back to global preference)
+  const currentDetailLevel = video?.detailLevel || globalDetailLevel;
 
   const handleSummarize = useCallback(async () => {
     setError(null);
@@ -239,8 +246,8 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
       return;
     }
 
-    startSummaryStream(videoId, transcript, token, dispatch, currentContentLanguage);
-  }, [videoId, getToken, transcript, dispatch, currentContentLanguage]);
+    startSummaryStream(videoId, transcript, token, dispatch, currentContentLanguage, currentDetailLevel);
+  }, [videoId, getToken, transcript, dispatch, currentContentLanguage, currentDetailLevel]);
 
   const handleCopy = useCallback(async () => {
     if (summary) {
@@ -281,9 +288,25 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
     // Start new summary stream with selected language
     const token = await getToken();
     if (token) {
-      startSummaryStream(videoId, transcript, token, dispatch, newLanguage);
+      startSummaryStream(videoId, transcript, token, dispatch, newLanguage, currentDetailLevel);
     }
-  }, [videoId, transcript, getToken, dispatch, updateVideo, video?.chatMessages, video?.suggestedQuestions]);
+  }, [videoId, transcript, getToken, dispatch, updateVideo, video?.chatMessages, video?.suggestedQuestions, currentDetailLevel]);
+
+  const handleDetailLevelChange = useCallback(async (newDetailLevel: DetailLevel) => {
+    setLanguageModalVisible(false);
+
+    // Update video cache with new detail level and clear summary
+    updateVideo({
+      summary: null,
+      detailLevel: newDetailLevel,
+    });
+
+    // Start new summary stream with selected detail level
+    const token = await getToken();
+    if (token) {
+      startSummaryStream(videoId, transcript, token, dispatch, currentContentLanguage, newDetailLevel);
+    }
+  }, [videoId, transcript, getToken, dispatch, updateVideo, currentContentLanguage]);
 
   // Auto-trigger summarization when transcript is available
   useEffect(() => {
@@ -431,11 +454,49 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
           <View style={[styles.modalHeader, { borderBottomColor: theme.colors.greyOutline }]}>
             <Text style={[styles.modalTitle, { color: theme.colors.black }]}>
-              Content Language
+              Content Settings
             </Text>
             <Pressable onPress={() => setLanguageModalVisible(false)} hitSlop={10}>
               <MaterialIcons name="close" size={24} color={theme.colors.black} />
             </Pressable>
+          </View>
+
+          {/* Detail Level Toggle */}
+          <View style={styles.detailLevelSection}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.grey4 }]}>
+              Summary Detail
+            </Text>
+            <View style={[styles.toggleContainer, { backgroundColor: theme.colors.grey0 }]}>
+              {DETAIL_LEVEL_OPTIONS.map((option: DetailLevelOption) => {
+                const isSelected = option.code === currentDetailLevel;
+                return (
+                  <TouchableOpacity
+                    key={option.code}
+                    style={[
+                      styles.toggleButton,
+                      isSelected && [styles.toggleButtonActive, { backgroundColor: theme.colors.primary }],
+                    ]}
+                    onPress={() => handleDetailLevelChange(option.code)}
+                  >
+                    <Text
+                      style={[
+                        styles.toggleButtonText,
+                        { color: isSelected ? '#fff' : theme.colors.grey4 },
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Language Section Label */}
+          <View style={styles.languageSectionHeader}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.grey4 }]}>
+              Language
+            </Text>
           </View>
 
           <FlatList
@@ -584,5 +645,45 @@ const styles = StyleSheet.create({
   languageOptionNative: {
     fontSize: 13,
     marginTop: 2,
+  },
+  detailLevelSection: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    borderRadius: 8,
+    padding: 4,
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleButtonActive: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  toggleButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  languageSectionHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
 });

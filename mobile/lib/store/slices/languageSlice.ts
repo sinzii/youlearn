@@ -39,12 +39,27 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
   { code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia' },
 ];
 
+// Summary detail level types
+export type DetailLevel = 'tldr' | 'summary';
+
+export interface DetailLevelOption {
+  code: DetailLevel;
+  label: string;
+}
+
+export const DETAIL_LEVEL_OPTIONS: DetailLevelOption[] = [
+  { code: 'tldr', label: 'Key Insights' },
+  { code: 'summary', label: 'Summary' },
+];
+
 interface LanguageState {
   preferredLanguage: LanguageCode;
+  detailLevel: DetailLevel;
 }
 
 const initialState: LanguageState = {
   preferredLanguage: 'en',
+  detailLevel: 'summary',
 };
 
 const languageSlice = createSlice({
@@ -54,8 +69,11 @@ const languageSlice = createSlice({
     setPreferredLanguage: (state, action: PayloadAction<LanguageCode>) => {
       state.preferredLanguage = action.payload;
     },
+    setDetailLevel: (state, action: PayloadAction<DetailLevel>) => {
+      state.detailLevel = action.payload;
+    },
   },
 });
 
-export const { setPreferredLanguage } = languageSlice.actions;
+export const { setPreferredLanguage, setDetailLevel } = languageSlice.actions;
 export default languageSlice.reducer;

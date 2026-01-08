@@ -20,6 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { extractVideoId } from '@/utils/youtube';
+import { DetailLevelSelector } from '@/components/DetailLevelSelector';
 import { LanguageSelector } from '@/components/LanguageSelector';
 
 const EXAMPLE_VIDEOS = [
@@ -129,6 +130,14 @@ export default function NewScreen() {
                 {error || ' '}
               </Text>
 
+              {/* Summary Detail Level */}
+              <View style={styles.detailLevelSection}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.black }]}>
+                  Detail
+                </Text>
+                <DetailLevelSelector />
+              </View>
+
               {/* Language Selector */}
               <View style={styles.languageSection}>
                 <Text style={[styles.sectionTitle, { color: theme.colors.black }]}>
@@ -185,6 +194,10 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 4,
+  },
+  detailLevelSection: {
+    marginTop: 4,
+    marginBottom: 16,
   },
   languageSection: {
     marginTop: 4,

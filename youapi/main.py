@@ -117,6 +117,11 @@ class ModelName(str, Enum):
     GPT_51 = "gpt-5.1"
 
 
+class DetailLevel(str, Enum):
+    TLDR = "tldr"
+    SUMMARY = "summary"
+
+
 # Request/Response Models
 class TranscriptSegment(BaseModel):
     text: str
@@ -145,6 +150,7 @@ class SummarizeRequest(BaseModel):
     transcript: str | None = None  # Optional: pass transcript to avoid re-fetching
     model: ModelName = ModelName.GPT_51
     language: str | None = None  # Optional: language for the summary output
+    detail_level: DetailLevel = DetailLevel.SUMMARY  # Summary detail level
 
 
 class SummarizeResponse(BaseModel):
@@ -420,6 +426,42 @@ def get_transcript(
         )
 
 
+def get_summary_prompt(detail_level: DetailLevel, transcript_text: str, language_instruction: str) -> str:
+    """Generate summary prompt based on detail level."""
+    base_rules = """Rules:
+- Use markdown: bullet points, **bold** for emphasis
+- Start directly with content - no introductions like "This video discusses..."
+- No filler or verbatim transcript
+- Use **bold** only for key terms, not entire sentences"""
+
+    if detail_level == DetailLevel.TLDR:
+        instruction = """List the key insights from this video as bullet points.
+
+Goal: Give readers a high-level understanding of the whole content.
+- Each bullet = one key insight or takeaway
+- Focus on what important that the viewer should know
+- No topic headers, just a flat list of insights
+- Skip examples and explanations
+- Keep between 5-12 bullet points, each at a reasonable length for easy reading & digest"""
+
+    else:  # SUMMARY (default)
+        instruction = """Go through each logical topic or section discussed in the video.
+
+For each topic:
+- Use a header (###) for the topic name
+- List only 2-3 important points as flat bullet points
+- NO nested bullets, NO sub-points
+
+Keep it concise — focus on what matters most."""
+
+    return f"""{instruction}
+
+{base_rules}{language_instruction}
+
+Transcript:
+{transcript_text}"""
+
+
 @app.post("/summarize")
 async def summarize_video(request: SummarizeRequest):
     """
@@ -428,6 +470,7 @@ async def summarize_video(request: SummarizeRequest):
     - **video_id**: YouTube video ID or URL
     - **transcript**: Optional transcript text (to avoid re-fetching)
     - **model**: LLM model to use (gpt-5.1 or gpt-4o)
+    - **detail_level**: Summary detail level (tldr, key_takeaways, detailed_notes)
     """
     # Use provided transcript or fetch from YouTube
     if request.transcript:
@@ -443,19 +486,13 @@ async def summarize_video(request: SummarizeRequest):
         language_name = get_language_name(request.language)
         language_instruction = f"\n\nIMPORTANT: Write the entire summary in {language_name}." if language_name else ""
 
+        # Get prompt based on detail level
+        prompt = get_summary_prompt(request.detail_level, transcript_text, language_instruction)
+
         async def generate():
             result = stream_text(
                 model=model,
-                prompt=f"""Summarize this YouTube video transcript. Start immediately with the content - no introductions, no "This video discusses...", no "Here's a summary...".
-
-Rules:
-- Use markdown: headers (###), bullet points, **bold** for emphasis
-- Start directly with the first main topic header
-- Include key points, insights, and takeaways
-- Be comprehensive but concise{language_instruction}
-
-Transcript:
-{transcript_text}""",
+                prompt=prompt,
             )
             async for chunk in result.text_stream:
                 if chunk:

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit';
 import { TranscriptResponse, ChatMessage, Chapter } from '@/lib/api';
-import type { LanguageCode } from './languageSlice';
+import type { LanguageCode, DetailLevel } from './languageSlice';
 
 export interface VideoCache {
   video_id: string;
@@ -14,6 +14,7 @@ export interface VideoCache {
   suggestedQuestions: string[] | null;
   chapters: Chapter[] | null;
   contentLanguage?: LanguageCode; // Language used for summary/chapters/questions
+  detailLevel?: DetailLevel; // Detail level used for summary
   lastAccessed: number;
 }
 

@@ -2,6 +2,7 @@ import { streamSummary, streamChat, ChatMessage } from './api';
 import { AppDispatch } from './store';
 import { updateStreaming } from './store/slices/streamingSlice';
 import { updateVideo } from './store/slices/videosSlice';
+import type { DetailLevel } from './store/slices/languageSlice';
 
 // Store active XHR references to prevent garbage collection
 const activeStreams: Record<string, () => void> = {};
@@ -11,7 +12,8 @@ export function startSummaryStream(
   transcript: string,
   token: string,
   dispatch: AppDispatch,
-  language?: string
+  language?: string,
+  detailLevel?: DetailLevel
 ) {
   // Cancel any existing stream for this video
   if (activeStreams[`summary-${videoId}`]) {
@@ -89,7 +91,7 @@ export function startSummaryStream(
       );
       delete activeStreams[`summary-${videoId}`];
     },
-  }, language);
+  }, language, detailLevel);
 
   activeStreams[`summary-${videoId}`] = cancel;
   return cancel;

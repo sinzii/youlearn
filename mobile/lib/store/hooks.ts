@@ -1,11 +1,17 @@
 import { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux';
-import type { RootState, AppDispatch } from './index';
 import { setThemePreference as setThemePreferenceAction, ThemePreference } from './slices/themeSlice';
+import themeReducer from './slices/themeSlice';
+import videosReducer from './slices/videosSlice';
+import streamingReducer from './slices/streamingSlice';
+import languageReducer from './slices/languageSlice';
 import {
   setPreferredLanguage as setPreferredLanguageAction,
+  setDetailLevel as setDetailLevelAction,
   LanguageCode,
+  DetailLevel,
   LANGUAGE_OPTIONS,
+  DETAIL_LEVEL_OPTIONS,
 } from './slices/languageSlice';
 import {
   updateVideo as updateVideoAction,
@@ -19,6 +25,15 @@ import {
   getDefaultStreamingState,
   VideoStreamingState,
 } from './slices/streamingSlice';
+
+// Define types locally to avoid circular dependency with index.ts
+type RootState = {
+  theme: ReturnType<typeof themeReducer>;
+  videos: ReturnType<typeof videosReducer>;
+  streaming: ReturnType<typeof streamingReducer>;
+  language: ReturnType<typeof languageReducer>;
+};
+type AppDispatch = ReturnType<typeof useDispatch>;
 
 // Typed hooks
 export const useAppDispatch = () => useDispatch<AppDispatch>();
@@ -144,9 +159,29 @@ export function useLanguageOptions() {
   return LANGUAGE_OPTIONS;
 }
 
+// ============ Detail Level Hooks ============
+
+export function useDetailLevel(): DetailLevel {
+  return useAppSelector((state) => state.language.detailLevel);
+}
+
+export function useSetDetailLevel() {
+  const dispatch = useAppDispatch();
+  return useCallback(
+    (level: DetailLevel) => {
+      dispatch(setDetailLevelAction(level));
+    },
+    [dispatch]
+  );
+}
+
+export function useDetailLevelOptions() {
+  return DETAIL_LEVEL_OPTIONS;
+}
+
 // Re-export types for convenience
 export type { ThemePreference } from './slices/themeSlice';
 export type { VideoCache, VideosState } from './slices/videosSlice';
 export type { VideoStreamingState, StreamingState } from './slices/streamingSlice';
-export type { LanguageCode, LanguageOption } from './slices/languageSlice';
-export { LANGUAGE_OPTIONS } from './slices/languageSlice';
+export type { LanguageCode, LanguageOption, DetailLevel, DetailLevelOption } from './slices/languageSlice';
+export { LANGUAGE_OPTIONS, DETAIL_LEVEL_OPTIONS } from './slices/languageSlice';

@@ -52,20 +52,26 @@ export const persistor = persistStore(store);
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
-// Re-export hooks and actions
-// export {
-//   useAppDispatch,
-//   useAppSelector,
-//   useThemePreference,
-//   useSetThemePreference,
-//   useVideoCache,
-//   useRecentVideos,
-//   useClearVideos,
-//   useRemoveVideo,
-//   useVideoStreaming,
-//   useChatStreaming,
-//   useSummaryStreaming,
-// } from './hooks';
+// Re-export hooks
+export {
+  useAppDispatch,
+  useAppSelector,
+  useThemePreference,
+  useSetThemePreference,
+  useVideoCache,
+  useRecentVideos,
+  useClearVideos,
+  useRemoveVideo,
+  useVideoStreaming,
+  useChatStreaming,
+  useSummaryStreaming,
+  usePreferredLanguage,
+  useSetPreferredLanguage,
+  useDetailLevel,
+  useSetDetailLevel,
+  useDetailLevelOptions,
+  useLanguageOptions,
+} from './hooks';
 
 export type {
   ThemePreference,
@@ -75,8 +81,8 @@ export type {
   StreamingState,
 } from './hooks';
 
-export type { LanguageCode, LanguageOption } from './slices/languageSlice';
-export { LANGUAGE_OPTIONS, setPreferredLanguage } from './slices/languageSlice';
+export type { LanguageCode, LanguageOption, DetailLevel, DetailLevelOption } from './slices/languageSlice';
+export { LANGUAGE_OPTIONS, DETAIL_LEVEL_OPTIONS, setPreferredLanguage, setDetailLevel } from './slices/languageSlice';
 
 export { updateStreaming, resetStreaming } from './slices/streamingSlice';
 export { updateVideo, removeVideo, clearVideos } from './slices/videosSlice';
