@@ -262,15 +262,18 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
 
   const handleResummarize = useCallback(() => {
     setFabMenuOpen(false);
+    const languageName = LANGUAGE_OPTIONS.find(opt => opt.code === currentContentLanguage)?.name || currentContentLanguage;
+    const detailLabel = DETAIL_LEVEL_OPTIONS.find(opt => opt.code === currentDetailLevel)?.label || currentDetailLevel;
+
     Alert.alert(
       'Resummarize',
-      'Are you sure you want to regenerate the summary?',
+      `Regenerate summary in ${languageName} with ${detailLabel} detail?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Resummarize', onPress: () => handleSummarize() },
       ]
     );
-  }, [handleSummarize]);
+  }, [handleSummarize, currentContentLanguage, currentDetailLevel]);
 
   const handleOpenLanguageModal = useCallback(() => {
     setFabMenuOpen(false);
