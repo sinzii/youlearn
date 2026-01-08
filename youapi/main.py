@@ -456,10 +456,18 @@ Keep it concise — focus on what matters most."""
 
     return f"""{instruction}
 
-{base_rules}{language_instruction}
+{base_rules}
 
-Transcript:
-{transcript_text}"""
+CRITICAL: Follow the language instruction below 
+<language_instruction>
+{language_instruction}
+</language_instruction>
+
+Video Transcript:
+<transcript>
+{transcript_text}
+</transcript>
+"""
 
 
 @app.post("/summarize")
@@ -484,7 +492,7 @@ async def summarize_video(request: SummarizeRequest):
 
         # Build language instruction if specified
         language_name = get_language_name(request.language)
-        language_instruction = f"\n\nIMPORTANT: Write the entire summary in {language_name}." if language_name else ""
+        language_instruction = f"IMPORTANT: Write the entire summary in {language_name}." if language_name else ""
 
         # Get prompt based on detail level
         prompt = get_summary_prompt(request.detail_level, transcript_text, language_instruction)

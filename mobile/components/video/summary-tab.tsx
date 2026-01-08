@@ -69,6 +69,10 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const [fabMenuOpen, setFabMenuOpen] = useState(false);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
+  // Pending state for modal selections (applied on Save)
+  const [pendingDetailLevel, setPendingDetailLevel] = useState<DetailLevel | null>(null);
+  const [pendingLanguage, setPendingLanguage] = useState<LanguageCode | null>(null);
+
   const hasAutoTriggeredRef = useRef(false);
   const webViewRef = useRef<WebView>(null);
   const pendingMessagesRef = useRef<EmbedMessage[]>([]);
@@ -270,43 +274,56 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
 
   const handleOpenLanguageModal = useCallback(() => {
     setFabMenuOpen(false);
+    // Initialize pending state with current values
+    setPendingDetailLevel(currentDetailLevel);
+    setPendingLanguage(currentContentLanguage);
     setLanguageModalVisible(true);
+  }, [currentDetailLevel, currentContentLanguage]);
+
+  const handleCancel = useCallback(() => {
+    setLanguageModalVisible(false);
+    // Pending state will be reset on next open
   }, []);
 
-  const handleLanguageChange = useCallback(async (newLanguage: LanguageCode) => {
+  const handleSave = useCallback(async () => {
     setLanguageModalVisible(false);
+
+    const detailChanged = pendingDetailLevel !== currentDetailLevel;
+    const languageChanged = pendingLanguage !== currentContentLanguage;
+
+    // No changes, nothing to do
+    if (!detailChanged && !languageChanged) return;
 
     // Only clear suggestedQuestions if chat history is empty
     const hasChatHistory = video?.chatMessages && video.chatMessages.length > 0;
+
+    // Apply changes and regenerate
     updateVideo({
       summary: null,
-      chapters: null,
+      chapters: languageChanged ? null : video?.chapters,
       suggestedQuestions: hasChatHistory ? video?.suggestedQuestions : null,
-      contentLanguage: newLanguage,
+      detailLevel: pendingDetailLevel!,
+      contentLanguage: pendingLanguage!,
     });
 
-    // Start new summary stream with selected language
     const token = await getToken();
-    if (token) {
-      startSummaryStream(videoId, transcript, token, dispatch, newLanguage, currentDetailLevel);
+    if (token && pendingDetailLevel && pendingLanguage) {
+      startSummaryStream(videoId, transcript, token, dispatch, pendingLanguage, pendingDetailLevel);
     }
-  }, [videoId, transcript, getToken, dispatch, updateVideo, video?.chatMessages, video?.suggestedQuestions, currentDetailLevel]);
-
-  const handleDetailLevelChange = useCallback(async (newDetailLevel: DetailLevel) => {
-    setLanguageModalVisible(false);
-
-    // Update video cache with new detail level and clear summary
-    updateVideo({
-      summary: null,
-      detailLevel: newDetailLevel,
-    });
-
-    // Start new summary stream with selected detail level
-    const token = await getToken();
-    if (token) {
-      startSummaryStream(videoId, transcript, token, dispatch, currentContentLanguage, newDetailLevel);
-    }
-  }, [videoId, transcript, getToken, dispatch, updateVideo, currentContentLanguage]);
+  }, [
+    pendingDetailLevel,
+    pendingLanguage,
+    currentDetailLevel,
+    currentContentLanguage,
+    video?.chatMessages,
+    video?.suggestedQuestions,
+    video?.chapters,
+    updateVideo,
+    getToken,
+    videoId,
+    transcript,
+    dispatch,
+  ]);
 
   // Auto-trigger summarization when transcript is available
   useEffect(() => {
@@ -449,15 +466,22 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
         visible={languageModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setLanguageModalVisible(false)}
+        onRequestClose={handleCancel}
       >
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
           <View style={[styles.modalHeader, { borderBottomColor: theme.colors.greyOutline }]}>
+            <Pressable onPress={handleCancel} hitSlop={10}>
+              <Text style={[styles.modalHeaderButton, { color: theme.colors.grey4 }]}>
+                Cancel
+              </Text>
+            </Pressable>
             <Text style={[styles.modalTitle, { color: theme.colors.black }]}>
               Content Settings
             </Text>
-            <Pressable onPress={() => setLanguageModalVisible(false)} hitSlop={10}>
-              <MaterialIcons name="close" size={24} color={theme.colors.black} />
+            <Pressable onPress={handleSave} hitSlop={10}>
+              <Text style={[styles.modalHeaderButton, { color: theme.colors.primary }]}>
+                Save
+              </Text>
             </Pressable>
           </View>
 
@@ -468,7 +492,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
             </Text>
             <View style={[styles.toggleContainer, { backgroundColor: theme.colors.grey0 }]}>
               {DETAIL_LEVEL_OPTIONS.map((option: DetailLevelOption) => {
-                const isSelected = option.code === currentDetailLevel;
+                const isSelected = option.code === pendingDetailLevel;
                 return (
                   <TouchableOpacity
                     key={option.code}
@@ -476,7 +500,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
                       styles.toggleButton,
                       isSelected && [styles.toggleButtonActive, { backgroundColor: theme.colors.primary }],
                     ]}
-                    onPress={() => handleDetailLevelChange(option.code)}
+                    onPress={() => setPendingDetailLevel(option.code)}
                   >
                     <Text
                       style={[
@@ -503,14 +527,14 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
             data={LANGUAGE_OPTIONS}
             keyExtractor={(item) => item.code}
             renderItem={({ item }: { item: LanguageOption }) => {
-              const isSelected = item.code === currentContentLanguage;
+              const isSelected = item.code === pendingLanguage;
               return (
                 <Pressable
                   style={[
                     styles.languageOption,
                     { backgroundColor: isSelected ? theme.colors.grey0 : 'transparent' },
                   ]}
-                  onPress={() => handleLanguageChange(item.code)}
+                  onPress={() => setPendingLanguage(item.code)}
                 >
                   <View style={styles.languageOptionText}>
                     <Text style={[styles.languageOptionName, { color: theme.colors.black }]}>
@@ -628,6 +652,10 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
+  },
+  modalHeaderButton: {
+    fontSize: 16,
+    fontWeight: '500',
   },
   languageOption: {
     flexDirection: 'row',
