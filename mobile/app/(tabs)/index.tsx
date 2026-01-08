@@ -131,19 +131,23 @@ export default function NewScreen() {
               </Text>
 
               {/* Summary Detail Level */}
-              <View style={styles.detailLevelSection}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.black }]}>
+              <View style={styles.rowSection}>
+                <Text style={[styles.rowLabel, { color: theme.colors.black }]}>
                   Detail
                 </Text>
-                <DetailLevelSelector />
+                <View style={styles.rowControl}>
+                  <DetailLevelSelector />
+                </View>
               </View>
 
               {/* Language Selector */}
-              <View style={styles.languageSection}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.black }]}>
+              <View style={styles.rowSection}>
+                <Text style={[styles.rowLabel, { color: theme.colors.black }]}>
                   Language
                 </Text>
-                <LanguageSelector />
+                <View style={styles.rowControl}>
+                  <LanguageSelector />
+                </View>
               </View>
             </View>
 
@@ -195,12 +199,22 @@ const styles = StyleSheet.create({
   form: {
     gap: 4,
   },
-  detailLevelSection: {
-    marginTop: 4,
-    marginBottom: 16,
+  rowSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    gap: 12,
   },
-  languageSection: {
-    marginTop: 4,
+  rowLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    opacity: 0.7,
+    width: 80,
+  },
+  rowControl: {
+    flex: 1,
   },
   errorText: {
     color: '#ef4444',
