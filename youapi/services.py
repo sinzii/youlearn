@@ -2,7 +2,9 @@ import os
 from enum import StrEnum
 
 from convex import ConvexClient
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class Source(StrEnum):
     """Enum for video sources."""
