@@ -3,6 +3,7 @@ import { StyleSheet, FlatList, ListRenderItem, View, TouchableOpacity } from 're
 import { Text, useTheme, Skeleton } from '@rneui/themed';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useTranslation } from 'react-i18next';
 
 import { Chapter } from '@/lib/api';
 
@@ -36,6 +37,7 @@ interface ChapterWithDuration extends Chapter {
 
 export function ChaptersTab({ chapters, videoLength, loading, selectedIndex, onChapterPress }: ChaptersTabProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   // Calculate duration for each chapter
   const chaptersWithDuration: ChapterWithDuration[] = chapters.map((chapter, index) => {
@@ -118,7 +120,7 @@ export function ChaptersTab({ chapters, videoLength, loading, selectedIndex, onC
     return (
       <View style={styles.emptyContainer}>
         <Text style={[styles.emptyText, { color: theme.colors.grey4 }]}>
-          No chapters available
+          {t('chapters.empty')}
         </Text>
       </View>
     );

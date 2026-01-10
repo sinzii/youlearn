@@ -1,0 +1,88 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "done": "Done",
+    "clear": "Clear"
+  },
+  "tabs": {
+    "history": "History",
+    "new": "New",
+    "settings": "Settings"
+  },
+  "home": {
+    "appName": "VideoInsight",
+    "subtitle": "Summarize, ask and learn from Youtube videos with AI",
+    "placeholder": "Paste YouTube URL",
+    "paste": "Paste",
+    "invalidUrl": "Invalid YouTube URL. Please paste a valid link.",
+    "detail": "Detail",
+    "language": "Language",
+    "tryExample": "Try an example"
+  },
+  "history": {
+    "title": "History",
+    "clearTitle": "Clear History",
+    "clearMessage": "Are you sure you want to clear all video history? This cannot be undone.",
+    "empty": "No videos yet",
+    "emptySubtext": "Add a video to start learning"
+  },
+  "auth": {
+    "appName": "VideoInsight",
+    "subtitle": "Learn from YouTube videos with AI-powered summaries and chat",
+    "continueGoogle": "Continue with Google",
+    "terms": "By continuing, you agree to our Terms of Service and Privacy Policy"
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "displayLanguage": "Display Language",
+    "signOut": "Sign Out"
+  },
+  "video": {
+    "details": "Video Details",
+    "untitled": "Untitled Video",
+    "summary": "Summary",
+    "chapters": "Chapters",
+    "ask": "Ask"
+  },
+  "language": {
+    "selectDisplayLanguage": "Select Display Language",
+    "selectContentLanguage": "Select Content Language",
+    "auto": "Auto (System)"
+  },
+  "summary": {
+    "generate": "Generate a summary of this video's content",
+    "summarize": "Summarize",
+    "generating": "Generating summary...",
+    "contentSettings": "Content Settings",
+    "summaryDetail": "Summary Detail",
+    "language": "Language",
+    "resummarize": "Resummarize",
+    "resummarizeMessage": "Regenerate summary in {{language}} with {{detail}} detail?",
+    "explain": "Explain",
+    "failedToLoad": "Failed to load content renderer. Please check your connection."
+  },
+  "chat": {
+    "quickQuestions": "Quick questions",
+    "emptyState": "Ask questions about the video content",
+    "context": "Context:",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "errorAuth": "Error: Not authenticated"
+  },
+  "chapters": {
+    "empty": "No chapters available"
+  },
+  "detailLevel": {
+    "tldr": "Key Insights",
+    "summary": "Summary"
+  }
+}

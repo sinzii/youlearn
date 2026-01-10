@@ -3,11 +3,13 @@ import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useTheme } from '@rneui/themed';
+import { useTranslation } from 'react-i18next';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
 export default function TabLayout() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { isSignedIn, isLoaded } = useAuth();
 
   if (!isLoaded) {
@@ -40,21 +42,21 @@ export default function TabLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: 'History',
+          title: t('tabs.history'),
           tabBarIcon: ({ color }) => <IconSymbol size={20} name="clock.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="index"
         options={{
-          title: 'New',
+          title: t('tabs.new'),
           tabBarIcon: ({ color }) => <IconSymbol size={20} name="plus.app.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: t('tabs.settings'),
           tabBarIcon: ({ color }) => <IconSymbol size={20} name="gearshape.fill" color={color} />,
         }}
       />

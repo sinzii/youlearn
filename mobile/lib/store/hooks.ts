@@ -5,6 +5,7 @@ import themeReducer from './slices/themeSlice';
 import videosReducer from './slices/videosSlice';
 import streamingReducer from './slices/streamingSlice';
 import languageReducer from './slices/languageSlice';
+import displayLanguageReducer from './slices/displayLanguageSlice';
 import {
   setPreferredLanguage as setPreferredLanguageAction,
   setDetailLevel as setDetailLevelAction,
@@ -13,6 +14,11 @@ import {
   LANGUAGE_OPTIONS,
   DETAIL_LEVEL_OPTIONS,
 } from './slices/languageSlice';
+import {
+  setDisplayLanguage as setDisplayLanguageAction,
+  DisplayLanguageCode,
+  DISPLAY_LANGUAGE_OPTIONS,
+} from './slices/displayLanguageSlice';
 import {
   updateVideo as updateVideoAction,
   removeVideo as removeVideoAction,
@@ -32,6 +38,7 @@ type RootState = {
   videos: ReturnType<typeof videosReducer>;
   streaming: ReturnType<typeof streamingReducer>;
   language: ReturnType<typeof languageReducer>;
+  displayLanguage: ReturnType<typeof displayLanguageReducer>;
 };
 type AppDispatch = ReturnType<typeof useDispatch>;
 
@@ -179,9 +186,31 @@ export function useDetailLevelOptions() {
   return DETAIL_LEVEL_OPTIONS;
 }
 
+// ============ Display Language Hooks ============
+
+export function useDisplayLanguage(): DisplayLanguageCode {
+  return useAppSelector((state) => state.displayLanguage.displayLanguage);
+}
+
+export function useSetDisplayLanguage() {
+  const dispatch = useAppDispatch();
+  return useCallback(
+    (language: DisplayLanguageCode) => {
+      dispatch(setDisplayLanguageAction(language));
+    },
+    [dispatch]
+  );
+}
+
+export function useDisplayLanguageOptions() {
+  return DISPLAY_LANGUAGE_OPTIONS;
+}
+
 // Re-export types for convenience
 export type { ThemePreference } from './slices/themeSlice';
 export type { VideoCache, VideosState } from './slices/videosSlice';
 export type { VideoStreamingState, StreamingState } from './slices/streamingSlice';
 export type { LanguageCode, LanguageOption, DetailLevel, DetailLevelOption } from './slices/languageSlice';
+export type { DisplayLanguageCode } from './slices/displayLanguageSlice';
 export { LANGUAGE_OPTIONS, DETAIL_LEVEL_OPTIONS } from './slices/languageSlice';
+export { DISPLAY_LANGUAGE_OPTIONS } from './slices/displayLanguageSlice';

@@ -6,27 +6,49 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import {
-  LANGUAGE_OPTIONS,
-  LanguageCode,
-  LanguageOption,
-  usePreferredLanguage,
-  useSetPreferredLanguage,
-} from '@/lib/store';
+  DisplayLanguageCode,
+  DISPLAY_LANGUAGE_OPTIONS,
+} from '@/lib/store/slices/displayLanguageSlice';
 
-export function LanguageSelector() {
+import {
+  useDisplayLanguage,
+  useSetDisplayLanguage,
+} from '@/lib/store/hooks';
+import { changeLanguage } from '@/lib/i18n';
+
+interface DisplayLanguageOption {
+  code: DisplayLanguageCode;
+  name: string;
+  nativeName: string;
+}
+
+export function DisplayLanguageSelector() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const preferredLanguage = usePreferredLanguage();
-  const setPreferredLanguage = useSetPreferredLanguage();
+  const displayLanguage = useDisplayLanguage();
+  const setDisplayLanguage = useSetDisplayLanguage();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const selectedOption = LANGUAGE_OPTIONS.find(
-    (opt: LanguageOption) => opt.code === preferredLanguage
-  ) || LANGUAGE_OPTIONS[0];
+  const selectedOption =
+    DISPLAY_LANGUAGE_OPTIONS.find(
+      (opt: DisplayLanguageOption) => opt.code === displayLanguage
+    ) || DISPLAY_LANGUAGE_OPTIONS[0];
 
-  const handleSelect = (code: LanguageCode) => {
-    setPreferredLanguage(code);
+  const handleSelect = (code: DisplayLanguageCode) => {
+    setDisplayLanguage(code);
+    changeLanguage(code); // Update i18n immediately
     setModalVisible(false);
+  };
+
+  // Translate the "Auto" option dynamically, show both name and nativeName when different
+  const getOptionLabel = (option: DisplayLanguageOption) => {
+    if (option.code === 'auto') {
+      return t('language.auto');
+    }
+    if (option.name !== option.nativeName) {
+      return `${option.name} / ${option.nativeName}`;
+    }
+    return option.name;
   };
 
   return (
@@ -39,11 +61,10 @@ export function LanguageSelector() {
             borderColor: theme.colors.greyOutline,
           },
         ]}
-        onPress={() => setModalVisible(true)}
-      >
-        <MaterialIcons name="translate" size={18} color={theme.colors.grey4} />
+        onPress={() => setModalVisible(true)}>
+        <MaterialIcons name="language" size={18} color={theme.colors.grey4} />
         <Text style={[styles.selectedText, { color: theme.colors.black }]}>
-          {selectedOption.name}
+          {getOptionLabel(selectedOption)}
         </Text>
         <MaterialIcons name="arrow-drop-down" size={24} color={theme.colors.grey4} />
       </Pressable>
@@ -52,12 +73,12 @@ export function LanguageSelector() {
         visible={modalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
+        onRequestClose={() => setModalVisible(false)}>
+        <SafeAreaView
+          style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
           <View style={[styles.modalHeader, { borderBottomColor: theme.colors.greyOutline }]}>
             <Text style={[styles.modalTitle, { color: theme.colors.black }]}>
-              {t('language.selectContentLanguage')}
+              {t('language.selectDisplayLanguage')}
             </Text>
             <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
               <MaterialIcons name="close" size={24} color={theme.colors.black} />
@@ -65,25 +86,26 @@ export function LanguageSelector() {
           </View>
 
           <FlatList
-            data={LANGUAGE_OPTIONS}
+            data={DISPLAY_LANGUAGE_OPTIONS}
             keyExtractor={(item) => item.code}
             renderItem={({ item }) => {
-              const isSelected = item.code === preferredLanguage;
+              const isSelected = item.code === displayLanguage;
               return (
                 <Pressable
                   style={[
                     styles.option,
                     { backgroundColor: isSelected ? theme.colors.grey0 : 'transparent' },
                   ]}
-                  onPress={() => handleSelect(item.code)}
-                >
+                  onPress={() => handleSelect(item.code)}>
                   <View style={styles.optionText}>
                     <Text style={[styles.optionName, { color: theme.colors.black }]}>
-                      {item.name}
+                      {getOptionLabel(item)}
                     </Text>
-                    <Text style={[styles.optionNative, { color: theme.colors.grey4 }]}>
-                      {item.nativeName}
-                    </Text>
+                    {item.code !== 'auto' && (
+                      <Text style={[styles.optionNative, { color: theme.colors.grey4 }]}>
+                        {item.nativeName}
+                      </Text>
+                    )}
                   </View>
                   {isSelected && (
                     <MaterialIcons name="check" size={20} color={theme.colors.primary} />
@@ -103,8 +125,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
+    paddingVertical: 10,
+    borderRadius: 12,
     borderWidth: 1,
     gap: 8,
   },

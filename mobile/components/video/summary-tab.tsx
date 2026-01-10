@@ -21,6 +21,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Text, Button, useTheme } from '@rneui/themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { segmentsToText } from '@/utils/transcript';
 import {
@@ -61,6 +62,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
   const { theme } = useTheme();
   const { getToken } = useAuth();
   const colorScheme = useColorScheme();
+  const { t } = useTranslation();
 
   const [error, setError] = useState<string | null>(null);
   const [webViewReady, setWebViewReady] = useState(false);
@@ -266,14 +268,14 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
     const detailLabel = DETAIL_LEVEL_OPTIONS.find(opt => opt.code === currentDetailLevel)?.label || currentDetailLevel;
 
     Alert.alert(
-      'Resummarize',
-      `Regenerate summary in ${languageName} with ${detailLabel} detail?`,
+      t('summary.resummarize'),
+      t('summary.resummarizeMessage', { language: languageName, detail: detailLabel }),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Resummarize', onPress: () => handleSummarize() },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('summary.resummarize'), onPress: () => handleSummarize() },
       ]
     );
-  }, [handleSummarize, currentContentLanguage, currentDetailLevel]);
+  }, [handleSummarize, currentContentLanguage, currentDetailLevel, t]);
 
   const handleOpenLanguageModal = useCallback(() => {
     setFabMenuOpen(false);
@@ -350,10 +352,10 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={[styles.emptyText, { color: theme.colors.grey4 }]}>
-          Generate a summary of this video&#39;s content
+          {t('summary.generate')}
         </Text>
         <Button
-          title="Summarize"
+          title={t('summary.summarize')}
           onPress={handleSummarize}
           size="sm"
         />
@@ -368,7 +370,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
       <View style={styles.emptyContainer}>
         <Text style={styles.errorText}>{webViewError}</Text>
         <Button
-          title="Retry"
+          title={t('common.retry')}
           onPress={handleRetry}
           size="sm"
         />
@@ -383,7 +385,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
           <Text style={[styles.loadingText, { color: theme.colors.grey4 }]}>
-            Generating summary...
+            {t('summary.generating')}
           </Text>
         </View>
       )}
@@ -405,8 +407,8 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
             startInLoadingState={false}
             scalesPageToFit={false}
             menuItems={[
-              { label: 'Explain', key: 'explain' },
-              { label: 'Ask', key: 'ask' },
+              { label: t('summary.explain'), key: 'explain' },
+              { label: t('video.ask'), key: 'ask' },
             ]}
             onCustomMenuSelection={handleCustomMenuSelection}
             // @ts-expect-error backgroundColor is valid for WebView
@@ -475,15 +477,15 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
           <View style={[styles.modalHeader, { borderBottomColor: theme.colors.greyOutline }]}>
             <Pressable onPress={handleCancel} hitSlop={10}>
               <Text style={[styles.modalHeaderButton, { color: theme.colors.grey4 }]}>
-                Cancel
+                {t('common.cancel')}
               </Text>
             </Pressable>
             <Text style={[styles.modalTitle, { color: theme.colors.black }]}>
-              Content Settings
+              {t('summary.contentSettings')}
             </Text>
             <Pressable onPress={handleSave} hitSlop={10}>
               <Text style={[styles.modalHeaderButton, { color: theme.colors.primary }]}>
-                Save
+                {t('common.save')}
               </Text>
             </Pressable>
           </View>
@@ -491,7 +493,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
           {/* Detail Level Toggle */}
           <View style={styles.detailLevelSection}>
             <Text style={[styles.sectionLabel, { color: theme.colors.grey4 }]}>
-              Summary Detail
+              {t('summary.summaryDetail')}
             </Text>
             <View style={[styles.toggleContainer, { backgroundColor: theme.colors.grey0 }]}>
               {DETAIL_LEVEL_OPTIONS.map((option: DetailLevelOption) => {
@@ -511,7 +513,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
                         { color: isSelected ? '#fff' : theme.colors.grey4 },
                       ]}
                     >
-                      {option.label}
+                      {t(`detailLevel.${option.code}`)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -522,7 +524,7 @@ export function SummaryTab({ videoId, onTextAction }: SummaryTabProps) {
           {/* Language Section Label */}
           <View style={styles.languageSectionHeader}>
             <Text style={[styles.sectionLabel, { color: theme.colors.grey4 }]}>
-              Language
+              {t('summary.language')}
             </Text>
           </View>
 

@@ -14,6 +14,7 @@ import { store, persistor } from '@/lib/store';
 import { rneTheme, navigationLightTheme, navigationDarkTheme } from '@/constants/rne-theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useShareIntentHandler } from '@/hooks/useShareIntentHandler';
+import { I18nProvider } from '@/components/I18nProvider';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -113,11 +114,13 @@ export default function RootLayout() {
     >
       <ReduxProvider store={store}>
         <PersistGate loading={<RehydrationLoading />} persistor={persistor}>
-          <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-            <ClerkLoaded>
-              <RootLayoutNav />
-            </ClerkLoaded>
-          </ClerkProvider>
+          <I18nProvider>
+            <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+              <ClerkLoaded>
+                <RootLayoutNav />
+              </ClerkLoaded>
+            </ClerkProvider>
+          </I18nProvider>
         </PersistGate>
       </ReduxProvider>
     </ShareIntentProvider>

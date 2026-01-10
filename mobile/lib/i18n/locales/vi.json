@@ -1,0 +1,88 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "retry": "Thử lại",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "close": "Đóng",
+    "done": "Xong",
+    "clear": "Xóa"
+  },
+  "tabs": {
+    "history": "Lịch sử",
+    "new": "Mới",
+    "settings": "Cài đặt"
+  },
+  "home": {
+    "appName": "VideoInsight",
+    "subtitle": "Tóm tắt, hỏi đáp và học từ video Youtube với AI",
+    "placeholder": "Dán link YouTube",
+    "paste": "Dán",
+    "invalidUrl": "Link YouTube không hợp lệ. Vui lòng dán một link hợp lệ.",
+    "detail": "Chi tiết",
+    "language": "Ngôn ngữ",
+    "tryExample": "Thử một ví dụ"
+  },
+  "history": {
+    "title": "Lịch sử",
+    "clearTitle": "Xóa lịch sử",
+    "clearMessage": "Bạn có chắc muốn xóa tất cả lịch sử video? Hành động này không thể hoàn tác.",
+    "empty": "Chưa có video nào",
+    "emptySubtext": "Thêm video để bắt đầu học"
+  },
+  "auth": {
+    "appName": "VideoInsight",
+    "subtitle": "Học từ video YouTube với tóm tắt và trò chuyện AI",
+    "continueGoogle": "Tiếp tục với Google",
+    "terms": "Bằng việc tiếp tục, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của chúng tôi"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "theme": "Giao diện",
+    "themeLight": "Sáng",
+    "themeDark": "Tối",
+    "themeSystem": "Hệ thống",
+    "displayLanguage": "Ngôn ngữ hiển thị",
+    "signOut": "Đăng xuất"
+  },
+  "video": {
+    "details": "Chi tiết video",
+    "untitled": "Video không có tiêu đề",
+    "summary": "Tóm tắt",
+    "chapters": "Chương",
+    "ask": "Hỏi"
+  },
+  "language": {
+    "selectDisplayLanguage": "Chọn ngôn ngữ hiển thị",
+    "selectContentLanguage": "Chọn ngôn ngữ nội dung",
+    "auto": "Tự động (Hệ thống)"
+  },
+  "summary": {
+    "generate": "Tạo tóm tắt nội dung video này",
+    "summarize": "Tóm tắt",
+    "generating": "Đang tạo tóm tắt...",
+    "contentSettings": "Cài đặt nội dung",
+    "summaryDetail": "Mức độ chi tiết",
+    "language": "Ngôn ngữ",
+    "resummarize": "Tóm tắt lại",
+    "resummarizeMessage": "Tạo lại tóm tắt bằng {{language}} với mức độ {{detail}}?",
+    "explain": "Giải thích",
+    "failedToLoad": "Không thể tải trình hiển thị nội dung. Vui lòng kiểm tra kết nối."
+  },
+  "chat": {
+    "quickQuestions": "Câu hỏi nhanh",
+    "emptyState": "Đặt câu hỏi về nội dung video",
+    "context": "Ngữ cảnh:",
+    "placeholder": "Nhập tin nhắn...",
+    "send": "Gửi",
+    "errorAuth": "Lỗi: Chưa xác thực"
+  },
+  "chapters": {
+    "empty": "Không có chương nào"
+  },
+  "detailLevel": {
+    "tldr": "Ý chính",
+    "summary": "Tóm tắt"
+  }
+}

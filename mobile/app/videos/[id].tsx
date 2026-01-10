@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-expo';
-import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   useWindowDimensions,
@@ -20,6 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Text, useTheme, Skeleton } from '@rneui/themed';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 
 import { SummaryTab } from '@/components/video/summary-tab';
 import { ChatTab } from '@/components/video/chat-tab';
@@ -42,10 +43,11 @@ interface PendingAction {
   text: string;
 }
 
-const TAB_CONFIG: { key: TabType; label: string; icon: 'article' | 'question-answer' | 'view-list' }[] = [
-  { key: 'summary', label: 'Summary', icon: 'article' },
-  { key: 'chapters', label: 'Chapters', icon: 'view-list' },
-  { key: 'ask', label: 'Ask', icon: 'question-answer' },
+type TabConfigItem = { key: TabType; labelKey: string; icon: 'article' | 'question-answer' | 'view-list' };
+const TAB_CONFIG: TabConfigItem[] = [
+  { key: 'summary', labelKey: 'video.summary', icon: 'article' },
+  { key: 'chapters', labelKey: 'video.chapters', icon: 'view-list' },
+  { key: 'ask', labelKey: 'video.ask', icon: 'question-answer' },
 ];
 
 function LoadingSkeleton() {
@@ -114,6 +116,7 @@ export default function VideoDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { getToken } = useAuth();
   const navigation = useNavigation();
 
@@ -151,7 +154,7 @@ export default function VideoDetailsScreen() {
   });
 
   // Configure header with title and toggle button
-  const headerTitle = cachedVideo?.title || 'Video Details';
+  const headerTitle = cachedVideo?.title || t('video.details');
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -366,7 +369,7 @@ export default function VideoDetailsScreen() {
         )}
         <View style={styles.titleInfo}>
           <Text style={[styles.title, { color: theme.colors.black }]} numberOfLines={2}>
-            {cachedVideo?.title || 'Untitled Video'}
+            {cachedVideo?.title || t('video.untitled')}
           </Text>
           <View style={styles.metaRow}>
             {cachedVideo?.author && (
@@ -390,7 +393,7 @@ export default function VideoDetailsScreen() {
       <View
         style={[styles.tabBar, { borderBottomColor: theme.colors.greyOutline }]}
       >
-        {TAB_CONFIG.map(({ key, label, icon }) => (
+        {TAB_CONFIG.map(({ key, labelKey, icon }) => (
           <TouchableOpacity
             key={key}
             style={styles.tabButton}
@@ -409,7 +412,7 @@ export default function VideoDetailsScreen() {
                   activeTab === key && { fontWeight: '600' },
                 ]}
               >
-                {label}
+                {t(labelKey as any)}
               </Text>
             </View>
             {activeTab === key && (

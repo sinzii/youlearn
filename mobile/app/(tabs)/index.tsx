@@ -18,6 +18,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 
 import { extractVideoId } from '@/utils/youtube';
 import { DetailLevelSelector } from '@/components/DetailLevelSelector';
@@ -34,6 +35,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export default function NewScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [focusKey, setFocusKey] = useState(0);
 
@@ -76,7 +78,7 @@ export default function NewScreen() {
         setError(null);
         router.push({ pathname: '/videos/[id]', params: { id: videoId } });
       } else {
-        setError('Invalid YouTube URL. Please paste a valid link.');
+        setError(t('home.invalidUrl'));
         triggerShake();
       }
     }
@@ -96,16 +98,16 @@ export default function NewScreen() {
             {/* Title Section */}
             <View style={styles.header}>
               <Text style={[styles.title, { color: theme.colors.black }]}>
-                VideoInsight
+                {t('home.appName')}
               </Text>
               <Text style={[styles.subtitle, { color: theme.colors.black }]}>
-                Summarize, ask and learn from Youtube videos with AI
+                {t('home.subtitle')}
               </Text>
             </View>
 
             <View style={styles.form}>
               <Input
-                placeholder="Paste YouTube URL"
+                placeholder={t('home.placeholder')}
                 editable={false}
                 renderErrorMessage={false}
                 rightIcon={
@@ -113,7 +115,7 @@ export default function NewScreen() {
                     onPress={handlePaste}
                     style={[styles.pasteButton, { backgroundColor: theme.colors.primary }, shakeStyle]}
                   >
-                    <Text style={styles.pasteButtonText}>Paste</Text>
+                    <Text style={styles.pasteButtonText}>{t('home.paste')}</Text>
                     <MaterialIcons name="content-paste" size={16} color="#fff" />
                   </AnimatedPressable>
                 }
@@ -133,7 +135,7 @@ export default function NewScreen() {
               {/* Summary Detail Level */}
               <View style={styles.rowSection}>
                 <Text style={[styles.rowLabel, { color: theme.colors.black }]}>
-                  Detail
+                  {t('home.detail')}
                 </Text>
                 <View style={styles.rowControl}>
                   <DetailLevelSelector />
@@ -143,7 +145,7 @@ export default function NewScreen() {
               {/* Language Selector */}
               <View style={styles.rowSection}>
                 <Text style={[styles.rowLabel, { color: theme.colors.black }]}>
-                  Language
+                  {t('home.language')}
                 </Text>
                 <View style={styles.rowControl}>
                   <LanguageSelector />
@@ -154,7 +156,7 @@ export default function NewScreen() {
             {/* Example Videos */}
             <View style={styles.exampleSection}>
               <Text style={[styles.sectionTitle, { color: theme.colors.black }]}>
-                Try an example
+                {t('home.tryExample')}
               </Text>
               {EXAMPLE_VIDEOS.map((video) => (
                 <Pressable

@@ -3,21 +3,24 @@ import { useCallback } from 'react';
 import { StyleSheet, Image, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Button, useTheme } from '@rneui/themed';
+import { useTranslation } from 'react-i18next';
 
 import { ThemePreference, useThemePreference, useSetThemePreference } from '@/lib/store';
-
-const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'system', label: 'System' },
-];
+import { DisplayLanguageSelector } from '@/components/DisplayLanguageSelector';
 
 export default function SettingsScreen() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { user } = useUser();
   const { signOut } = useClerk();
   const themePreference = useThemePreference();
   const setThemePreference = useSetThemePreference();
+
+  const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+    { value: 'light', label: t('settings.themeLight') },
+    { value: 'dark', label: t('settings.themeDark') },
+    { value: 'system', label: t('settings.themeSystem') },
+  ];
 
   const handleSignOut = useCallback(async () => {
     await signOut();
@@ -27,7 +30,7 @@ export default function SettingsScreen() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <Text style={[styles.title, { color: theme.colors.black }]}>
-          Settings
+          {t('settings.title')}
         </Text>
 
         <View
@@ -47,7 +50,9 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.grey4 }]}>Theme</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.grey4 }]}>
+            {t('settings.theme')}
+          </Text>
           <View
             style={[
               styles.segmentedControl,
@@ -79,8 +84,15 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.grey4 }]}>
+            {t('settings.displayLanguage')}
+          </Text>
+          <DisplayLanguageSelector />
+        </View>
+
         <Button
-          title="Sign Out"
+          title={t('settings.signOut')}
           onPress={handleSignOut}
         />
       </View>

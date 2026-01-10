@@ -22,6 +22,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Markdown from 'react-native-markdown-display';
 import { Text, Input, Button, useTheme } from '@rneui/themed';
+import { useTranslation } from 'react-i18next';
 
 import { ChatMessage } from '@/lib/api';
 import { segmentsToText } from '@/utils/transcript';
@@ -92,6 +93,7 @@ interface SuggestedQuestionsProps {
   onQuestionPress: (question: string) => void;
   disabled: boolean;
   theme: ReturnType<typeof useTheme>['theme'];
+  t: ReturnType<typeof useTranslation>['t'];
 }
 
 function SuggestedQuestions({
@@ -99,11 +101,12 @@ function SuggestedQuestions({
   onQuestionPress,
   disabled,
   theme,
+  t,
 }: SuggestedQuestionsProps) {
   return (
     <View style={suggestedStyles.container}>
       <Text style={[suggestedStyles.title, { color: theme.colors.grey4 }]}>
-        Quick questions
+        {t('chat.quickQuestions')}
       </Text>
       <View style={suggestedStyles.questionsContainer}>
         {questions.map((question, index) => (
@@ -154,6 +157,7 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
   const preferredLanguage = usePreferredLanguage();
   const transcript = video?.transcript ? segmentsToText(video.transcript.segments) : '';
   const {theme} = useTheme();
+  const { t } = useTranslation();
   const {getToken} = useAuth();
   const [input, setInput] = useState('');
   const [contextText, setContextText] = useState<string | null>(null);
@@ -367,6 +371,7 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
           onQuestionPress={handleSuggestedQuestionPress}
           disabled={isLoading}
           theme={theme}
+          t={t}
         />
       );
     }
@@ -374,11 +379,11 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
     return (
       <View style={styles.emptyContainer}>
         <Text style={[styles.emptyText, { color: theme.colors.grey4 }]}>
-          Ask questions about the video content
+          {t('chat.emptyState')}
         </Text>
       </View>
     );
-  }, [suggestedQuestions, handleSuggestedQuestionPress, isLoading, theme]);
+  }, [suggestedQuestions, handleSuggestedQuestionPress, isLoading, theme, t]);
 
   return (
     <KeyboardAvoidingView
@@ -410,7 +415,7 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
       <SafeAreaView edges={['bottom']}>
         {contextText && (
           <View style={[styles.contextContainer, { backgroundColor: theme.colors.grey0, borderTopColor: theme.colors.grey1 }]}>
-            <Text style={[styles.contextLabel, { color: theme.colors.grey4 }]}>Context:</Text>
+            <Text style={[styles.contextLabel, { color: theme.colors.grey4 }]}>{t('chat.context')}</Text>
             <Text style={[styles.contextText, { color: theme.colors.black }]} numberOfLines={1}>
               &quot;{contextText}&quot;
             </Text>
@@ -422,7 +427,7 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
         <View style={[styles.inputContainer, { borderTopColor: theme.colors.grey1 }]}>
           <Input
             ref={inputRef}
-            placeholder="Type a message..."
+            placeholder={t('chat.placeholder')}
             value={input}
             onChangeText={setInput}
             onSubmitEditing={handleSend}
@@ -439,7 +444,7 @@ export function ChatTab({ videoId, pendingAction, onActionHandled }: ChatTabProp
             renderErrorMessage={false}
           />
           <Button
-            title={isLoading ? '...' : 'Send'}
+            title={isLoading ? '...' : t('chat.send')}
             onPress={handleSend}
             disabled={isLoading || !input.trim()}
             size="sm"

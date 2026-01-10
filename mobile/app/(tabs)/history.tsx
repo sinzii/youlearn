@@ -4,6 +4,7 @@ import { StyleSheet, FlatList, View, Image, Alert, TouchableOpacity } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, ListItem, useTheme } from '@rneui/themed';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useTranslation } from 'react-i18next';
 
 import { useRecentVideos, useClearVideos, VideoCache } from '@/lib/store';
 import { formatDuration } from '@/lib/datetime';
@@ -11,6 +12,7 @@ import { formatDuration } from '@/lib/datetime';
 export default function HistoryScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const recentVideos = useRecentVideos();
   const clearVideos = useClearVideos();
 
@@ -20,18 +22,18 @@ export default function HistoryScreen() {
 
   const handleClearHistory = useCallback(() => {
     Alert.alert(
-      'Clear History',
-      'Are you sure you want to clear all video history? This cannot be undone.',
+      t('history.clearTitle'),
+      t('history.clearMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Clear',
+          text: t('common.clear'),
           style: 'destructive',
           onPress: () => clearVideos(),
         },
       ]
     );
-  }, [clearVideos]);
+  }, [clearVideos, t]);
 
   const renderVideoItem = ({ item }: { item: VideoCache }) => (
     <ListItem
@@ -70,9 +72,9 @@ export default function HistoryScreen() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Text style={[styles.emptyText, { color: theme.colors.black }]}>No videos yet</Text>
+      <Text style={[styles.emptyText, { color: theme.colors.black }]}>{t('history.empty')}</Text>
       <Text style={[styles.emptySubtext, { color: theme.colors.grey4 }]}>
-        Add a video to start learning
+        {t('history.emptySubtext')}
       </Text>
     </View>
   );
@@ -81,7 +83,7 @@ export default function HistoryScreen() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.black }]}>History</Text>
+          <Text style={[styles.title, { color: theme.colors.black }]}>{t('history.title')}</Text>
           {recentVideos.length > 0 && (
             <TouchableOpacity onPress={handleClearHistory} style={styles.clearButton}>
               <MaterialIcons name="delete-outline" size={24} color={theme.colors.grey4} />

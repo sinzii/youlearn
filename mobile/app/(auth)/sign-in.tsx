@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { Text, Button, useTheme } from '@rneui/themed';
+import { useTranslation } from 'react-i18next';
 
 // Warm up the browser for faster OAuth
 WebBrowser.maybeCompleteAuthSession();
@@ -16,6 +17,7 @@ export default function SignInScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   const { startSSOFlow } = useSSO();
 
@@ -44,10 +46,10 @@ export default function SignInScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.black }]}>
-            VideoInsight
+            {t('auth.appName')}
           </Text>
           <Text style={[styles.subtitle, { color: theme.colors.grey4 }]}>
-            Learn from YouTube videos with AI-powered summaries and chat
+            {t('auth.subtitle')}
           </Text>
         </View>
 
@@ -70,7 +72,7 @@ export default function SignInScreen() {
                   style={styles.googleIcon}
                 />
                 <Text style={styles.googleButtonText}>
-                  Continue with Google
+                  {t('auth.continueGoogle')}
                 </Text>
               </>
             )}
@@ -82,7 +84,7 @@ export default function SignInScreen() {
         </View>
 
         <Text style={[styles.terms, { color: theme.colors.grey4 }]}>
-          By continuing, you agree to our Terms of Service and Privacy Policy
+          {t('auth.terms')}
         </Text>
       </View>
     </View>

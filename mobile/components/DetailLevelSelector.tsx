@@ -1,5 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text, useTheme } from '@rneui/themed';
+import { useTranslation } from 'react-i18next';
 import {
   DETAIL_LEVEL_OPTIONS,
   DetailLevelOption,
@@ -12,6 +13,7 @@ import {
 
 export function DetailLevelSelector() {
   const {theme} = useTheme();
+  const { t } = useTranslation();
   const detailLevel = useDetailLevel();
   const setDetailLevel = useSetDetailLevel();
 
@@ -34,7 +36,7 @@ export function DetailLevelSelector() {
                 {color: isSelected ? '#fff' : theme.colors.grey4},
               ]}
             >
-              {option.label}
+              {t(`detailLevel.${option.code}`)}
             </Text>
           </TouchableOpacity>
         );
