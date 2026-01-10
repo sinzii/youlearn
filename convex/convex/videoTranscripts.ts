@@ -1,9 +1,11 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { validateApiKey } from "./auth";
 
 // Upsert video transcript
 export const upsert = mutation({
   args: {
+    apiKey: v.string(),
     source: v.string(),
     videoId: v.string(),
     languageCode: v.string(),
@@ -18,20 +20,24 @@ export const upsert = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    validateApiKey(args.apiKey);
+
+    const { apiKey, ...data } = args;
+
     const existing = await ctx.db
       .query("video_transcripts")
       .withIndex("by_source_and_video", (q) =>
-        q.eq("source", args.source).eq("videoId", args.videoId)
+        q.eq("source", data.source).eq("videoId", data.videoId)
       )
       .first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, { ...args, createdAt: Date.now() });
+      await ctx.db.patch(existing._id, { ...data, createdAt: Date.now() });
       return existing._id;
     }
 
     return await ctx.db.insert("video_transcripts", {
-      ...args,
+      ...data,
       createdAt: Date.now(),
     });
   },
@@ -39,8 +45,14 @@ export const upsert = mutation({
 
 // Get transcript by video
 export const getByVideo = query({
-  args: { source: v.string(), videoId: v.string() },
+  args: {
+    apiKey: v.string(),
+    source: v.string(),
+    videoId: v.string(),
+  },
   handler: async (ctx, args) => {
+    validateApiKey(args.apiKey);
+
     return await ctx.db
       .query("video_transcripts")
       .withIndex("by_source_and_video", (q) =>

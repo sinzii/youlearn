@@ -14,6 +14,7 @@ class Source(StrEnum):
 # Initialize Convex client
 convex_url = os.environ.get("CONVEX_URL")
 convex_client = ConvexClient(convex_url) if convex_url else None
+private_api_key = os.environ.get("PRIVATE_API_KEY")
 
 
 def save_summary_request(
@@ -31,6 +32,7 @@ def save_summary_request(
     convex_client.mutation(
         "summaryRequests:upsert",
         {
+            "apiKey": private_api_key,
             "userId": user_id,
             "source": source,
             "videoId": video_id,
@@ -48,5 +50,5 @@ def get_user_history(user_id: str) -> list:
         return []
     return convex_client.query(
         "summaryRequests:listByUser",
-        {"userId": user_id},
+        {"apiKey": private_api_key, "userId": user_id},
     )

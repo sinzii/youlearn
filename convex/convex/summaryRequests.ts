@@ -1,9 +1,11 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { validateApiKey } from "./auth";
 
 // Upsert summary request (create or update if exists)
 export const upsert = mutation({
   args: {
+    apiKey: v.string(),
     userId: v.string(),
     source: v.string(),
     videoId: v.string(),
@@ -13,23 +15,27 @@ export const upsert = mutation({
     length: v.number(),
   },
   handler: async (ctx, args) => {
+    validateApiKey(args.apiKey);
+
+    const { apiKey, ...data } = args;
+
     const existing = await ctx.db
       .query("summary_requests")
       .withIndex("by_user_and_video", (q) =>
         q
-          .eq("userId", args.userId)
-          .eq("source", args.source)
-          .eq("videoId", args.videoId)
+          .eq("userId", data.userId)
+          .eq("source", data.source)
+          .eq("videoId", data.videoId)
       )
       .first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, { ...args, createdAt: Date.now() });
+      await ctx.db.patch(existing._id, { ...data, createdAt: Date.now() });
       return existing._id;
     }
 
     return await ctx.db.insert("summary_requests", {
-      ...args,
+      ...data,
       createdAt: Date.now(),
     });
   },
@@ -37,8 +43,13 @@ export const upsert = mutation({
 
 // Get user's summary request history
 export const listByUser = query({
-  args: { userId: v.string() },
+  args: {
+    apiKey: v.string(),
+    userId: v.string(),
+  },
   handler: async (ctx, args) => {
+    validateApiKey(args.apiKey);
+
     return await ctx.db
       .query("summary_requests")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))

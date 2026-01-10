@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
 import type * as summaryRequests from "../summaryRequests.js";
 import type * as videoTranscripts from "../videoTranscripts.js";
 
@@ -18,6 +19,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
   summaryRequests: typeof summaryRequests;
   videoTranscripts: typeof videoTranscripts;
 }>;
