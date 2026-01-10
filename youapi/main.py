@@ -21,6 +21,10 @@ from youtube_transcript_api.proxies import WebshareProxyConfig
 
 from ai_sdk import generate_object, stream_text, openai
 from ai_sdk.types import CoreSystemMessage, CoreUserMessage, CoreAssistantMessage
+from services import (
+    get_user_history,
+    save_summary_request,
+)
 
 load_dotenv()
 
@@ -108,6 +112,15 @@ async def clerk_auth_middleware(request: Request, call_next):
     # Store user info in request state for use in endpoints
     request.state.auth = request_state
     return await call_next(request)
+
+
+def get_user_id(request: Request) -> str:
+    """Extract user ID from request, raises 401 if not authenticated."""
+    if hasattr(request.state, "auth") and request.state.auth:
+        user_id = request.state.auth.payload.get("sub")
+        if user_id:
+            return user_id
+    raise HTTPException(status_code=401, detail="User not authenticated")
 
 
 # Enums
@@ -318,6 +331,7 @@ def read_root():
 
 @app.get("/youtube/info", response_model=VideoInfoResponse)
 def get_video_info(
+    request: Request,
     video_id: str = Query(..., description="YouTube video ID or URL"),
 ):
     """
@@ -332,12 +346,31 @@ def get_video_info(
 
     try:
         yt = YouTube(f"https://www.youtube.com/watch?v={actual_video_id}", proxies=socks5_proxies)
+        title = yt.title or "Unknown Title"
+        author = yt.author or "Unknown Author"
+        thumbnail_url = yt.thumbnail_url or ""
+        length = yt.length or 0
+
+        # Save to user's history if authenticated
+        try:
+            user_id = get_user_id(request)
+            save_summary_request(
+                user_id=user_id,
+                video_id=actual_video_id,
+                title=title,
+                author=author,
+                thumbnail_url=thumbnail_url,
+                length=length,
+            )
+        except HTTPException:
+            pass  # Auth is optional for this endpoint
+
         return VideoInfoResponse(
             video_id=actual_video_id,
-            title=yt.title or "Unknown Title",
-            author=yt.author or "Unknown Author",
-            thumbnail_url=yt.thumbnail_url or "",
-            length=yt.length or 0,
+            title=title,
+            author=author,
+            thumbnail_url=thumbnail_url,
+            length=length,
         )
     except Exception as e:
         raise HTTPException(
@@ -708,3 +741,15 @@ Transcript with timestamps:
             status_code=500,
             detail=f"Failed to generate chapters: {str(e)}",
         )
+
+
+@app.get("/history")
+def get_user_video_history(request: Request):
+    """
+    Get the authenticated user's video history.
+
+    Returns a list of videos the user has requested info for, ordered by most recent first.
+    """
+    user_id = get_user_id(request)
+    history = get_user_history(user_id)
+    return {"history": history}
