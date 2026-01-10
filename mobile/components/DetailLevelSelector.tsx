@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    paddingVertical: 6,
+    paddingVertical: 4,
     paddingHorizontal: 12,
     borderRadius: 8,
     alignItems: 'center',

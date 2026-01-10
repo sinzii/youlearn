@@ -150,12 +150,12 @@ const styles = StyleSheet.create({
   },
   segmentedControl: {
     flexDirection: 'row',
-    borderRadius: 12,
+    borderRadius: 10,
     padding: 4,
   },
   segmentButton: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 4,
     borderRadius: 8,
     alignItems: 'center',
   },

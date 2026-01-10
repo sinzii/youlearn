@@ -56,10 +56,7 @@ export function DisplayLanguageSelector() {
       <Pressable
         style={[
           styles.selector,
-          {
-            backgroundColor: theme.colors.grey0,
-            borderColor: theme.colors.greyOutline,
-          },
+          { backgroundColor: theme.colors.grey0 },
         ]}
         onPress={() => setModalVisible(true)}>
         <MaterialIcons name="language" size={18} color={theme.colors.grey4} />
@@ -125,9 +122,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingVertical: 8,
+    borderRadius: 10,
     gap: 8,
   },
   selectedText: {

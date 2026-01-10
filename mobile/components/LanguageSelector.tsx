@@ -34,16 +34,15 @@ export function LanguageSelector() {
       <Pressable
         style={[
           styles.selector,
-          {
-            backgroundColor: theme.colors.grey0,
-            borderColor: theme.colors.greyOutline,
-          },
+          { backgroundColor: theme.colors.grey0 },
         ]}
         onPress={() => setModalVisible(true)}
       >
         <MaterialIcons name="translate" size={18} color={theme.colors.grey4} />
         <Text style={[styles.selectedText, { color: theme.colors.black }]}>
-          {selectedOption.name}
+          {selectedOption.name !== selectedOption.nativeName
+            ? `${selectedOption.name} / ${selectedOption.nativeName}`
+            : selectedOption.name}
         </Text>
         <MaterialIcons name="arrow-drop-down" size={24} color={theme.colors.grey4} />
       </Pressable>
@@ -103,9 +102,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 10,
-    borderWidth: 1,
     gap: 8,
   },
   selectedText: {
