@@ -20,6 +20,7 @@
     "placeholder": "Paste YouTube URL",
     "paste": "Paste",
     "invalidUrl": "Invalid YouTube URL. Please paste a valid link.",
+    "noLinkFound": "No link found. Please copy a YouTube URL first.",
     "detail": "Detail",
     "language": "Language",
     "tryExample": "Try an example"

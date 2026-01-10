@@ -81,6 +81,9 @@ export default function NewScreen() {
         setError(t('home.invalidUrl'));
         triggerShake();
       }
+    } else {
+      setError(t('home.noLinkFound'));
+      triggerShake();
     }
   };
 

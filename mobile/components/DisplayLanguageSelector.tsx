@@ -60,7 +60,7 @@ export function DisplayLanguageSelector() {
         ]}
         onPress={() => setModalVisible(true)}>
         <MaterialIcons name="language" size={18} color={theme.colors.grey4} />
-        <Text style={[styles.selectedText, { color: theme.colors.black }]}>
+        <Text style={[styles.selectedText, { color: theme.colors.black }]} numberOfLines={1}>
           {getOptionLabel(selectedOption)}
         </Text>
         <MaterialIcons name="arrow-drop-down" size={24} color={theme.colors.grey4} />

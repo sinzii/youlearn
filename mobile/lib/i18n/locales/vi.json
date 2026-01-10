@@ -20,6 +20,7 @@
     "placeholder": "Dán link YouTube",
     "paste": "Dán",
     "invalidUrl": "Link YouTube không hợp lệ. Vui lòng dán một link hợp lệ.",
+    "noLinkFound": "Không tìm thấy link. Vui lòng sao chép link YouTube trước.",
     "detail": "Chi tiết",
     "language": "Ngôn ngữ",
     "tryExample": "Thử một ví dụ"

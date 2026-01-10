@@ -16,10 +16,10 @@ export function extractVideoId(input: string): string | null {
   if (!trimmed) return null;
 
   // Direct video ID (exactly 11 characters: alphanumeric, underscore, hyphen)
-  const videoIdPattern = /^[a-zA-Z0-9_-]{11}$/;
-  if (videoIdPattern.test(trimmed)) {
-    return trimmed;
-  }
+  // const videoIdPattern = /^[a-zA-Z0-9_-]{11}$/;
+  // if (videoIdPattern.test(trimmed)) {
+  //   return trimmed;
+  // }
 
   // URL patterns - must be a valid YouTube URL
   const patterns = [

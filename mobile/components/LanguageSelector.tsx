@@ -39,7 +39,7 @@ export function LanguageSelector() {
         onPress={() => setModalVisible(true)}
       >
         <MaterialIcons name="translate" size={18} color={theme.colors.grey4} />
-        <Text style={[styles.selectedText, { color: theme.colors.black }]}>
+        <Text style={[styles.selectedText, { color: theme.colors.black }]} numberOfLines={1}>
           {selectedOption.name !== selectedOption.nativeName
             ? `${selectedOption.name} / ${selectedOption.nativeName}`
             : selectedOption.name}
