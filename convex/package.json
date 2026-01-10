@@ -1,0 +1,12 @@
+{
+  "name": "convex",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy"
+  },
+  "dependencies": {
+    "convex": "^1.21.0"
+  }
+}
