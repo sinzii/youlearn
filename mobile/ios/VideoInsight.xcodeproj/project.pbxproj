@@ -8,37 +8,37 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		1447FA9923D3427EB8F53052 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 35145C145DC1475D85795129 /* MainInterface.storyboard */; };
-		33B1ED6D3FF213F72B623CF9 /* libPods-VideoInsight.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AC6D303F11B2AD2DDF84CF24 /* libPods-VideoInsight.a */; };
+		1B3D6FF65E7D497B9C1D9366 /* ShareExtensionPreprocessor.js in Resources */ = {isa = PBXBuildFile; fileRef = AAF42431344343A68F2ADEB5 /* ShareExtensionPreprocessor.js */; };
+		228708F6AD8667C52E0F0A0F /* libPods-VideoInsight.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D14194A1F2451D69A5A0662B /* libPods-VideoInsight.a */; };
+		3073EC015DAAFDBC06BE97CF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7997C9215C9942DE9E182F03 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		5E4C9B07A0B54C249955F625 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 755C06671803404B9631A825 /* PrivacyInfo.xcprivacy */; };
-		91D201F8FF0C4BEEA0C11A5E /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE50C2637494BE98CEADC19 /* ShareViewController.swift */; };
-		B546CD06B856E0047D1E1C69 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E24E7EF78C9C60E7DC6A8D3 /* ExpoModulesProvider.swift */; };
+		78FC93C76BF9872824C9B02F /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB8C4FEDC1DC85C9148CDC7 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		BD60EB2FA4B94F6E99B36313 /* ShareExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = DE0669EAC3874C5997A0AA54 /* ShareExtension.appex */; };
-		D503BE780BBC474BA159005A /* ShareExtensionPreprocessor.js in Resources */ = {isa = PBXBuildFile; fileRef = 49A39BDB7DD64A45B4F5BB73 /* ShareExtensionPreprocessor.js */; };
-		EA77E5B5B31ED20DE8A2EAF2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 755C06671803404B9631A825 /* PrivacyInfo.xcprivacy */; };
+		C0612754BCDE4953BB973FE7 /* ShareExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 6663A8976D1C402DB239CEAE /* ShareExtension.appex */; };
+		D4B393AA43804CFAB5CD547D /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8247643E834946B1A5FF0808 /* ShareViewController.swift */; };
+		DAE6349034084E60B2FCFC91 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7997C9215C9942DE9E182F03 /* PrivacyInfo.xcprivacy */; };
+		DB3AD9E20D2542479F82CF29 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 64A7DC461EC54F0BB99EBE8D /* MainInterface.storyboard */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		9E4FA662B2E84C529E221442 /* PBXContainerItemProxy */ = {
+		966F9E27F0B646D58C749D02 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = C63E0E90741F49039F6D29C9;
+			remoteGlobalIDString = 967164CED95047E59D13BB39;
 			remoteInfo = ShareExtension;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		0546D40F3D42466F9A863DEB /* Copy Files */ = {
+		4915B480A8D846679CBB3037 /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				BD60EB2FA4B94F6E99B36313 /* ShareExtension.appex in Copy Files */,
+				C0612754BCDE4953BB973FE7 /* ShareExtension.appex in Copy Files */,
 			);
 			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -46,46 +46,54 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		05E927D3A12F4FC9B81547E8 /* ShareExtension.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = ShareExtension.entitlements; sourceTree = "<group>"; };
+		072DCCE0D8054FD781A6FC3B /* ShareExtension.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = ShareExtension.entitlements; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* VideoInsight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoInsight.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = VideoInsight/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = VideoInsight/Info.plist; sourceTree = "<group>"; };
-		35145C145DC1475D85795129 /* MainInterface.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = MainInterface.storyboard; sourceTree = "<group>"; };
-		3E24E7EF78C9C60E7DC6A8D3 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-VideoInsight/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		49A39BDB7DD64A45B4F5BB73 /* ShareExtensionPreprocessor.js */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = ShareExtensionPreprocessor.js; sourceTree = "<group>"; };
-		755C06671803404B9631A825 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		96162862AABBC15BA06474A0 /* Pods-VideoInsight.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VideoInsight.debug.xcconfig"; path = "Target Support Files/Pods-VideoInsight/Pods-VideoInsight.debug.xcconfig"; sourceTree = "<group>"; };
-		9BE50C2637494BE98CEADC19 /* ShareViewController.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
-		9EB6FA68E9D81D8E18889B51 /* Pods-VideoInsight.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VideoInsight.release.xcconfig"; path = "Target Support Files/Pods-VideoInsight/Pods-VideoInsight.release.xcconfig"; sourceTree = "<group>"; };
+		1CB8C4FEDC1DC85C9148CDC7 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-VideoInsight/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		64A7DC461EC54F0BB99EBE8D /* MainInterface.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = MainInterface.storyboard; sourceTree = "<group>"; };
+		64BFD56280D249C29A02B918 /* ShareExtension-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; path = "ShareExtension-Info.plist"; sourceTree = "<group>"; };
+		6663A8976D1C402DB239CEAE /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = 9; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7997C9215C9942DE9E182F03 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7F2028CA7FC7B5801C9AF621 /* Pods-VideoInsight.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VideoInsight.release.xcconfig"; path = "Target Support Files/Pods-VideoInsight/Pods-VideoInsight.release.xcconfig"; sourceTree = "<group>"; };
+		8247643E834946B1A5FF0808 /* ShareViewController.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = VideoInsight/SplashScreen.storyboard; sourceTree = "<group>"; };
-		AC6D303F11B2AD2DDF84CF24 /* libPods-VideoInsight.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-VideoInsight.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AAF42431344343A68F2ADEB5 /* ShareExtensionPreprocessor.js */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = ShareExtensionPreprocessor.js; sourceTree = "<group>"; };
+		B345C6D00C09D70DB4444610 /* Pods-VideoInsight.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VideoInsight.debug.xcconfig"; path = "Target Support Files/Pods-VideoInsight/Pods-VideoInsight.debug.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		DE0669EAC3874C5997A0AA54 /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = 9; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D14194A1F2451D69A5A0662B /* libPods-VideoInsight.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-VideoInsight.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = VideoInsight/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* VideoInsight-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "VideoInsight-Bridging-Header.h"; path = "VideoInsight/VideoInsight-Bridging-Header.h"; sourceTree = "<group>"; };
-		FED188879F944FFDA764CDAE /* ShareExtension-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; path = "ShareExtension-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		11878C952F3747FCA673E7AD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				33B1ED6D3FF213F72B623CF9 /* libPods-VideoInsight.a in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B02CEAB414F14594AFACD70D /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
+				228708F6AD8667C52E0F0A0F /* libPods-VideoInsight.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		03EA1D2E030377459F2213FA /* VideoInsight */ = {
+			isa = PBXGroup;
+			children = (
+				1CB8C4FEDC1DC85C9148CDC7 /* ExpoModulesProvider.swift */,
+			);
+			name = VideoInsight;
+			sourceTree = "<group>";
+		};
 		13B07FAE1A68108700A75B9A /* VideoInsight */ = {
 			isa = PBXGroup;
 			children = (
@@ -99,22 +107,21 @@
 			name = VideoInsight;
 			sourceTree = "<group>";
 		};
-		25CF154452A25985D97E235E /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				96162862AABBC15BA06474A0 /* Pods-VideoInsight.debug.xcconfig */,
-				9EB6FA68E9D81D8E18889B51 /* Pods-VideoInsight.release.xcconfig */,
-			);
-			path = Pods;
-			sourceTree = "<group>";
-		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				AC6D303F11B2AD2DDF84CF24 /* libPods-VideoInsight.a */,
+				D14194A1F2451D69A5A0662B /* libPods-VideoInsight.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		67355814EFB7CCDF36DFC245 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				03EA1D2E030377459F2213FA /* VideoInsight */,
+			);
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -131,9 +138,9 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				B45E618B5E2145CF84EDFA67 /* ShareExtension */,
-				25CF154452A25985D97E235E /* Pods */,
-				8F53E20C49B38A28F440CAE1 /* ExpoModulesProviders */,
+				FB8947B4FF9947569CBBA2D0 /* ShareExtension */,
+				FD9D28D0DA018862C4B163BB /* Pods */,
+				67355814EFB7CCDF36DFC245 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -144,38 +151,9 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* VideoInsight.app */,
-				DE0669EAC3874C5997A0AA54 /* ShareExtension.appex */,
+				6663A8976D1C402DB239CEAE /* ShareExtension.appex */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		8F53E20C49B38A28F440CAE1 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				AA2EEFC99349AA37C5F2DF6F /* VideoInsight */,
-			);
-			name = ExpoModulesProviders;
-			sourceTree = "<group>";
-		};
-		AA2EEFC99349AA37C5F2DF6F /* VideoInsight */ = {
-			isa = PBXGroup;
-			children = (
-				3E24E7EF78C9C60E7DC6A8D3 /* ExpoModulesProvider.swift */,
-			);
-			name = VideoInsight;
-			sourceTree = "<group>";
-		};
-		B45E618B5E2145CF84EDFA67 /* ShareExtension */ = {
-			isa = PBXGroup;
-			children = (
-				9BE50C2637494BE98CEADC19 /* ShareViewController.swift */,
-				35145C145DC1475D85795129 /* MainInterface.storyboard */,
-				49A39BDB7DD64A45B4F5BB73 /* ShareExtensionPreprocessor.js */,
-				755C06671803404B9631A825 /* PrivacyInfo.xcprivacy */,
-				FED188879F944FFDA764CDAE /* ShareExtension-Info.plist */,
-				05E927D3A12F4FC9B81547E8 /* ShareExtension.entitlements */,
-			);
-			path = ShareExtension;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -187,6 +165,28 @@
 			path = VideoInsight/Supporting;
 			sourceTree = "<group>";
 		};
+		FB8947B4FF9947569CBBA2D0 /* ShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				8247643E834946B1A5FF0808 /* ShareViewController.swift */,
+				64A7DC461EC54F0BB99EBE8D /* MainInterface.storyboard */,
+				AAF42431344343A68F2ADEB5 /* ShareExtensionPreprocessor.js */,
+				7997C9215C9942DE9E182F03 /* PrivacyInfo.xcprivacy */,
+				64BFD56280D249C29A02B918 /* ShareExtension-Info.plist */,
+				072DCCE0D8054FD781A6FC3B /* ShareExtension.entitlements */,
+			);
+			path = ShareExtension;
+			sourceTree = "<group>";
+		};
+		FD9D28D0DA018862C4B163BB /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				B345C6D00C09D70DB4444610 /* Pods-VideoInsight.debug.xcconfig */,
+				7F2028CA7FC7B5801C9AF621 /* Pods-VideoInsight.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -195,32 +195,32 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "VideoInsight" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				D16935C0BE6F1687905E1076 /* [Expo] Configure project */,
+				17F6487145BB20BC6A5EA223 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				0546D40F3D42466F9A863DEB /* Copy Files */,
-				B1C49B2B199C478B625A181A /* [CP] Embed Pods Frameworks */,
+				4915B480A8D846679CBB3037 /* Copy Files */,
+				4E8E527F2DFF99EBCF63A397 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				E0CBFF3FE4624676B6F1C396 /* PBXTargetDependency */,
+				7FBB4457609F45AEBF8EC3F4 /* PBXTargetDependency */,
 			);
 			name = VideoInsight;
 			productName = VideoInsight;
 			productReference = 13B07F961A680F5B00A75B9A /* VideoInsight.app */;
 			productType = "com.apple.product-type.application";
 		};
-		C63E0E90741F49039F6D29C9 /* ShareExtension */ = {
+		967164CED95047E59D13BB39 /* ShareExtension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8E6A97620BF045E4AC957291 /* Build configuration list for PBXNativeTarget "ShareExtension" */;
+			buildConfigurationList = DC3D25F1A0D14081863A5AD6 /* Build configuration list for PBXNativeTarget "ShareExtension" */;
 			buildPhases = (
-				FAC6A452017544DBAA7A2E1F /* Sources */,
-				24869C6CF7B54E60A773A763 /* Resources */,
-				B02CEAB414F14594AFACD70D /* Frameworks */,
+				2DACA286AF614F1B82AED136 /* Sources */,
+				6BD607503CC747B7B8E858CD /* Resources */,
+				11878C952F3747FCA673E7AD /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -228,7 +228,7 @@
 			);
 			name = ShareExtension;
 			productName = ShareExtension;
-			productReference = DE0669EAC3874C5997A0AA54 /* ShareExtension.appex */;
+			productReference = 6663A8976D1C402DB239CEAE /* ShareExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -258,7 +258,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* VideoInsight */,
-				C63E0E90741F49039F6D29C9 /* ShareExtension */,
+				967164CED95047E59D13BB39 /* ShareExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -271,17 +271,17 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				EA77E5B5B31ED20DE8A2EAF2 /* PrivacyInfo.xcprivacy in Resources */,
+				3073EC015DAAFDBC06BE97CF /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		24869C6CF7B54E60A773A763 /* Resources */ = {
+		6BD607503CC747B7B8E858CD /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1447FA9923D3427EB8F53052 /* MainInterface.storyboard in Resources */,
-				D503BE780BBC474BA159005A /* ShareExtensionPreprocessor.js in Resources */,
-				5E4C9B07A0B54C249955F625 /* PrivacyInfo.xcprivacy in Resources */,
+				DB3AD9E20D2542479F82CF29 /* MainInterface.storyboard in Resources */,
+				1B3D6FF65E7D497B9C1D9366 /* ShareExtensionPreprocessor.js in Resources */,
+				DAE6349034084E60B2FCFC91 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,6 +327,52 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		17F6487145BB20BC6A5EA223 /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/.xcode.env",
+				"$(SRCROOT)/.xcode.env.local",
+				"$(SRCROOT)/VideoInsight/VideoInsight.entitlements",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-VideoInsight/expo-configure-project.sh",
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Pods/Target Support Files/Pods-VideoInsight/ExpoModulesProvider.swift",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-VideoInsight/expo-configure-project.sh\"\n";
+		};
+		4E8E527F2DFF99EBCF63A397 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-VideoInsight/Pods-VideoInsight-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-VideoInsight/Pods-VideoInsight-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -338,6 +384,7 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoLocalization/ExpoLocalization_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoSystemUI/ExpoSystemUI_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/RNCAsyncStorage/RNCAsyncStorage_resources.bundle",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
@@ -369,6 +416,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXConstants.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoConstants_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoFileSystem_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoLocalization_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoSystemUI_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNCAsyncStorage_resources.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AntDesign.ttf",
@@ -399,52 +447,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-VideoInsight/Pods-VideoInsight-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		B1C49B2B199C478B625A181A /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-VideoInsight/Pods-VideoInsight-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-VideoInsight/Pods-VideoInsight-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		D16935C0BE6F1687905E1076 /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/.xcode.env",
-				"$(SRCROOT)/.xcode.env.local",
-				"$(SRCROOT)/VideoInsight/VideoInsight.entitlements",
-				"$(SRCROOT)/Pods/Target Support Files/Pods-VideoInsight/expo-configure-project.sh",
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(SRCROOT)/Pods/Target Support Files/Pods-VideoInsight/ExpoModulesProvider.swift",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-VideoInsight/expo-configure-project.sh\"\n";
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -453,32 +455,32 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				B546CD06B856E0047D1E1C69 /* ExpoModulesProvider.swift in Sources */,
+				78FC93C76BF9872824C9B02F /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FAC6A452017544DBAA7A2E1F /* Sources */ = {
+		2DACA286AF614F1B82AED136 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				91D201F8FF0C4BEEA0C11A5E /* ShareViewController.swift in Sources */,
+				D4B393AA43804CFAB5CD547D /* ShareViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E0CBFF3FE4624676B6F1C396 /* PBXTargetDependency */ = {
+		7FBB4457609F45AEBF8EC3F4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = C63E0E90741F49039F6D29C9 /* ShareExtension */;
-			targetProxy = 9E4FA662B2E84C529E221442 /* PBXContainerItemProxy */;
+			target = 967164CED95047E59D13BB39 /* ShareExtension */;
+			targetProxy = 966F9E27F0B646D58C749D02 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 96162862AABBC15BA06474A0 /* Pods-VideoInsight.debug.xcconfig */;
+			baseConfigurationReference = B345C6D00C09D70DB4444610 /* Pods-VideoInsight.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -515,7 +517,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9EB6FA68E9D81D8E18889B51 /* Pods-VideoInsight.release.xcconfig */;
+			baseConfigurationReference = 7F2028CA7FC7B5801C9AF621 /* Pods-VideoInsight.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -544,7 +546,37 @@
 			};
 			name = Release;
 		};
-		4F57A7E0E4A648D2845EA813 /* Release */ = {
+		2522AC69FD5C4DB08938EABE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 84W2WC543J;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "ShareExtension/ShareExtension-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = "dedotdev.app.videoinsight.share-extension";
+				PRODUCT_NAME = ShareExtension;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3BD31025A16142AAA9C82CAA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
@@ -688,36 +720,6 @@
 			};
 			name = Release;
 		};
-		B051449F05A64DAD856FE3BB /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 84W2WC543J;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "ShareExtension/ShareExtension-Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0.0;
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = "dedotdev.app.videoinsight.share-extension";
-				PRODUCT_NAME = ShareExtension;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -739,11 +741,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8E6A97620BF045E4AC957291 /* Build configuration list for PBXNativeTarget "ShareExtension" */ = {
+		DC3D25F1A0D14081863A5AD6 /* Build configuration list for PBXNativeTarget "ShareExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				B051449F05A64DAD856FE3BB /* Debug */,
-				4F57A7E0E4A648D2845EA813 /* Release */,
+				2522AC69FD5C4DB08938EABE /* Debug */,
+				3BD31025A16142AAA9C82CAA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
