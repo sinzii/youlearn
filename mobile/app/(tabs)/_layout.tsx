@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/clerk-expo';
 import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { useTheme } from '@rneui/themed';
 import { useTranslation } from 'react-i18next';
 
@@ -26,7 +26,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      detachInactiveScreens={false}
+      detachInactiveScreens={Platform.OS !== 'ios'}
       screenOptions={{
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.grey4,
