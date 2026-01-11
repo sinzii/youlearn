@@ -4,8 +4,10 @@ import { StyleSheet, Image, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Button, useTheme } from '@rneui/themed';
 import { useTranslation } from 'react-i18next';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { ThemePreference, useThemePreference, useSetThemePreference } from '@/lib/store';
+import { ThemePreference } from '@/lib/store';
+import { useThemePreference, useSetThemePreference, useSubscription } from '@/lib/store/hooks';
 import { DisplayLanguageSelector } from '@/components/DisplayLanguageSelector';
 
 export default function SettingsScreen() {
@@ -15,6 +17,7 @@ export default function SettingsScreen() {
   const { signOut } = useClerk();
   const themePreference = useThemePreference();
   const setThemePreference = useSetThemePreference();
+  const subscription = useSubscription();
 
   const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
     { value: 'light', label: t('settings.themeLight') },
@@ -25,6 +28,18 @@ export default function SettingsScreen() {
   const handleSignOut = useCallback(async () => {
     await signOut();
   }, [signOut]);
+
+  const getSubscriptionStatusLabel = () => {
+    if (subscription.isTrialing) return t('subscription.trial');
+    if (subscription.isPro) return t('subscription.active');
+    return t('subscription.expired');
+  };
+
+  const formatExpirationDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
@@ -89,6 +104,40 @@ export default function SettingsScreen() {
             {t('settings.displayLanguage')}
           </Text>
           <DisplayLanguageSelector />
+        </View>
+
+        {/* Subscription Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.grey4 }]}>
+            {t('subscription.title')}
+          </Text>
+          <View style={[styles.subscriptionCard, { backgroundColor: theme.colors.grey0 }]}>
+            <View style={styles.subscriptionRow}>
+              <Text style={[styles.subscriptionLabel, { color: theme.colors.grey4 }]}>
+                {t('subscription.status')}
+              </Text>
+              <View style={styles.statusContainer}>
+                <MaterialIcons
+                  name={subscription.isPro || subscription.isTrialing ? 'check-circle' : 'cancel'}
+                  size={16}
+                  color={subscription.isPro || subscription.isTrialing ? theme.colors.success : theme.colors.error}
+                />
+                <Text style={[styles.subscriptionValue, { color: theme.colors.black }]}>
+                  {getSubscriptionStatusLabel()}
+                </Text>
+              </View>
+            </View>
+            {subscription.expiredAt && (
+              <View style={styles.subscriptionRow}>
+                <Text style={[styles.subscriptionLabel, { color: theme.colors.grey4 }]}>
+                  {t('subscription.expiresOn')}
+                </Text>
+                <Text style={[styles.subscriptionValue, { color: theme.colors.black }]}>
+                  {formatExpirationDate(subscription.expiredAt)}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         <Button
@@ -161,5 +210,28 @@ const styles = StyleSheet.create({
   },
   segmentText: {
     fontSize: 14,
+  },
+  subscriptionCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  subscriptionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  subscriptionLabel: {
+    fontSize: 14,
+  },
+  subscriptionValue: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
 });

@@ -52,3 +52,42 @@ def get_user_history(user_id: str) -> list:
         "summaryRequests:listByUser",
         {"apiKey": private_api_key, "userId": user_id},
     )
+
+
+# Subscription service functions
+
+def save_subscription_status(
+    user_id: str,
+    status: str,
+    product_id: str | None = None,
+    expired_at: str | None = None,
+    is_trial: bool = False,
+    event_type: str | None = None,
+    raw_event: str | None = None,
+) -> None:
+    """Save or update subscription status to Convex."""
+    if not convex_client:
+        return
+    convex_client.mutation(
+        "subscriptions:upsert",
+        {
+            "apiKey": private_api_key,
+            "userId": user_id,
+            "status": status,
+            "productId": product_id,
+            "expiredAt": expired_at,
+            "isTrial": is_trial,
+            "eventType": event_type,
+            "rawEvent": raw_event,
+        },
+    )
+
+
+def get_subscription_status(user_id: str) -> dict | None:
+    """Get user's subscription status from Convex."""
+    if not convex_client:
+        return None
+    return convex_client.query(
+        "subscriptions:getByUser",
+        {"apiKey": private_api_key, "userId": user_id},
+    )

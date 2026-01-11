@@ -85,5 +85,46 @@
   "detailLevel": {
     "tldr": "Ý chính",
     "summary": "Tóm tắt"
+  },
+  "paywall": {
+    "title": "Mở khóa VideoInsight Pro",
+    "subtitle": "Truy cập không giới hạn tất cả tính năng",
+    "trialBadge": "Dùng thử 7 ngày miễn phí",
+    "featureUnlimited": "Tóm tắt video không giới hạn",
+    "featureChat": "Trò chuyện với video không giới hạn",
+    "featureChapters": "Chương do AI tạo",
+    "featurePriority": "Xử lý ưu tiên",
+    "weekly": "Hàng tuần",
+    "monthly": "Hàng tháng",
+    "yearly": "Hàng năm",
+    "bestValue": "Giá tốt nhất",
+    "perWeek": "/tuần",
+    "perMonth": "/tháng",
+    "perYear": "/năm",
+    "startTrial": "Bắt đầu dùng thử miễn phí",
+    "subscribe": "Đăng ký",
+    "restore": "Khôi phục giao dịch",
+    "restored": "Khôi phục giao dịch thành công",
+    "restoreError": "Không thể khôi phục giao dịch",
+    "purchaseError": "Giao dịch thất bại",
+    "terms": "Bằng việc đăng ký, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật. Thanh toán sẽ được tính vào tài khoản Apple ID hoặc Google Play của bạn. Đăng ký tự động gia hạn trừ khi bị hủy ít nhất 24 giờ trước khi kỳ hiện tại kết thúc.",
+    "close": "Đóng"
+  },
+  "subscription": {
+    "title": "Đăng ký",
+    "status": "Trạng thái",
+    "active": "Đang hoạt động",
+    "trial": "Dùng thử",
+    "expired": "Hết hạn",
+    "cancelled": "Đã hủy",
+    "expiresOn": "Hết hạn vào",
+    "manage": "Quản lý đăng ký",
+    "restore": "Khôi phục giao dịch",
+    "upgrade": "Nâng cấp lên Pro"
+  },
+  "subscriptionGate": {
+    "title": "Yêu cầu đăng ký",
+    "message": "Đăng ký VideoInsight Pro để truy cập tính năng này",
+    "upgrade": "Nâng cấp ngay"
   }
 }

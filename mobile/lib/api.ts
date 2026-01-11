@@ -1,6 +1,39 @@
 const API_ENDPOINT =
   process.env.EXPO_PUBLIC_API_ENDPOINT || 'http://localhost:8000';
 
+// Custom error class for subscription required errors
+export class SubscriptionRequiredError extends Error {
+  subscriptionStatus: string | null;
+  expiredAt: string | null;
+
+  constructor(message: string, subscriptionStatus: string | null, expiredAt: string | null) {
+    super(message);
+    this.name = 'SubscriptionRequiredError';
+    this.subscriptionStatus = subscriptionStatus;
+    this.expiredAt = expiredAt;
+  }
+}
+
+// Helper function to check for subscription required error
+async function handleResponse<T>(response: Response, defaultErrorMessage: string): Promise<T> {
+  if (!response.ok) {
+    const error = await response.json();
+
+    // Check for subscription required error (403)
+    if (response.status === 403 && error.error === 'subscription_required') {
+      throw new SubscriptionRequiredError(
+        error.message || 'Active subscription required',
+        error.subscription_status || null,
+        error.expired_at || null
+      );
+    }
+
+    throw new Error(error.detail || defaultErrorMessage);
+  }
+
+  return response.json();
+}
+
 export interface VideoInfo {
   video_id: string;
   title: string;
@@ -51,12 +84,7 @@ export async function fetchVideoInfo(
     }
   );
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Failed to fetch video info');
-  }
-
-  return response.json();
+  return handleResponse<VideoInfo>(response, 'Failed to fetch video info');
 }
 
 export async function fetchTranscript(
@@ -77,12 +105,7 @@ export async function fetchTranscript(
     },
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Failed to fetch transcript');
-  }
-
-  return response.json();
+  return handleResponse<TranscriptResponse>(response, 'Failed to fetch transcript');
 }
 
 export async function fetchSuggestedQuestions(
@@ -105,12 +128,7 @@ export async function fetchSuggestedQuestions(
     }),
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Failed to fetch suggested questions');
-  }
-
-  return response.json();
+  return handleResponse<SuggestQuestionsResponse>(response, 'Failed to fetch suggested questions');
 }
 
 export async function fetchChapters(
@@ -133,12 +151,7 @@ export async function fetchChapters(
     }),
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Failed to generate chapters');
-  }
-
-  return response.json();
+  return handleResponse<GenerateChaptersResponse>(response, 'Failed to generate chapters');
 }
 
 export type ChatMessage = {
@@ -196,7 +209,15 @@ export function streamSummary(
     } else {
       try {
         const error = JSON.parse(xhr.responseText);
-        console.log('error', error);
+        // Check for subscription required error (403)
+        if (xhr.status === 403 && error.error === 'subscription_required') {
+          onError(new SubscriptionRequiredError(
+            error.message || 'Active subscription required',
+            error.subscription_status || null,
+            error.expired_at || null
+          ));
+          return;
+        }
         onError(new Error(error.detail || 'Failed to generate summary'));
       } catch {
         onError(new Error('Failed to generate summary'));
@@ -262,6 +283,15 @@ export function streamChat(
     } else {
       try {
         const error = JSON.parse(xhr.responseText);
+        // Check for subscription required error (403)
+        if (xhr.status === 403 && error.error === 'subscription_required') {
+          onError(new SubscriptionRequiredError(
+            error.message || 'Active subscription required',
+            error.subscription_status || null,
+            error.expired_at || null
+          ));
+          return;
+        }
         onError(new Error(error.detail || 'Failed to send message'));
       } catch {
         onError(new Error('Failed to send message'));

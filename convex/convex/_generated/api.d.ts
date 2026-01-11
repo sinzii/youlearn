@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as subscriptions from "../subscriptions.js";
 import type * as summaryRequests from "../summaryRequests.js";
 import type * as videoTranscripts from "../videoTranscripts.js";
 
@@ -20,6 +21,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  subscriptions: typeof subscriptions;
   summaryRequests: typeof summaryRequests;
   videoTranscripts: typeof videoTranscripts;
 }>;

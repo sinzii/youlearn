@@ -85,5 +85,46 @@
   "detailLevel": {
     "tldr": "Key Insights",
     "summary": "Summary"
+  },
+  "paywall": {
+    "title": "Unlock VideoInsight Pro",
+    "subtitle": "Get unlimited access to all features",
+    "trialBadge": "7-day free trial",
+    "featureUnlimited": "Unlimited video summaries",
+    "featureChat": "Unlimited chat with videos",
+    "featureChapters": "AI-generated chapters",
+    "featurePriority": "Priority processing",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "bestValue": "Best Value",
+    "perWeek": "/week",
+    "perMonth": "/month",
+    "perYear": "/year",
+    "startTrial": "Start Free Trial",
+    "subscribe": "Subscribe",
+    "restore": "Restore Purchases",
+    "restored": "Purchases restored successfully",
+    "restoreError": "Failed to restore purchases",
+    "purchaseError": "Purchase failed",
+    "terms": "By subscribing, you agree to our Terms of Service and Privacy Policy. Payment will be charged to your Apple ID or Google Play account. Subscription automatically renews unless canceled at least 24 hours before the end of the current period.",
+    "close": "Close"
+  },
+  "subscription": {
+    "title": "Subscription",
+    "status": "Status",
+    "active": "Active",
+    "trial": "Trial",
+    "expired": "Expired",
+    "cancelled": "Cancelled",
+    "expiresOn": "Expires on",
+    "manage": "Manage Subscription",
+    "restore": "Restore Purchases",
+    "upgrade": "Upgrade to Pro"
+  },
+  "subscriptionGate": {
+    "title": "Subscription Required",
+    "message": "Subscribe to VideoInsight Pro to access this feature",
+    "upgrade": "Upgrade Now"
   }
 }

@@ -16,6 +16,7 @@ import videosReducer from './slices/videosSlice';
 import streamingReducer from './slices/streamingSlice';
 import languageReducer from './slices/languageSlice';
 import displayLanguageReducer from './slices/displayLanguageSlice';
+import subscriptionReducer from './slices/subscriptionSlice';
 
 // Combine all reducers first
 const rootReducer = combineReducers({
@@ -24,6 +25,7 @@ const rootReducer = combineReducers({
   streaming: streamingReducer,
   language: languageReducer,
   displayLanguage: displayLanguageReducer,
+  subscription: subscriptionReducer,
 });
 
 // Single persist config at root level
@@ -32,7 +34,7 @@ const persistConfig = {
   key: 'videoinsight-root',
   storage: AsyncStorage,
   version: 1,
-  whitelist: ['theme', 'videos', 'language', 'displayLanguage'], // Only persist these slices (not streaming)
+  whitelist: ['theme', 'videos', 'language', 'displayLanguage', 'subscription'], // Only persist these slices (not streaming)
 };
 
 // Wrap the entire root reducer with persistReducer
@@ -76,6 +78,11 @@ export {
   useDisplayLanguage,
   useSetDisplayLanguage,
   useDisplayLanguageOptions,
+  useSubscription,
+  useIsPro,
+  useIsTrialing,
+  useSetSubscription,
+  useResetSubscription,
 } from './hooks';
 
 export type {
@@ -84,6 +91,7 @@ export type {
   VideosState,
   VideoStreamingState,
   StreamingState,
+  SubscriptionState,
 } from './hooks';
 
 export type { LanguageCode, LanguageOption, DetailLevel, DetailLevelOption } from './slices/languageSlice';
@@ -94,3 +102,4 @@ export { DISPLAY_LANGUAGE_OPTIONS, setDisplayLanguage } from './slices/displayLa
 
 export { updateStreaming, resetStreaming } from './slices/streamingSlice';
 export { updateVideo, removeVideo, clearVideos } from './slices/videosSlice';
+export { setSubscription, resetSubscription } from './slices/subscriptionSlice';

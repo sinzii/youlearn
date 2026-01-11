@@ -6,6 +6,11 @@ import videosReducer from './slices/videosSlice';
 import streamingReducer from './slices/streamingSlice';
 import languageReducer from './slices/languageSlice';
 import displayLanguageReducer from './slices/displayLanguageSlice';
+import subscriptionReducer, {
+  setSubscription as setSubscriptionAction,
+  resetSubscription as resetSubscriptionAction,
+  SubscriptionState,
+} from './slices/subscriptionSlice';
 import {
   setPreferredLanguage as setPreferredLanguageAction,
   setDetailLevel as setDetailLevelAction,
@@ -39,6 +44,7 @@ type RootState = {
   streaming: ReturnType<typeof streamingReducer>;
   language: ReturnType<typeof languageReducer>;
   displayLanguage: ReturnType<typeof displayLanguageReducer>;
+  subscription: ReturnType<typeof subscriptionReducer>;
 };
 type AppDispatch = ReturnType<typeof useDispatch>;
 
@@ -206,11 +212,43 @@ export function useDisplayLanguageOptions() {
   return DISPLAY_LANGUAGE_OPTIONS;
 }
 
+// ============ Subscription Hooks ============
+
+export function useSubscription(): SubscriptionState {
+  return useAppSelector((state) => state.subscription);
+}
+
+export function useIsPro(): boolean {
+  return useAppSelector((state) => state.subscription.isPro);
+}
+
+export function useIsTrialing(): boolean {
+  return useAppSelector((state) => state.subscription.isTrialing);
+}
+
+export function useSetSubscription() {
+  const dispatch = useAppDispatch();
+  return useCallback(
+    (subscription: Partial<SubscriptionState>) => {
+      dispatch(setSubscriptionAction(subscription));
+    },
+    [dispatch]
+  );
+}
+
+export function useResetSubscription() {
+  const dispatch = useAppDispatch();
+  return useCallback(() => {
+    dispatch(resetSubscriptionAction());
+  }, [dispatch]);
+}
+
 // Re-export types for convenience
 export type { ThemePreference } from './slices/themeSlice';
 export type { VideoCache, VideosState } from './slices/videosSlice';
 export type { VideoStreamingState, StreamingState } from './slices/streamingSlice';
 export type { LanguageCode, LanguageOption, DetailLevel, DetailLevelOption } from './slices/languageSlice';
 export type { DisplayLanguageCode } from './slices/displayLanguageSlice';
+export type { SubscriptionState } from './slices/subscriptionSlice';
 export { LANGUAGE_OPTIONS, DETAIL_LEVEL_OPTIONS } from './slices/languageSlice';
 export { DISPLAY_LANGUAGE_OPTIONS } from './slices/displayLanguageSlice';

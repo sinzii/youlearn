@@ -15,6 +15,7 @@ import { rneTheme, navigationLightTheme, navigationDarkTheme } from '@/constants
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useShareIntentHandler } from '@/hooks/useShareIntentHandler';
 import { I18nProvider } from '@/components/I18nProvider';
+import { RevenueCatProvider } from '@/components/RevenueCatProvider';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -61,6 +62,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="videos/[id]" options={{ title: 'Video Details', headerBackButtonDisplayMode: 'minimal' }} />
+          <Stack.Screen name="paywall" options={{ presentation: 'modal', headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
       </Suspense>
@@ -117,7 +119,9 @@ export default function RootLayout() {
           <I18nProvider>
             <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
               <ClerkLoaded>
-                <RootLayoutNav />
+                <RevenueCatProvider>
+                  <RootLayoutNav />
+                </RevenueCatProvider>
               </ClerkLoaded>
             </ClerkProvider>
           </I18nProvider>

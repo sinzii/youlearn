@@ -1,12 +1,16 @@
+import hmac
+import hashlib
+import json
 import os
 import re
+from datetime import datetime
 from enum import Enum
-from typing import Literal
+from typing import Literal, Optional
 
 from clerk_backend_api import Clerk
 from clerk_backend_api.security import AuthenticateRequestOptions
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
@@ -24,6 +28,8 @@ from ai_sdk.types import CoreSystemMessage, CoreUserMessage, CoreAssistantMessag
 from services import (
     get_user_history,
     save_summary_request,
+    save_subscription_status,
+    get_subscription_status,
 )
 
 load_dotenv()
@@ -51,6 +57,9 @@ if webshare_username and webshare_password:
     }
 else:
     ytt_api = YouTubeTranscriptApi()
+
+# RevenueCat webhook secret for signature verification
+REVENUECAT_WEBHOOK_SECRET = os.environ.get("REVENUECAT_WEBHOOK_SECRET")
 
 # Language code to name mapping
 LANGUAGE_NAMES = {
@@ -90,7 +99,7 @@ app.add_middleware(
 )
 
 # Routes that don't require authentication
-PUBLIC_ROUTES = ["/", "/swagger", "/openapi.json"]
+PUBLIC_ROUTES = ["/", "/swagger", "/openapi.json", "/webhooks/revenuecat"]
 
 
 @app.middleware("http")
@@ -114,6 +123,48 @@ async def clerk_auth_middleware(request: Request, call_next):
     return await call_next(request)
 
 
+# Routes that require subscription (all routes except public ones and /history which shows upsell)
+SUBSCRIPTION_REQUIRED_ROUTES = [
+    "/youtube/info",
+    "/youtube/transcript",
+    "/summarize",
+    "/chat",
+    "/youtube/suggest-questions",
+    "/youtube/generate-chapters",
+]
+
+
+@app.middleware("http")
+async def subscription_middleware(request: Request, call_next):
+    """Middleware to check subscription status for protected routes."""
+    # Skip for non-subscription routes
+    if request.url.path not in SUBSCRIPTION_REQUIRED_ROUTES:
+        return await call_next(request)
+
+    # Get user ID using helper
+    try:
+        user_id = get_user_id(request)
+    except HTTPException:
+        # Auth middleware hasn't run yet or failed - let it handle the error
+        return await call_next(request)
+
+    # Fetch subscription once and check status locally
+    subscription = get_subscription_status(user_id)
+
+    if not is_subscription_active(subscription):
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": "subscription_required",
+                "message": "Active subscription required to access this feature.",
+                "subscription_status": subscription.get("status") if subscription else None,
+                "expired_at": subscription.get("expiredAt") if subscription else None,
+            },
+        )
+
+    return await call_next(request)
+
+
 def get_user_id(request: Request) -> str:
     """Extract user ID from request, raises 401 if not authenticated."""
     if hasattr(request.state, "auth") and request.state.auth:
@@ -121,6 +172,25 @@ def get_user_id(request: Request) -> str:
         if user_id:
             return user_id
     raise HTTPException(status_code=401, detail="User not authenticated")
+
+
+def is_subscription_active(subscription: dict | None) -> bool:
+    """Check if subscription is active based on status and expiration date."""
+    if not subscription:
+        return False
+
+    # "cancelled" status is still active until expiration
+    if subscription.get("status") not in ["active", "cancelled"]:
+        return False
+
+    # Check if expired
+    expired_at = subscription.get("expiredAt")
+    if expired_at:
+        exp_date = datetime.fromisoformat(expired_at.replace("Z", "+00:00"))
+        if exp_date < datetime.now(exp_date.tzinfo):
+            return False
+
+    return True
 
 
 # Enums
@@ -327,6 +397,102 @@ def fetch_transcript_text(video_id: str) -> tuple[str, TranscriptResponse]:
 @app.get("/")
 def read_root():
     return {"message": "YouAPI - YouTube Learning API"}
+
+
+# RevenueCat Webhook Handler
+
+def verify_revenuecat_signature(payload: bytes, signature: str) -> bool:
+    """Verify RevenueCat webhook signature using HMAC-SHA1."""
+    if not REVENUECAT_WEBHOOK_SECRET:
+        return True  # Skip verification if no secret configured (dev mode)
+
+    expected_signature = hmac.new(
+        REVENUECAT_WEBHOOK_SECRET.encode(),
+        payload,
+        hashlib.sha1
+    ).hexdigest()
+
+    return hmac.compare_digest(signature, expected_signature)
+
+
+@app.post("/webhooks/revenuecat")
+async def handle_revenuecat_webhook(
+    request: Request,
+    x_revenuecat_signature: Optional[str] = Header(None, alias="X-RevenueCat-Signature"),
+):
+    """
+    Handle RevenueCat webhook events.
+
+    Supported events:
+    - INITIAL_PURCHASE: User starts subscription (including trial)
+    - RENEWAL: Subscription renewed
+    - CANCELLATION: Subscription cancelled (still active until expiration)
+    - EXPIRATION: Subscription expired
+    - BILLING_ISSUE: Payment failed
+    - PRODUCT_CHANGE: User changed subscription tier
+    """
+    body = await request.body()
+
+    # Verify signature in production
+    if REVENUECAT_WEBHOOK_SECRET and x_revenuecat_signature:
+        if not verify_revenuecat_signature(body, x_revenuecat_signature):
+            raise HTTPException(status_code=401, detail="Invalid webhook signature")
+
+    try:
+        data = await request.json()
+        event = data.get("event", {})
+        event_type = event.get("type")
+        app_user_id = event.get("app_user_id")
+
+        # The app_user_id is the Clerk user ID we set during RevenueCat.configure()
+        if not app_user_id:
+            raise HTTPException(status_code=400, detail="Missing app_user_id in event")
+
+        # Map event to subscription status
+        if event_type in ["INITIAL_PURCHASE", "RENEWAL", "UNCANCELLATION"]:
+            status = "active"
+        elif event_type == "CANCELLATION":
+            status = "cancelled"
+        elif event_type == "EXPIRATION":
+            status = "expired"
+        elif event_type == "BILLING_ISSUE":
+            status = "billing_issue"
+        elif event_type == "PRODUCT_CHANGE":
+            status = "active"
+        else:
+            status = "unknown"
+
+        # Extract subscription details from subscriber info
+        subscriber = event.get("subscriber", {})
+        entitlements = subscriber.get("entitlements", {})
+        pro_entitlement = entitlements.get("pro", {})
+
+        # Get expiration date and product ID
+        expired_at = pro_entitlement.get("expires_date")
+        product_id = pro_entitlement.get("product_identifier")
+
+        # Check if this is a trial
+        is_trial = event.get("period_type") == "TRIAL"
+
+        # Save to Convex
+        save_subscription_status(
+            user_id=app_user_id,
+            status=status,
+            product_id=product_id,
+            expired_at=expired_at,
+            is_trial=is_trial,
+            event_type=event_type,
+            raw_event=json.dumps(data),
+        )
+
+        return {"status": "ok", "event_type": event_type, "user_id": app_user_id}
+
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+    except Exception as e:
+        # Log error but return 200 to prevent retries for known errors
+        print(f"Webhook processing error: {e}")
+        return {"status": "error", "message": str(e)}
 
 
 @app.get("/youtube/info", response_model=VideoInfoResponse)
@@ -753,3 +919,34 @@ def get_user_video_history(request: Request):
     user_id = get_user_id(request)
     history = get_user_history(user_id)
     return {"history": history}
+
+
+@app.get("/subscription/status")
+def get_user_subscription_status(request: Request):
+    """
+    Get the authenticated user's subscription status.
+
+    Returns subscription details including status, product, expiration, and trial info.
+    """
+    user_id = get_user_id(request)
+    subscription = get_subscription_status(user_id)
+
+    if not subscription:
+        return {
+            "is_active": False,
+            "status": None,
+            "product_id": None,
+            "expired_at": None,
+            "is_trial": False,
+        }
+
+    # Check if subscription is actually active using local helper
+    is_active = is_subscription_active(subscription)
+
+    return {
+        "is_active": is_active,
+        "status": subscription.get("status"),
+        "product_id": subscription.get("productId"),
+        "expired_at": subscription.get("expiredAt"),
+        "is_trial": subscription.get("isTrial", False),
+    }
