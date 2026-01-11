@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Alert, Pressable } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { StyleSheet, View, ScrollView, Alert, Pressable, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Button, useTheme } from '@rneui/themed';
 import { useRouter } from 'expo-router';
@@ -7,22 +7,25 @@ import { useTranslation } from 'react-i18next';
 import { PACKAGE_TYPE, PurchasesPackage } from 'react-native-purchases';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
+import { useClerk } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/components/RevenueCatProvider';
 
 export default function PaywallScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
-  const { packages, purchasePackage, restorePurchases, isLoading } = useRevenueCat();
+  const { signOut } = useClerk();
+  const { packages, purchasePackage, restorePurchases, isConfigured } = useRevenueCat();
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [showPackageModal, setShowPackageModal] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<PurchasesPackage | null>(null);
 
-  // Sort packages: yearly first (best value), then monthly, then weekly
+  // Sort packages: weekly first, then monthly, then yearly
   const sortedPackages = useMemo(() => {
     const order = {
-      [PACKAGE_TYPE.ANNUAL]: 0,
+      [PACKAGE_TYPE.WEEKLY]: 0,
       [PACKAGE_TYPE.MONTHLY]: 1,
-      [PACKAGE_TYPE.WEEKLY]: 2,
+      [PACKAGE_TYPE.ANNUAL]: 2,
     };
     return [...packages].sort(
       // @ts-ignore
@@ -30,12 +33,14 @@ export default function PaywallScreen() {
     );
   }, [packages]);
 
-  // Set default selected package to yearly (best value)
-  React.useEffect(() => {
+  // Set default selected package to monthly when modal opens
+  const handleOpenModal = () => {
     if (sortedPackages.length > 0 && !selectedPackage) {
-      setSelectedPackage(sortedPackages[0]);
+      const monthlyPkg = sortedPackages.find(p => p.packageType === PACKAGE_TYPE.MONTHLY);
+      setSelectedPackage(monthlyPkg || sortedPackages[0]);
     }
-  }, [sortedPackages, selectedPackage]);
+    setShowPackageModal(true);
+  };
 
   const handlePurchase = async () => {
     if (!selectedPackage) return;
@@ -44,6 +49,7 @@ export default function PaywallScreen() {
     try {
       const success = await purchasePackage(selectedPackage);
       if (success) {
+        setShowPackageModal(false);
         router.replace('/(tabs)');
       }
     } catch (error: any) {
@@ -66,6 +72,11 @@ export default function PaywallScreen() {
       Alert.alert(t('paywall.restoreError'), error.message);
     }
   };
+
+  const handleLogout = useCallback(async () => {
+    await signOut();
+    router.replace('/sign-in');
+  }, [signOut, router]);
 
   const getPackageLabel = (packageType: PACKAGE_TYPE) => {
     switch (packageType) {
@@ -121,7 +132,7 @@ export default function PaywallScreen() {
         <View style={styles.featuresContainer}>
           {features.map((feature, index) => (
             <View key={index} style={styles.featureRow}>
-              <MaterialIcons name={feature.icon as any} size={20} color={theme.colors.primary} />
+              <MaterialIcons name={feature.icon as any} size={24} color={theme.colors.primary} />
               <Text style={[styles.featureText, { color: theme.colors.black }]}>
                 {feature.text}
               </Text>
@@ -129,74 +140,128 @@ export default function PaywallScreen() {
           ))}
         </View>
 
-        {/* Subscription options */}
-        <View style={styles.packagesContainer}>
-          {sortedPackages.map((pkg, index) => {
-            const isSelected = selectedPackage?.identifier === pkg.identifier;
-            const isYearly = pkg.packageType === PACKAGE_TYPE.ANNUAL;
+        {/* Spacer for future marketing content */}
+        <View style={styles.spacer} />
 
-            return (
-              <Pressable
-                key={pkg.identifier}
-                style={[
-                  styles.packageOption,
-                  { borderColor: isSelected ? theme.colors.primary : theme.colors.grey2 },
-                  isSelected && { backgroundColor: theme.colors.primary + '10' },
-                ]}
-                onPress={() => setSelectedPackage(pkg)}
-              >
-                {isYearly && (
-                  <View style={[styles.bestValueBadge, { backgroundColor: theme.colors.primary }]}>
-                    <Text style={styles.bestValueText}>{t('paywall.bestValue')}</Text>
-                  </View>
-                )}
-                <View style={styles.packageHeader}>
-                  <View
-                    style={[
-                      styles.radioOuter,
-                      { borderColor: isSelected ? theme.colors.primary : theme.colors.grey3 },
-                    ]}
-                  >
-                    {isSelected && (
-                      <View style={[styles.radioInner, { backgroundColor: theme.colors.primary }]} />
-                    )}
-                  </View>
-                  <Text style={[styles.packageLabel, { color: theme.colors.black }]}>
-                    {getPackageLabel(pkg.packageType)}
-                  </Text>
-                </View>
-                <Text style={[styles.packagePrice, { color: theme.colors.black }]}>
-                  {pkg.product.priceString}
-                  <Text style={[styles.packagePeriod, { color: theme.colors.grey4 }]}>
-                    {getPackagePeriod(pkg.packageType)}
-                  </Text>
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {/* Subscribe button */}
+        {/* CTA Button */}
         <Button
           title={t('paywall.startTrial')}
-          onPress={handlePurchase}
-          loading={isPurchasing || isLoading}
-          disabled={!selectedPackage || isPurchasing || isLoading}
-          containerStyle={styles.subscribeButton}
+          onPress={handleOpenModal}
+          disabled={!isConfigured}
+          containerStyle={styles.ctaButton}
         />
 
-        {/* Restore purchases */}
-        <Button
-          title={t('paywall.restore')}
-          type="clear"
-          onPress={handleRestore}
-          disabled={isPurchasing}
-          titleStyle={{ color: theme.colors.primary }}
-        />
+        {/* Restore purchases & Logout */}
+        <View style={styles.secondaryButtons}>
+          <Button
+            title={t('paywall.restore')}
+            type="clear"
+            onPress={handleRestore}
+            titleStyle={{ color: theme.colors.grey4 }}
+          />
+          <Button
+            title={t('settings.signOut')}
+            type="clear"
+            onPress={handleLogout}
+            titleStyle={{ color: theme.colors.grey4 }}
+          />
+        </View>
 
         {/* Terms */}
         <Text style={[styles.terms, { color: theme.colors.grey4 }]}>{t('paywall.terms')}</Text>
       </ScrollView>
+
+      {/* Package Selection Modal */}
+      <Modal
+        visible={showPackageModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowPackageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalBackdrop} onPress={() => setShowPackageModal(false)} />
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+            {/* Modal header */}
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.colors.black }]}>
+                {t('paywall.choosePlan')}
+              </Text>
+              <Pressable onPress={() => setShowPackageModal(false)} style={styles.closeButton}>
+                <MaterialIcons name="close" size={24} color={theme.colors.grey4} />
+              </Pressable>
+            </View>
+
+            {/* Package options */}
+            <View style={styles.packagesContainer}>
+              {sortedPackages.map((pkg) => {
+                const isSelected = selectedPackage?.identifier === pkg.identifier;
+                const isYearly = pkg.packageType === PACKAGE_TYPE.ANNUAL;
+                const isMonthly = pkg.packageType === PACKAGE_TYPE.MONTHLY;
+
+                return (
+                  <Pressable
+                    key={pkg.identifier}
+                    style={[
+                      styles.packageOption,
+                      { borderColor: isSelected ? theme.colors.primary : theme.colors.grey2 },
+                      isSelected && { backgroundColor: theme.colors.primary + '10' },
+                    ]}
+                    onPress={() => setSelectedPackage(pkg)}
+                  >
+                    {(isYearly || isMonthly) && (
+                      <View style={[styles.bestValueBadge, { backgroundColor: theme.colors.primary }]}>
+                        <Text style={styles.bestValueText}>
+                          {isYearly ? t('paywall.bestValue') : t('paywall.popular')}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={styles.packageHeader}>
+                      <View
+                        style={[
+                          styles.radioOuter,
+                          { borderColor: isSelected ? theme.colors.primary : theme.colors.grey3 },
+                        ]}
+                      >
+                        {isSelected && (
+                          <View style={[styles.radioInner, { backgroundColor: theme.colors.primary }]} />
+                        )}
+                      </View>
+                      <Text style={[styles.packageLabel, { color: theme.colors.black }]}>
+                        {getPackageLabel(pkg.packageType)}
+                      </Text>
+                    </View>
+                    <Text style={[styles.packagePrice, { color: theme.colors.black }]}>
+                      {pkg.product.priceString}
+                      <Text style={[styles.packagePeriod, { color: theme.colors.grey4 }]}>
+                        {getPackagePeriod(pkg.packageType)}
+                      </Text>
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Start trial button */}
+            <Button
+              title={t('paywall.startTrialButton')}
+              onPress={handlePurchase}
+              loading={isPurchasing}
+              disabled={!selectedPackage || isPurchasing}
+              containerStyle={styles.continueButton}
+            />
+
+            {/* Trial description */}
+            {selectedPackage && (
+              <Text style={[styles.trialDescription, { color: theme.colors.grey4 }]}>
+                {t('paywall.trialDescription', {
+                  price: selectedPackage.product.priceString,
+                  period: getPackagePeriod(selectedPackage.packageType).replace('/', ''),
+                })}
+              </Text>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -208,6 +273,8 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingBottom: 40,
+    flexGrow: 1,
+    marginTop: 30
   },
   title: {
     fontSize: 28,
@@ -229,7 +296,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 20,
     alignSelf: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
     gap: 6,
   },
   trialText: {
@@ -242,11 +309,57 @@ const styles = StyleSheet.create({
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    gap: 12,
+    marginBottom: 16,
+    gap: 16,
   },
   featureText: {
-    fontSize: 16,
+    fontSize: 17,
+    flex: 1,
+  },
+  spacer: {
+    flex: 1,
+    minHeight: 40,
+  },
+  ctaButton: {
+    marginBottom: 12,
+  },
+  secondaryButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  terms: {
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginTop: 16,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    padding: 4,
   },
   packagesContainer: {
     marginBottom: 24,
@@ -305,13 +418,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '400',
   },
-  subscribeButton: {
-    marginBottom: 8,
+  continueButton: {
+    marginTop: 8,
   },
-  terms: {
-    fontSize: 12,
+  trialDescription: {
+    fontSize: 13,
     textAlign: 'center',
-    lineHeight: 18,
-    marginTop: 16,
+    marginTop: 12,
   },
 });

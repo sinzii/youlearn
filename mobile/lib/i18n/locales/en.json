@@ -103,12 +103,17 @@
     "perYear": "/year",
     "startTrial": "Start Free Trial",
     "subscribe": "Subscribe",
-    "restore": "Restore Purchases",
+    "restore": "Restore",
     "restored": "Purchases restored successfully",
     "restoreError": "Failed to restore purchases",
     "purchaseError": "Purchase failed",
     "terms": "By subscribing, you agree to our Terms of Service and Privacy Policy. Payment will be charged to your Apple ID or Google Play account. Subscription automatically renews unless canceled at least 24 hours before the end of the current period.",
-    "close": "Close"
+    "close": "Close",
+    "choosePlan": "Choose Your Plan",
+    "continue": "Continue",
+    "popular": "Popular",
+    "startTrialButton": "Start 7 days trial",
+    "trialDescription": "7 days free, then {{price}} per {{period}}. Cancel anytime."
   },
   "subscription": {
     "title": "Subscription",
@@ -119,7 +124,7 @@
     "cancelled": "Cancelled",
     "expiresOn": "Expires on",
     "manage": "Manage Subscription",
-    "restore": "Restore Purchases",
+    "restore": "Restore",
     "upgrade": "Upgrade to Pro"
   },
   "subscriptionGate": {

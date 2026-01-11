@@ -103,12 +103,17 @@
     "perYear": "/năm",
     "startTrial": "Bắt đầu dùng thử miễn phí",
     "subscribe": "Đăng ký",
-    "restore": "Khôi phục giao dịch",
+    "restore": "Khôi phục",
     "restored": "Khôi phục giao dịch thành công",
     "restoreError": "Không thể khôi phục giao dịch",
     "purchaseError": "Giao dịch thất bại",
     "terms": "Bằng việc đăng ký, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật. Thanh toán sẽ được tính vào tài khoản Apple ID hoặc Google Play của bạn. Đăng ký tự động gia hạn trừ khi bị hủy ít nhất 24 giờ trước khi kỳ hiện tại kết thúc.",
-    "close": "Đóng"
+    "close": "Đóng",
+    "choosePlan": "Chọn gói của bạn",
+    "continue": "Tiếp tục",
+    "popular": "Phổ biến",
+    "startTrialButton": "Bắt đầu dùng thử 7 ngày",
+    "trialDescription": "7 ngày miễn phí, sau đó {{price}} hàng {{period}}. Hủy bất cứ lúc nào."
   },
   "subscription": {
     "title": "Đăng ký",
@@ -119,7 +124,7 @@
     "cancelled": "Đã hủy",
     "expiresOn": "Hết hạn vào",
     "manage": "Quản lý đăng ký",
-    "restore": "Khôi phục giao dịch",
+    "restore": "Khôi phục",
     "upgrade": "Nâng cấp lên Pro"
   },
   "subscriptionGate": {
