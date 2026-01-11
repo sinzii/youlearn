@@ -36,7 +36,7 @@ export default defineSchema({
     userId: v.string(), // Clerk user ID (same as RevenueCat appUserID)
     status: v.string(), // "active" | "cancelled" | "expired" | "billing_issue"
     productId: v.optional(v.string()), // e.g., "pro_weekly", "pro_monthly", "pro_yearly"
-    expiredAt: v.optional(v.string()), // ISO date string
+    expiredAt: v.optional(v.number()), // Timestamp in milliseconds
     isTrial: v.boolean(),
     lastEventType: v.optional(v.string()), // Last RevenueCat event type
     createdAt: v.number(),

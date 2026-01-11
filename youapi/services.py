@@ -60,7 +60,7 @@ def save_subscription_status(
     user_id: str,
     status: str,
     product_id: str | None = None,
-    expired_at: str | None = None,
+    expired_at: int | None = None,
     is_trial: bool = False,
     event_type: str | None = None,
     raw_event: str | None = None,

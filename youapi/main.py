@@ -102,27 +102,6 @@ app.add_middleware(
 PUBLIC_ROUTES = ["/", "/swagger", "/openapi.json", "/webhooks/revenuecat"]
 
 
-@app.middleware("http")
-async def clerk_auth_middleware(request: Request, call_next):
-    """Middleware to verify Clerk JWT tokens for all protected routes."""
-    # Skip auth for public routes
-    if request.url.path in PUBLIC_ROUTES:
-        return await call_next(request)
-
-    # Verify the token
-    request_state = clerk.authenticate_request(request, AuthenticateRequestOptions())
-
-    if not request_state.is_signed_in:
-        return JSONResponse(
-            status_code=401,
-            content={"detail": "Unauthorized: Invalid or missing authentication token"},
-        )
-
-    # Store user info in request state for use in endpoints
-    request.state.auth = request_state
-    return await call_next(request)
-
-
 # Routes that require subscription (all routes except public ones and /history which shows upsell)
 SUBSCRIPTION_REQUIRED_ROUTES = [
     "/youtube/info",
@@ -134,6 +113,8 @@ SUBSCRIPTION_REQUIRED_ROUTES = [
 ]
 
 
+# NOTE: Middleware runs in REVERSE definition order in FastAPI
+# subscription_middleware is defined FIRST so it runs SECOND (after auth)
 @app.middleware("http")
 async def subscription_middleware(request: Request, call_next):
     """Middleware to check subscription status for protected routes."""
@@ -145,8 +126,10 @@ async def subscription_middleware(request: Request, call_next):
     try:
         user_id = get_user_id(request)
     except HTTPException:
-        # Auth middleware hasn't run yet or failed - let it handle the error
-        return await call_next(request)
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "User not authenticated"},
+        )
 
     # Fetch subscription once and check status locally
     subscription = get_subscription_status(user_id)
@@ -163,6 +146,35 @@ async def subscription_middleware(request: Request, call_next):
         )
 
     return await call_next(request)
+
+
+# clerk_auth_middleware is defined LAST so it runs FIRST
+@app.middleware("http")
+async def clerk_auth_middleware(request: Request, call_next):
+    """Middleware to verify Clerk JWT tokens for all protected routes."""
+    # Skip auth for public routes
+    if request.url.path in PUBLIC_ROUTES:
+        return await call_next(request)
+
+    try:
+        # Verify the token
+        request_state = clerk.authenticate_request(request, AuthenticateRequestOptions())
+
+        if not request_state.is_signed_in:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Unauthorized: Invalid or missing authentication token"},
+            )
+
+        # Store user info in request state for use in endpoints
+        request.state.auth = request_state
+        return await call_next(request)
+    except Exception as e:
+        print(f"Auth middleware error: {e}")
+        return JSONResponse(
+            status_code=401,
+            content={"detail": f"Authentication error: {str(e)}"},
+        )
 
 
 def get_user_id(request: Request) -> str:
@@ -183,11 +195,11 @@ def is_subscription_active(subscription: dict | None) -> bool:
     if subscription.get("status") not in ["active", "cancelled"]:
         return False
 
-    # Check if expired
+    # Check if expired (expiredAt is milliseconds timestamp)
     expired_at = subscription.get("expiredAt")
     if expired_at:
-        exp_date = datetime.fromisoformat(expired_at.replace("Z", "+00:00"))
-        if exp_date < datetime.now(exp_date.tzinfo):
+        now_ms = datetime.now().timestamp() * 1000
+        if expired_at < now_ms:
             return False
 
     return True
@@ -462,17 +474,22 @@ async def handle_revenuecat_webhook(
         else:
             status = "unknown"
 
-        # Extract subscription details from subscriber info
-        subscriber = event.get("subscriber", {})
-        entitlements = subscriber.get("entitlements", {})
-        pro_entitlement = entitlements.get("pro", {})
-
-        # Get expiration date and product ID
-        expired_at = pro_entitlement.get("expires_date")
-        product_id = pro_entitlement.get("product_identifier")
-
-        # Check if this is a trial
+        # Extract subscription details directly from event
+        product_id = event.get("product_id")
+        expired_at = event.get("expiration_at_ms")  # Timestamp in milliseconds
         is_trial = event.get("period_type") == "TRIAL"
+
+        # Verify entitlement exists
+        entitlement_ids = event.get("entitlement_ids", [])
+        has_pro = "VideoInsight Pro" in entitlement_ids
+
+        print('webhook data:', {
+            'event_type': event_type,
+            'product_id': product_id,
+            'expired_at': expired_at,
+            'is_trial': is_trial,
+            'has_pro': has_pro,
+        })
 
         # Save to Convex
         save_subscription_status(

@@ -9,7 +9,7 @@ export const upsert = mutation({
     userId: v.string(),
     status: v.string(),
     productId: v.optional(v.string()),
-    expiredAt: v.optional(v.string()),
+    expiredAt: v.optional(v.number()),
     isTrial: v.boolean(),
     eventType: v.optional(v.string()),
     rawEvent: v.optional(v.string()),
